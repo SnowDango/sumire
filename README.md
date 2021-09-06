@@ -1,4 +1,4 @@
-# Sumire -auth0 and reverseproxy server-
+# Sumire -auth0 and proxy server-
 
 ## enviroment
 - CLIENT_ID: Auth0 client id
