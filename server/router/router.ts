@@ -16,5 +16,11 @@ router.get("/logout",(((_req: Request, res: Response) => {
   })
 })));
 
+// error page
+router.use("/error", ((req, res) => {
+  res.sendStatus(500);
+  // res.render("error",data);
+}))
+
 export default router;
 
