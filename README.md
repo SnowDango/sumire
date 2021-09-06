@@ -10,4 +10,6 @@
 
 ## System
 
+![system image](/.dev_img/server-system.jpg)
+
 
