@@ -1,14 +1,16 @@
 import React from "react";
 import {
-  Avatar, Button,
+  Avatar,
+  Button,
   Card, CardActionArea,
   CardActions,
-  CardContent,
-  CardHeader, CardMedia, Collapse,
-  Grid,
+  CardContent, CardHeader,
+  CardMedia,
+  Grid, Icon,
   makeStyles,
   Typography
 } from "@material-ui/core";
+import {darkThemeColor} from "../theme";
 
 const useStyles = makeStyles({
   card: {
@@ -29,29 +31,30 @@ const useStyles = makeStyles({
 
 export default () => {
   const classes = useStyles();
+  const themeClasses = darkThemeColor();
   return (<Grid item xs={12} sm={6} md={4}>
-      <Card className={classes.card}>
-        <CardActionArea>
-          <CardMedia
-            className={classes.media}
-            image="https://news.1242.com/wp-content/uploads/2020/04/S__94969859RS.jpg"
-            title="Contemplative Reptile"
-          />
-          <CardContent>
-            <Typography gutterBottom component="h2">
-              Lizard
-            </Typography>
-            <Typography component="p">
-              Lizards are a widespread group of squamate reptiles, with over 6,000
-              species, ranging across all continents except Antarctica
-            </Typography>
-          </CardContent>
-        </CardActionArea>
+      <Card className={`${classes.card} ${themeClasses.cardBody}`}>
+        <CardMedia
+          className={classes.media}
+          image="https://news.1242.com/wp-content/uploads/2020/04/S__94969859RS.jpg"
+          title="Contemplative Reptile"
+        />
+        <CardHeader title={
+          <Typography component="h1" className={themeClasses.darkTitle}>Lizard</Typography>
+        } avatar={
+          <Avatar src={"http://localhost:3000/resource/images/hieda.jpg"} />
+        }/>
+        <CardContent>
+          <Typography component="p" className={themeClasses.darkText}>
+            Lizards are a widespread group of squamate reptiles, with over 6,000
+            species, ranging across all continents except Antarctica
+          </Typography>
+        </CardContent>
         <CardActions>
-          <Button size="small" color="primary">
+          <Button size="small" className={themeClasses.linkText}>
             Share
           </Button>
-          <Button size="small" color="primary">
+          <Button size="small" className={themeClasses.linkText}>
             Learn More
           </Button>
         </CardActions>
