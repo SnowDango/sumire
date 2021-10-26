@@ -1,10 +1,13 @@
-import {NextFunction, Request, Response, Router} from "express";
+import {Request, Response, Router} from "express";
 import {requiresAuth} from "express-openid-connect";
-import log4js from "log4js";
+import {StatusCodes,getReasonPhrase} from "http-status-codes";
+import {ErrorProps} from "../../views/error";
+import {getLogger} from "../logger";
 
 const router: Router = Router();
 
-router.get('/',requiresAuth(),(((_req: Request, res: Response) => {
+router.get('/',requiresAuth(),(((req: Request, res: Response) => {
+  console.log(req.get("host"));
   res.render("admin");
 })));
 
@@ -17,10 +20,22 @@ router.get("/logout",(((_req: Request, res: Response) => {
 })));
 
 // error page
-router.use("/error", ((req, res) => {
-  res.sendStatus(500);
-  // res.render("error",data);
-}))
+router.use("/error/:errorId", ((req: Request, res: Response) => {
+  const data: ErrorProps = {
+    statusCode: req.params.errorId,
+    describe: getReasonPhrase(req.params.errorId)
+  }
+  if(req.accepts("html")){
+    res.render("error",data);
+  }else if(req.accepts("json")){
+    res.status(parseInt(req.params.errorId));
+    res.send(data);
+  }
+}));
+
+router.use("*",((req, res) => {
+  res.redirect("/error/"+StatusCodes.NOT_FOUND.toString());
+}));
 
 export default router;
 

@@ -8,6 +8,8 @@ import log4js from "log4js";
 
 import router from "./router/router";
 import * as path from "path";
+import {getLogger} from "./logger";
+import {ErrorProps} from "../views/error";
 
 const env = load({
   CLIENT_ID: String,
@@ -18,8 +20,6 @@ const env = load({
   SECRET_SESSION: String
 });
 
-const logger = log4js.getLogger();
-logger.level = "debug";
 const app = express();
 
 app.use(express.json());
@@ -40,8 +40,11 @@ app.use(auth({
   app.use(methodOverride());
   app.use("/resource",express.static(path.join(__dirname, '../resource')));
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const logger = getLogger("debug");
     logger.error(err.toString());
-    res.redirect("/failed");
+    logger.error(err.typeof);
+    res.redirect("/error/401");
+
   });
   app.use(router);
 

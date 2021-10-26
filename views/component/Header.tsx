@@ -1,6 +1,5 @@
 import {AppBar, Button, makeStyles, Toolbar, Typography} from "@material-ui/core";
 import React from "react";
-import {darkThemeColor} from "../theme";
 
 const useStyles = makeStyles({
   logoutButton: {
@@ -12,15 +11,23 @@ interface HeaderProps {
   title: string
 }
 
+const darkTheme = makeStyles({
+  darkButton: {
+    color: "#FFFFFF"
+  }
+})
+
 export default (props: HeaderProps) => {
-  const classes = useStyles()
-  const themeClasses = darkThemeColor();
+  const classes = useStyles();
+  const darkClasses = darkTheme();
   return(<AppBar position="static">
-      <Toolbar className={themeClasses.darkHeader}>
-        <Typography variant="h6" className={themeClasses.darkHeaderText}>
+      <Toolbar>
+        <Typography variant="h6">
           {props.title}
         </Typography>
-        <Button className={`${classes.logoutButton} ${themeClasses.darkHeaderText}`} href={"/logout"}>Logout</Button>
+        <Button  className={`${classes.logoutButton} ${darkClasses.darkButton}`} href={"/logout"}>
+          Logout
+        </Button>
       </Toolbar>
     </AppBar>
   )

@@ -2,15 +2,13 @@ import React from "react";
 import {
   Avatar,
   Button,
-  Card, CardActionArea,
+  Card,
   CardActions,
-  CardContent, CardHeader,
-  CardMedia,
-  Grid, Icon,
-  makeStyles,
-  Typography
+  CardContent,
+  CardHeader,
+  Grid,
+  makeStyles, Typography,
 } from "@material-ui/core";
-import {darkThemeColor} from "../theme";
 
 const useStyles = makeStyles({
   card: {
@@ -29,36 +27,45 @@ const useStyles = makeStyles({
   }
 });
 
-export default () => {
+export interface CardProps {
+  title: string,
+  describe: string,
+  icon: string,
+  git: string | null,
+  url: string,
+}
+
+export default (props: CardProps) => {
   const classes = useStyles();
-  const themeClasses = darkThemeColor();
-  return (<Grid item xs={12} sm={6} md={4}>
-      <Card className={`${classes.card} ${themeClasses.cardBody}`}>
-        <CardMedia
-          className={classes.media}
-          image="https://news.1242.com/wp-content/uploads/2020/04/S__94969859RS.jpg"
-          title="Contemplative Reptile"
+  return (<Grid item xs={8} sm={6} md={4}>
+      <Card className={classes.card}>
+        <CardHeader
+          title={<Typography>{props.title}</Typography>}
+          avatar={<Avatar src={props.icon} />}
         />
-        <CardHeader title={
-          <Typography component="h1" className={themeClasses.darkTitle}>Lizard</Typography>
-        } avatar={
-          <Avatar src={"http://localhost:3000/resource/images/hieda.jpg"} />
-        }/>
         <CardContent>
-          <Typography component="p" className={themeClasses.darkText}>
-            Lizards are a widespread group of squamate reptiles, with over 6,000
-            species, ranging across all continents except Antarctica
+          <Typography>
+            {props.describe}
           </Typography>
         </CardContent>
         <CardActions>
-          <Button size="small" className={themeClasses.linkText}>
-            Share
-          </Button>
-          <Button size="small" className={themeClasses.linkText}>
-            Learn More
-          </Button>
+          {urlButton(props.url, "Go")}
+          {urlButton(props.git, "GitHub")}
         </CardActions>
       </Card>
     </Grid>
   );
 };
+
+const urlButton = (url: string | null, uiText: string) => {
+  if (url === null){
+    return
+  }else{
+    return(
+      <Button size="small" href={url}>
+        {uiText}
+      </Button>
+    );
+  }
+}
+

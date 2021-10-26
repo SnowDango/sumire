@@ -2,19 +2,21 @@ import React from 'react';
 import { Head } from '@react-ssr/express';
 import CardPanelGrid from "./component/CardPanelGrid";
 import Header from "./component/Header";
-import {darkThemeColor} from "./theme";
+import { Theme } from "./styles/themeBase";
+import {useDarkTheme} from "./styles/dark/theme";
 
 export default () => {
-  const classes = darkThemeColor();
+  let theme: Theme = useDarkTheme();
+
   return (
     <React.Fragment>
       <Head>
         <title>admin page</title>
       </Head>
-      <body className={classes.darkBody}>
+      <body className={theme.lay1}>
       <Header title={"SnowDango Tools"}/>
       <CardPanelGrid/>
-      </body>　
+      </body>
     </React.Fragment>
   );
 };

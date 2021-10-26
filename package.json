@@ -12,12 +12,17 @@
     "@react-ssr/core": "^0.21.18",
     "@react-ssr/express": "^0.21.18",
     "@types/method-override": "^0.0.32",
+    "@types/styled-components": "^5.1.14",
+    "axios": "^0.21.4",
     "express": "^4.17.1",
     "express-openid-connect": "^2.5.0",
+    "http-status-codes": "^2.1.4",
     "log4js": "^6.3.0",
     "method-override": "^3.0.0",
     "react": "^16.13.0",
     "react-dom": "^17.0.2",
+    "react-helmet": "^6.1.0",
+    "styled-components": "^5.3.1",
     "ts-dotenv": "^0.8.3"
   },
   "devDependencies": {
@@ -25,6 +30,7 @@
     "@types/node": "^12.11.6",
     "@types/react": "^16.9.11",
     "@types/react-dom": "^16.9.4",
+    "@types/react-helmet": "^6.1.4",
     "cross-env": "^7.0.2",
     "ts-node-dev": "^1.0.0-pre.44",
     "typescript": "^3.8.3"
