@@ -1,5 +1,6 @@
 package com.snowdango.sumire.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -38,6 +39,7 @@ class SongListenerService: NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
+        initMediaMetadata()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -45,6 +47,7 @@ class SongListenerService: NotificationListenerService() {
         return super.onBind(intent)
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private fun startForeground(){
         val channel = NotificationChannel(
             channelId,
@@ -74,6 +77,19 @@ class SongListenerService: NotificationListenerService() {
         sbn?.let {
             if(it.packageName == "com.apple.android.music"){
                 syncMediaMetadata(it.packageName)
+            }
+        }
+    }
+
+    private fun initMediaMetadata(){
+        getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
+            val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+            mediaSessionManager.getActiveSessions(componentName).forEach { mediaController ->
+                mediaController.playbackState?.isActive?.let {
+                    if(it){
+                        syncMediaMetadata(mediaController.packageName)
+                    }
+                }
             }
         }
     }
