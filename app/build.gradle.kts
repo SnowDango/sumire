@@ -52,7 +52,8 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-
+    implementation(project(":infla"))
+    implementation(project(":data"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.icons)
     implementation(libs.androidx.navigation)
+    implementation(libs.koin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

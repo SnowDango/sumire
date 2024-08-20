@@ -7,5 +7,5 @@ data class SongData(
     val artist: String,
     val album: String,
     val app: MusicApp,
-    val artwork: Bitmap,
+    val artwork: Bitmap?,
 )

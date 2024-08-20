@@ -13,6 +13,7 @@ material = "1.12.0"
 material3Android = "1.2.1"
 navigation = "2.7.7"
 coroutine = "1.8.1"
+koin = "3.5.6"
 
 
 [libraries]
@@ -36,6 +37,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 coroutine-core = { group = "org.jetbrains.kotlinx" , name = "kotlinx-coroutines-core", version.ref = "coroutine"}
+koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin"}
 
 
 [plugins]

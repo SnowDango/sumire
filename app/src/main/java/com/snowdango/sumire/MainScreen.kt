@@ -22,10 +22,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.ui.theme.SumireTheme
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    songSharedFlow: PlayingSongSharedFlow,
+) {
     val navController = rememberNavController()
     SumireTheme {
         Scaffold(
@@ -60,7 +63,9 @@ fun MainScreen() {
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable(route = ROUTE.PLAYING.name) {
-                    PlayingScreen()
+                    PlayingScreen(
+                        songSharedFlow
+                    )
                 }
                 composable(route = ROUTE.HISTORY.name) {
                     HistoryScreen()
