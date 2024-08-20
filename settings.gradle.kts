@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "Sumire"
 include(":app")
 include(":ui")
+include(":infla")
