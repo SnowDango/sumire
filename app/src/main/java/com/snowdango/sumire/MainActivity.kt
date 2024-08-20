@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MainScreen(songSharedFlow)
+            MainScreen()
         }
         if(!NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)){
             val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)

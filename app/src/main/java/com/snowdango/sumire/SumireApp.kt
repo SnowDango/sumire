@@ -3,6 +3,7 @@ package com.snowdango.sumire
 import android.app.Application
 import com.snowdango.sumire.infla.EventSharedFlow
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
+import com.snowdango.sumire.presenter.playing.playingKoinModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -15,12 +16,12 @@ class SumireApp: Application() {
         startKoin {
             androidLogger()
             androidContext(this@SumireApp)
-            modules(sharedModule)
+            modules(sharedModule, playingKoinModule)
         }
     }
 
     private val sharedModule = module {
         single<EventSharedFlow> { EventSharedFlow() }
-        single<PlayingSongSharedFlow> { PlayingSongSharedFlow() }
+        single<PlayingSongSharedFlow> { PlayingSongSharedFlow(get()) }
     }
 }

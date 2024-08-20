@@ -12,8 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.internal.synchronized
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class PlayingSongSharedFlow {
+class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
 
     private val _playingSongFlow = MutableStateFlow<PlayingSongData?>(value = null)
     val playingSongFlow: StateFlow<PlayingSongData?> = _playingSongFlow.stateIn(
@@ -25,9 +28,16 @@ class PlayingSongSharedFlow {
     private var playingSong: PlayingSongData? = null
 
     suspend fun changeSong(playingSongData: PlayingSongData?) {
-        _playingSongFlow.emit(playingSongData)
-        playingSong = playingSongData
+        Mutex().withLock(playingSongData){
+            playingSong = playingSongData
+        }
+        eventSharedFlow.postEvent(
+            EventSharedFlow.SharedEvent.ChangeCurrentSong
+        )
     }
 
+    suspend fun getCurrentPlayingSong(): PlayingSongData? {
+        return playingSong
+    }
 
 }

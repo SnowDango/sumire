@@ -1,6 +1,5 @@
 package com.snowdango.sumire
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,12 +22,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
+import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
 @Composable
-fun MainScreen(
-    songSharedFlow: PlayingSongSharedFlow,
-) {
+fun MainScreen() {
     val navController = rememberNavController()
     SumireTheme {
         Scaffold(
@@ -63,9 +61,7 @@ fun MainScreen(
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable(route = ROUTE.PLAYING.name) {
-                    PlayingScreen(
-                        songSharedFlow
-                    )
+                    PlayingScreen()
                 }
                 composable(route = ROUTE.HISTORY.name) {
                     HistoryScreen()
