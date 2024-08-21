@@ -21,7 +21,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
@@ -37,7 +36,8 @@ fun MainScreen() {
                     val currentDestination = navBackStackEntry?.destination
 
                     ROUTE.entries.forEach { route ->
-                        val selected = currentDestination?.hierarchy?.any { it.route == route.name } == true
+                        val selected =
+                            currentDestination?.hierarchy?.any { it.route == route.name } == true
                         NavigationBarItem(
                             selected = selected,
                             icon = {
@@ -48,7 +48,9 @@ fun MainScreen() {
                             },
                             label = { Text(text = route.label) },
                             onClick = {
-                                navController.navigate(route.name)
+                                if (!selected) {
+                                    navController.navigate(route.name)
+                                }
                             },
                         )
                     }
@@ -60,10 +62,14 @@ fun MainScreen() {
                 startDestination = ROUTE.PLAYING.name,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                composable(route = ROUTE.PLAYING.name) {
+                composable(
+                    route = ROUTE.PLAYING.name,
+                ) {
                     PlayingScreen()
                 }
-                composable(route = ROUTE.HISTORY.name) {
+                composable(
+                    route = ROUTE.HISTORY.name,
+                ) {
                     HistoryScreen()
                 }
             }
@@ -71,7 +77,19 @@ fun MainScreen() {
     }
 }
 
-private enum class ROUTE(val selectedIcon: ImageVector, val unSelectedIcon: ImageVector, val label: String) {
-    PLAYING(selectedIcon = Icons.Filled.PlayArrow, unSelectedIcon = Icons.Outlined.PlayArrow, label = "playing"),
-    HISTORY(selectedIcon = Icons.Filled.MusicNote, unSelectedIcon = Icons.Outlined.MusicNote, label = "history"),
+private enum class ROUTE(
+    val selectedIcon: ImageVector,
+    val unSelectedIcon: ImageVector,
+    val label: String
+) {
+    PLAYING(
+        selectedIcon = Icons.Filled.PlayArrow,
+        unSelectedIcon = Icons.Outlined.PlayArrow,
+        label = "playing"
+    ),
+    HISTORY(
+        selectedIcon = Icons.Filled.MusicNote,
+        unSelectedIcon = Icons.Outlined.MusicNote,
+        label = "history"
+    ),
 }
