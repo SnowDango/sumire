@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(Artists.TABLE_NAME)
 data class Artists(
     @PrimaryKey(autoGenerate = true)
-    val index: Long = 0,
+    val id: Long = 0,
     @ColumnInfo("name")
     val name: String,
 ) {

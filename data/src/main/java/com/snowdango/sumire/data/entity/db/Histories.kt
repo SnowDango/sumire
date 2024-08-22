@@ -8,7 +8,7 @@ import kotlinx.datetime.LocalDateTime
 @Entity(Histories.TABLE_NAME)
 data class Histories(
     @PrimaryKey(autoGenerate = true)
-    val index: Long = 0,
+    val id: Long = 0,
     @ColumnInfo("song_id")
     val songId: Long,
     @ColumnInfo("play_time")

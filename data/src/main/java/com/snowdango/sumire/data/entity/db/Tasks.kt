@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(Tasks.TABLE_NAME)
 data class Tasks(
     @PrimaryKey(autoGenerate = true)
-    val index: Long = 0,
+    val id: Long = 0,
     @ColumnInfo("media_id")
     val mediaId: String,
     @ColumnInfo("song_id")

@@ -7,19 +7,25 @@ import androidx.room.PrimaryKey
 @Entity(Songs.TABLE_NAME)
 data class Songs(
     @PrimaryKey(autoGenerate = true)
-    val index: Long = 0,
-    @ColumnInfo("title")
+    val id: Long = 0,
+    @ColumnInfo(COLUMN_TITLE)
     val title: String,
-    @ColumnInfo("artist_id")
+    @ColumnInfo(COLUMN_ARTIST_ID)
     val artistId: Long,
-    @ColumnInfo("album_id")
+    @ColumnInfo(COLUMN_ALBUM_ID)
     val albumId: Long,
-    @ColumnInfo("thumbnail")
+    @ColumnInfo(COLUMN_THUMBNAIL)
     val thumbnail: String?,
-    @ColumnInfo("is_thumb_url")
+    @ColumnInfo(COLUMN_IS_THUMB_URL)
     val isThumbUrl: Boolean,
 ) {
     companion object {
         const val TABLE_NAME = "songs"
+        const val COLUMN_ID = "id"
+        const val COLUMN_TITLE = "title"
+        const val COLUMN_ARTIST_ID = "artist_id"
+        const val COLUMN_ALBUM_ID = "album_id"
+        const val COLUMN_THUMBNAIL = "thumbnail"
+        const val COLUMN_IS_THUMB_URL = "is_thumb_url"
     }
 }

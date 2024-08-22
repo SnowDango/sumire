@@ -18,6 +18,9 @@ koin = "3.5.6"
 uiTooling = "1.6.8"
 datetime = "0.6.1"
 room = "2.6.1"
+serialization = "1.7.1"
+ktor = "2.3.2"
+slf4j = "1.7.36"
 
 [libraries]
 
@@ -50,10 +53,20 @@ koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
+kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+
+ktor-client = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+ktor-client-connect = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
+ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+slf4j-android = { group = "org.slf4j", name = "slf4j-android", version.ref = "slf4j" }
+
 
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]
 androidx-room-ksp = ["androidx-room-compiler"]
+ktor-client = ["ktor-client", "ktor-client-connect", "ktor-client-logging", "ktor-serialization"]
+slf4j = ["slf4j-android"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -61,4 +74,5 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 android-library = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 

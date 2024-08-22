@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.data"
+    namespace = "com.snowdango.sumire.repository"
     compileSdk = 34
 
     defaultConfig {
@@ -35,9 +35,14 @@ android {
 }
 
 dependencies {
-    implementation(libs.kotlinx.datetime)
+    implementation(project(":data"))
+
     implementation(libs.bundles.androidx.room)
     ksp(libs.bundles.androidx.room.ksp)
-    implementation(libs.kotlinx.serialization)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.bundles.ktor.client)
+    implementation(libs.bundles.slf4j)
     testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }
