@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
         android:minSdkVersion="34" />
 
     <application
@@ -30,7 +31,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.SongListenerService"
+        <service
+            android:name=".service.SongListenerService"
             android:exported="true"
             android:label="@string/app_name"
             android:foregroundServiceType="mediaPlayback"

@@ -1,4 +1,4 @@
-package com.snowdango.sumire.data.entity
+package com.snowdango.sumire.data.entity.playing
 
 data class PlayingSongData(
     val songData: SongData,

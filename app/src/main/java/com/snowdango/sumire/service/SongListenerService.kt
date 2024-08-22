@@ -10,26 +10,25 @@ import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
 import android.media.session.MediaController
-import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.snowdango.sumire.data.entity.MusicApp
-import com.snowdango.sumire.data.entity.PlayingSongData
-import com.snowdango.sumire.data.entity.SongData
+import com.snowdango.sumire.data.entity.playing.PlayingSongData
+import com.snowdango.sumire.data.entity.playing.SongData
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
+import com.snowdango.sumire.logging.Logging
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 
-class SongListenerService: NotificationListenerService() {
+class SongListenerService : NotificationListenerService() {
 
     private val songSharedFlow: PlayingSongSharedFlow by inject()
 
@@ -48,7 +47,7 @@ class SongListenerService: NotificationListenerService() {
     }
 
     @SuppressLint("ObsoleteSdkInt")
-    private fun startForeground(){
+    private fun startForeground() {
         val channel = NotificationChannel(
             channelId,
             channelName,
@@ -75,18 +74,19 @@ class SongListenerService: NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         sbn?.let {
-            if(it.packageName == "com.apple.android.music"){
+            if (it.packageName == "com.apple.android.music") {
                 syncMediaMetadata(it.packageName)
             }
         }
     }
 
-    private fun initMediaMetadata(){
+    private fun initMediaMetadata() {
         getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
-            val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+            val componentName =
+                ComponentName(this@SongListenerService, SongListenerService::class.java)
             mediaSessionManager.getActiveSessions(componentName).forEach { mediaController ->
                 mediaController.playbackState?.isActive?.let {
-                    if(it){
+                    if (it) {
                         syncMediaMetadata(mediaController.packageName)
                     }
                 }
@@ -96,27 +96,52 @@ class SongListenerService: NotificationListenerService() {
 
     private fun syncMediaMetadata(packageName: String) {
         getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
-            val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+            val componentName =
+                ComponentName(this@SongListenerService, SongListenerService::class.java)
             MainScope().launch {
                 mediaSessionManager.getActiveSessions(componentName)
                     .find { it.packageName == packageName }?.let {
-                        it.metadata?.let { metadata ->
-                            songSharedFlow.changeSong(
-                                PlayingSongData(
-                                    SongData(
-                                        title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE),
-                                        artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST),
-                                        album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM),
-                                        app = MusicApp.APPLE_MUSIC,
-                                        artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
-                                            ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
-                                    ),
-                                    isActive = it.playbackState?.isActive ?: false
-                                )
-                            )
-                        }
+                        val metadata = it.metadata
+                        val currentQueueId = it.queue?.first()?.queueId
+                        songSharedFlow.changeSong(
+                            queueId = currentQueueId,
+                            playingSongData = if (metadata != null) {
+                                createPlayingSongData(metadata, it)
+                            } else {
+                                null
+                            }
+                        )
+                        loggingMediaController(metadata, it)
                     }
             }
+        }
+    }
+
+    private fun createPlayingSongData(
+        metadata: MediaMetadata,
+        mediaController: MediaController
+    ): PlayingSongData {
+        return PlayingSongData(
+            SongData(
+                title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE),
+                artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST),
+                album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM),
+                app = MusicApp.APPLE_MUSIC,
+                artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
+                    ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
+            ),
+            isActive = mediaController.playbackState?.isActive ?: false
+        )
+    }
+
+    private fun loggingMediaController(
+        metadata: MediaMetadata?,
+        mediaController: MediaController?
+    ) {
+        metadata?.let { Logging.loggingMetaData(it) }
+        mediaController?.playbackState?.let {
+            Logging.loggingPlaybackState(it.state)
+            Logging.loggingPlaybackAction(it.actions)
         }
     }
 

@@ -1,6 +1,7 @@
-package com.snowdango.sumire.data.entity
+package com.snowdango.sumire.data.entity.playing
 
 import android.graphics.Bitmap
+import com.snowdango.sumire.data.entity.MusicApp
 
 data class SongData(
     val title: String,

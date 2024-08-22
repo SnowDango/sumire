@@ -2,7 +2,7 @@ package com.snowdango.sumire.presenter.playing
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.snowdango.sumire.data.entity.PlayingSongData
+import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.infla.EventSharedFlow
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
