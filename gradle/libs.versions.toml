@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+ksp = "2.0.10-1.0.24"
 kotlin = "2.0.10"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -16,7 +17,7 @@ coroutine = "1.8.1"
 koin = "3.5.6"
 uiTooling = "1.6.8"
 datetime = "0.6.1"
-
+room = "2.6.1"
 
 [libraries]
 
@@ -38,6 +39,9 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }
 coroutine-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutine" }
@@ -47,10 +51,14 @@ koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", versi
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "datetime" }
 
+[bundles]
+androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]
+androidx-room-ksp = ["androidx-room-compiler"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

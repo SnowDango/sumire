@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -34,5 +35,7 @@ android {
 
 dependencies {
     implementation(libs.kotlinx.datetime)
+    implementation(libs.bundles.androidx.room)
+    ksp(libs.bundles.androidx.room.ksp)
     testImplementation(libs.junit)
 }
