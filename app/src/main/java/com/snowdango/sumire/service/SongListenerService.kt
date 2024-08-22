@@ -130,6 +130,7 @@ class SongListenerService : NotificationListenerService() {
                 app = MusicApp.APPLE_MUSIC,
                 artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
                     ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
+                mediaId = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID),
             ),
             isActive = mediaController.playbackState?.isActive ?: false,
             playTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),

@@ -34,8 +34,10 @@ android {
 
 dependencies {
     implementation(project(":data"))
+    implementation(project(":repository"))
     implementation(libs.coroutine.core)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.koin)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -7,10 +7,12 @@ import kotlinx.serialization.Serializable
 data class LinkByPlatform(
     @SerialName("url")
     val url: String,
+    @SerialName("country")
+    val country: String,
     @SerialName("nativeAppUriMobile")
-    val nativeAppUriMobile: String?,
+    val nativeAppUriMobile: String? = null,
     @SerialName("nativeAppUriDesktop")
-    val nativeAppUriDesktop: String?,
+    val nativeAppUriDesktop: String? = null,
     @SerialName("entityUniqueId")
     val entityUniqueId: String,
 )

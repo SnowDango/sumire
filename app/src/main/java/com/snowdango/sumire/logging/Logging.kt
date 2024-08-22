@@ -22,6 +22,7 @@ object Logging {
                 composer = ${metadata.getString(MediaMetadata.METADATA_KEY_COMPOSER)}
                 completion = ${metadata.getString(MediaMetadata.METADATA_KEY_COMPILATION)}
                 displayIcon = ${metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)}
+                mediaId = ${metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)}
             """.trimIndent()
         )
     }

@@ -9,4 +9,5 @@ data class SongData(
     val album: String,
     val app: MusicApp,
     val artwork: Bitmap?,
+    val mediaId: String,
 )

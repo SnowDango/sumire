@@ -2,13 +2,17 @@ package com.snowdango.sumire.infla
 
 import android.util.Log
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
+import com.snowdango.sumire.repository.SongLinkApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
+class PlayingSongSharedFlow(
+    private val eventSharedFlow: EventSharedFlow,
+    private val songLinkApi: SongLinkApi
+) {
 
     private var playingSong: Pair<Long, PlayingSongData>? = null
     private var isWaitingTime: Boolean = false
@@ -78,6 +82,7 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
         eventSharedFlow.postEvent(
             EventSharedFlow.SharedEvent.ChangeCurrentSong
         )
+        val current = playingSong
         if (type != PlayingSongChangeType.CHANGE_ACTIVE && type != PlayingSongChangeType.NONE) {
             var afterCheckType = AfterCheckType.NONE
             isWaitingMutex.withLock(isWaitingTime) {
@@ -97,7 +102,7 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
             }
             when (afterCheckType) {
                 AfterCheckType.WAIT -> waitMetadata(queueId)
-                AfterCheckType.COMPLETE -> metaDataComplete()
+                AfterCheckType.COMPLETE -> current?.let { metaDataComplete(it.second) }
                 AfterCheckType.NONE -> {}
             }
         }
@@ -105,27 +110,37 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
 
     private suspend fun waitMetadata(queueId: Long?) {
         if (queueId == null) return
+        var isComplete = false
         withContext(Dispatchers.Default) {
             delay(10000)
+            val curernt = playingSong
             withContext(Dispatchers.IO) {
                 isWaitingMutex.withLock(isWaitingTime) {
                     if (isWaitingTime) {
-                        if (playingSong?.first == queueId) {
-                            isWaitingTime = false
-                            metaDataComplete()
+                        curernt?.let {
+                            if (it.first == queueId) {
+                                isWaitingTime = false
+                                isComplete = true
+                            }
                         }
                     }
+                }
+            }
+            if (isComplete) {
+                curernt?.let {
+                    metaDataComplete(it.second)
                 }
             }
         }
     }
 
-    private suspend fun metaDataComplete() {
+    private suspend fun metaDataComplete(playingSongData: PlayingSongData) {
         withContext(Dispatchers.Default) {
             Log.d(
                 "CurrentPlayingSong",
                 "DataComplete \nhasArtwork = ${playingSong?.second?.songData?.artwork != null}"
             )
+            songLinkApi.getSongData(playingSongData.songData.mediaId, playingSongData.songData.app)
         }
     }
 

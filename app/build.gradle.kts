@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":infla"))
     implementation(project(":data"))
     implementation(project(":presenter:playing"))
+    implementation(project(":repository"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
