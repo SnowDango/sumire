@@ -28,31 +28,42 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
                         null
                     }
                     type = if (queueId != null && playingSongData != null) {
-                        PlayingSongChangeType.CHANGE
+                        if (playingSong?.second?.songData?.artwork == null) {
+                            PlayingSongChangeType.CHANGE
+                        } else {
+                            PlayingSongChangeType.DATA_COMPLETE
+                        }
                     } else {
                         PlayingSongChangeType.NONE
                     }
-                } else if (playingSongData != null && playingSong?.second?.isActive != playingSongData.isActive) {
-                    //　update isActive
-                    playingSong = if (queueId != null) {
-                        Pair(queueId, playingSongData)
-                    } else {
-                        null
+                } else if (playingSong != null && playingSongData != null) {
+                    if (playingSong?.second?.isActive != playingSongData.isActive) {
+                        //　update isActive
+                        playingSong = if (queueId != null) {
+                            Pair(
+                                queueId,
+                                playingSongData.copy(playTime = playingSong!!.second.playTime)
+                            )
+                        } else {
+                            null
+                        }
+                        type = PlayingSongChangeType.CHANGE_ACTIVE
+                    } else if (playingSong?.second?.songData?.artwork == null && playingSongData.songData.artwork != null) {
+                        // update artwork
+                        playingSong = if (queueId != null) {
+                            Pair(
+                                queueId,
+                                playingSongData.copy(playTime = playingSong!!.second.playTime)
+                            )
+                        } else {
+                            null
+                        }
+                        type = PlayingSongChangeType.DATA_COMPLETE
                     }
-                    type = PlayingSongChangeType.CHANGE_ACTIVE
-                } else if (playingSong?.second?.songData?.artwork == null && playingSongData?.songData?.artwork != null) {
-                    // update artwork
-                    playingSong = if (queueId != null) {
-                        Pair(queueId, playingSongData)
-                    } else {
-                        null
-                    }
-                    type = PlayingSongChangeType.DATA_COMPLETE
                 }
             }
             if (type != PlayingSongChangeType.NONE) {
                 changedPlayingSong(
-                    hasArtwork = playingSong?.second?.songData?.artwork != null,
                     type,
                     queueId
                 )
@@ -61,40 +72,32 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
     }
 
     private suspend fun changedPlayingSong(
-        hasArtwork: Boolean,
         type: PlayingSongChangeType,
-        queueId: Long?
+        queueId: Long?,
     ) {
         eventSharedFlow.postEvent(
             EventSharedFlow.SharedEvent.ChangeCurrentSong
         )
-        if (type != PlayingSongChangeType.CHANGE_ACTIVE) {
+        if (type != PlayingSongChangeType.CHANGE_ACTIVE && type != PlayingSongChangeType.NONE) {
             var afterCheckType = AfterCheckType.NONE
             isWaitingMutex.withLock(isWaitingTime) {
-                if (!isWaitingTime) {
-                    isWaitingTime = true
-                    // check delay
-                    afterCheckType = AfterCheckType.WAIT
-                } else if (hasArtwork) {
-                    // complete
-                    isWaitingTime = false
-                    afterCheckType = AfterCheckType.COMPLETE
+                when (type) {
+                    PlayingSongChangeType.CHANGE -> {
+                        isWaitingTime = true
+                        afterCheckType = AfterCheckType.WAIT
+                    }
+
+                    PlayingSongChangeType.DATA_COMPLETE -> {
+                        isWaitingTime = false
+                        afterCheckType = AfterCheckType.COMPLETE
+                    }
+
+                    else -> {}
                 }
             }
             when (afterCheckType) {
                 AfterCheckType.WAIT -> waitMetadata(queueId)
-                AfterCheckType.COMPLETE -> {
-                    if (type == PlayingSongChangeType.DATA_COMPLETE) {
-                        if (isWaitingTime) {
-                            metaDataComplete()
-                        } else {
-                            // update artwork
-                        }
-                    } else if (type == PlayingSongChangeType.CHANGE) {
-                        metaDataComplete()
-                    }
-                }
-
+                AfterCheckType.COMPLETE -> metaDataComplete()
                 AfterCheckType.NONE -> {}
             }
         }
@@ -107,8 +110,7 @@ class PlayingSongSharedFlow(private val eventSharedFlow: EventSharedFlow) {
             withContext(Dispatchers.IO) {
                 isWaitingMutex.withLock(isWaitingTime) {
                     if (isWaitingTime) {
-                        val current = playingSong
-                        if (current?.first == queueId) {
+                        if (playingSong?.first == queueId) {
                             isWaitingTime = false
                             metaDataComplete()
                         }

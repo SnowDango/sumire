@@ -35,6 +35,7 @@ android {
 dependencies {
     implementation(project(":data"))
     implementation(libs.coroutine.core)
+    implementation(libs.kotlinx.datetime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

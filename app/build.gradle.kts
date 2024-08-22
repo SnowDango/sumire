@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.icons)
     implementation(libs.androidx.navigation)
     implementation(libs.koin)
+    implementation(libs.kotlinx.datetime)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -11,12 +11,10 @@ import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
-import android.media.session.PlaybackState
 import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
@@ -25,6 +23,9 @@ import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.logging.Logging
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.koin.android.ext.android.inject
 
 
@@ -130,7 +131,8 @@ class SongListenerService : NotificationListenerService() {
                 artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
                     ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
             ),
-            isActive = mediaController.playbackState?.isActive ?: false
+            isActive = mediaController.playbackState?.isActive ?: false,
+            playTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         )
     }
 
