@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
@@ -104,15 +105,19 @@ class SongListenerService : NotificationListenerService() {
                     .find { it.packageName == packageName }?.let {
                         val metadata = it.metadata
                         val currentQueueId = it.queue?.first()?.queueId
-                        songSharedFlow.changeSong(
-                            queueId = currentQueueId,
-                            playingSongData = if (metadata != null) {
-                                createPlayingSongData(metadata, it)
-                            } else {
-                                null
-                            }
-                        )
-                        loggingMediaController(metadata, it)
+                        try {
+                            songSharedFlow.changeSong(
+                                queueId = currentQueueId,
+                                playingSongData = if (metadata != null) {
+                                    createPlayingSongData(metadata, it)
+                                } else {
+                                    null
+                                }
+                            )
+                            loggingMediaController(metadata, it)
+                        } catch (e: NullPointerException) {
+                            Log.e("GetMetadata", "failed get metadata")
+                        }
                     }
             }
         }

@@ -5,14 +5,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SongLinkData(
+    @SerialName("statusCode")
+    val statusCode: Int? = 0,
+    @SerialName("code")
+    val code: String? = "",
     @SerialName("entityUniqueId")
-    val entityUniqueId: String,
+    val entityUniqueId: String = "",
     @SerialName("userCountry")
-    val userCountry: String,
+    val userCountry: String = "",
     @SerialName("pageUrl")
-    val pageUrl: String,
+    val pageUrl: String = "",
     @SerialName("entitiesByUniqueId")
-    val entities: Map<String, EntityByUniqueId>,
+    val entities: Map<String, EntityByUniqueId> = mapOf(),
     @SerialName("linksByPlatform")
-    val links: Map<String, LinkByPlatform>,
+    val links: Map<String, LinkByPlatform> = mapOf(),
 )

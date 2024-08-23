@@ -29,6 +29,7 @@ object KtorClient {
                 logger = Logger.ANDROID
                 level = LogLevel.INFO
             }
+            expectSuccess = false
         }
     }
 }

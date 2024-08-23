@@ -33,6 +33,5 @@ class SongLinkApi {
             },
             songData = response.body<SongLinkData>()
         )
-
     }
 }
