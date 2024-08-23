@@ -1,6 +1,5 @@
 package com.snowdango.sumire.repository
 
-import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.songlink.SongLinkData
 import com.snowdango.sumire.data.entity.songlink.SongLinkResponse
 import com.snowdango.sumire.repository.ktor.KtorClient
@@ -17,10 +16,10 @@ class SongLinkApi {
         KtorClient.getClient()
     }
 
-    suspend fun getSongData(id: String, app: MusicApp): SongLinkResponse {
+    suspend fun getSongData(id: String, app: String): SongLinkResponse {
         val response = client.get {
             url("/v1-alpha.1/links")
-            parameter("platform", "appleMusic")
+            parameter("platform", app)
             parameter("type", "song")
             parameter("id", id)
             parameter("userCountry", "JP")

@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SongLinkData(
     @SerialName("statusCode")
-    val statusCode: Int? = 0,
+    val statusCode: Int = 0,
     @SerialName("code")
-    val code: String? = "",
+    val code: String = "",
     @SerialName("entityUniqueId")
     val entityUniqueId: String = "",
     @SerialName("userCountry")

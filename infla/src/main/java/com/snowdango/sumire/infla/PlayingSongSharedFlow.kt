@@ -2,17 +2,19 @@ package com.snowdango.sumire.infla
 
 import android.util.Log
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
-import com.snowdango.sumire.repository.SongLinkApi
+import com.snowdango.sumire.model.SaveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class PlayingSongSharedFlow(
-    private val eventSharedFlow: EventSharedFlow,
-    private val songLinkApi: SongLinkApi
-) {
+class PlayingSongSharedFlow : KoinComponent {
+
+    private val eventSharedFlow: EventSharedFlow by inject()
+    private val saveModel: SaveModel by inject()
 
     private var playingSong: Pair<Long, PlayingSongData>? = null
     private var isWaitingTime: Boolean = false
@@ -140,7 +142,7 @@ class PlayingSongSharedFlow(
                 "CurrentPlayingSong",
                 "DataComplete \nhasArtwork = ${playingSong?.second?.songData?.artwork != null}"
             )
-            songLinkApi.getSongData(playingSongData.songData.mediaId, playingSongData.songData.app)
+            saveModel.saveSong(playingSongData)
         }
     }
 

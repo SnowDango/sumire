@@ -13,11 +13,17 @@ data class Albums(
     val name: String,
     @ColumnInfo(COLUMN_ARTIST_ID)
     val artistId: Long,
+    @ColumnInfo(COLUMN_THUMBNAIL)
+    val thumbnail: String?,
+    @ColumnInfo(COLUMN_IS_THUMB_URL)
+    val isThumbUrl: Boolean,
 ) {
     companion object {
         const val TABLE_NAME = "albums"
         const val COLUMN_ID = "id"
         const val COLUMN_NAME = "name"
         const val COLUMN_ARTIST_ID = "artist_id"
+        const val COLUMN_THUMBNAIL = "thumbnail"
+        const val COLUMN_IS_THUMB_URL = "is_thumb_url"
     }
 }

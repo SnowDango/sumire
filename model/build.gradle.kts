@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.infla"
+    namespace = "com.snowdango.sumire.model"
     compileSdk = 34
 
     defaultConfig {
@@ -33,12 +33,12 @@ android {
 }
 
 dependencies {
+
     implementation(project(":data"))
-    implementation(project(":repository"))
-    implementation(project(":model"))
-    implementation(libs.coroutine.core)
-    implementation(libs.kotlinx.datetime)
+    implementation(project(":usecase"))
     implementation(libs.koin)
+    implementation(libs.kotlinx.datetime)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

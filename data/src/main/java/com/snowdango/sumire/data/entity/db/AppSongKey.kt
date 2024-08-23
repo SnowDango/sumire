@@ -14,13 +14,13 @@ data class AppSongKey(
     @ColumnInfo(COLUMN_APP)
     val app: MusicApp,
     @ColumnInfo(COLUMN_KEY)
-    val key: String,
+    val mediaKey: String,
 ) {
     companion object {
         const val TABLE_NAME = "appSongKey"
         const val COLUMN_ID = "id"
         const val COLUMN_SONG_ID = "song_id"
         const val COLUMN_APP = "app"
-        const val COLUMN_KEY = "key"
+        const val COLUMN_KEY = "media_key"
     }
 }

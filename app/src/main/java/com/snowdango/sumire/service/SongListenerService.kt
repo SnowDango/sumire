@@ -76,7 +76,7 @@ class SongListenerService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         sbn?.let {
-            if (it.packageName == "com.apple.android.music") {
+            if (it.packageName == MusicApp.APPLE_MUSIC.packageName) {
                 syncMediaMetadata(it.packageName)
             }
         }

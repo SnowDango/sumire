@@ -3,12 +3,13 @@ package com.snowdango.sumire.repository.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
-import com.snowdango.sumire.data.entity.db.Songs
+import com.snowdango.sumire.data.entity.db.Tasks
+
 
 @Dao
-interface SongsDao {
+interface TasksDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(songs: Songs): Long
+    suspend fun insert(tasks: Tasks): Long
 
 }
