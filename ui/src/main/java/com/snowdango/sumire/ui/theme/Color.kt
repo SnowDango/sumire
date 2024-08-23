@@ -5,8 +5,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 val LightColorScheme = lightColorScheme(
-    primary = Color(205, 191, 240),
-    surfaceTint = Color(205, 191, 240),
+    primary = Color(188, 175, 219),
+    surfaceTint = Color(188, 175, 219),
     onPrimary = Color.White,
     primaryContainer = Color(208, 228, 255),
     onPrimaryContainer = Color(0, 29, 53),

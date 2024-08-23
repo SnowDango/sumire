@@ -8,8 +8,10 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +33,9 @@ fun MainScreen() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                ) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
 
@@ -39,6 +43,9 @@ fun MainScreen() {
                         val selected =
                             currentDestination?.hierarchy?.any { it.route == route.name } == true
                         NavigationBarItem(
+                            colors = NavigationBarItemDefaults.colors().copy(
+                                selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer
+                            ),
                             selected = selected,
                             icon = {
                                 Icon(
