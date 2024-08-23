@@ -9,14 +9,18 @@ import com.snowdango.sumire.data.entity.MusicApp
 data class AppSongKey(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo("song_id")
+    @ColumnInfo(COLUMN_SONG_ID)
     val songId: Long,
-    @ColumnInfo("app")
+    @ColumnInfo(COLUMN_APP)
     val app: MusicApp,
-    @ColumnInfo("key")
+    @ColumnInfo(COLUMN_KEY)
     val key: String,
 ) {
     companion object {
         const val TABLE_NAME = "appSongKey"
+        const val COLUMN_ID = "id"
+        const val COLUMN_SONG_ID = "song_id"
+        const val COLUMN_APP = "app"
+        const val COLUMN_KEY = "key"
     }
 }

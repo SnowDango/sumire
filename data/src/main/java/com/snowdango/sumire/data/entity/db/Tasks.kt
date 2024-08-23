@@ -9,12 +9,15 @@ import androidx.room.PrimaryKey
 data class Tasks(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo("media_id")
+    @ColumnInfo(COLUMN_MEDIA_ID)
     val mediaId: String,
-    @ColumnInfo("song_id")
+    @ColumnInfo(COLUMN_SONG_ID)
     val songId: Long,
 ) {
     companion object {
         const val TABLE_NAME = "tasks"
+        const val COLUMN_ID = "id"
+        const val COLUMN_MEDIA_ID = "media_id"
+        const val COLUMN_SONG_ID = "song_id"
     }
 }

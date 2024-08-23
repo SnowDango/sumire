@@ -9,12 +9,15 @@ import kotlinx.datetime.LocalDateTime
 data class Histories(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo("song_id")
+    @ColumnInfo(COLUMN_SONG_ID)
     val songId: Long,
-    @ColumnInfo("play_time")
+    @ColumnInfo(COLUMN_PLAY_TIME)
     val playTime: LocalDateTime,
 ) {
     companion object {
         const val TABLE_NAME = "histories"
+        const val COLUMN_ID = "id"
+        const val COLUMN_SONG_ID = "song_id"
+        const val COLUMN_PLAY_TIME = "play_time"
     }
 }

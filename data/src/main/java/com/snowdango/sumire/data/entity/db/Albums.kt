@@ -9,12 +9,15 @@ import androidx.room.PrimaryKey
 data class Albums(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    @ColumnInfo("name")
+    @ColumnInfo(COLUMN_NAME)
     val name: String,
-    @ColumnInfo("artist_id")
+    @ColumnInfo(COLUMN_ARTIST_ID)
     val artistId: Long,
 ) {
     companion object {
         const val TABLE_NAME = "albums"
+        const val COLUMN_ID = "id"
+        const val COLUMN_NAME = "name"
+        const val COLUMN_ARTIST_ID = "artist_id"
     }
 }
