@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":ui"))
     implementation(project(":infla"))
     implementation(project(":data"))
+    implementation(project(":model"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)

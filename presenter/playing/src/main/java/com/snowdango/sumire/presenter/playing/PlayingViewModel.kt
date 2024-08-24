@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 class PlayingViewModel(
     private val playingSongSharedFlow: PlayingSongSharedFlow,
     private val eventSharedFlow: EventSharedFlow,
-): ViewModel() {
+) : ViewModel() {
 
     private val _currentPlayingSong = MutableStateFlow<PlayingSongData?>(value = null)
     val currentPlayingSong: StateFlow<PlayingSongData?> = _currentPlayingSong.stateIn(
@@ -25,8 +25,8 @@ class PlayingViewModel(
 
     init {
         refreshCurrentPlayingSong()
-        eventSharedFlow.subscribe(viewModelScope){
-            when(it){
+        eventSharedFlow.subscribe(viewModelScope) {
+            when (it) {
                 EventSharedFlow.SharedEvent.ChangeCurrentSong -> {
                     refreshCurrentPlayingSong()
                 }
@@ -34,7 +34,7 @@ class PlayingViewModel(
         }
     }
 
-    fun refreshCurrentPlayingSong(){
+    private fun refreshCurrentPlayingSong() {
         viewModelScope.launch {
             _currentPlayingSong.emit(
                 playingSongSharedFlow.getCurrentPlayingSong()

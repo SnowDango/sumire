@@ -39,6 +39,7 @@ dependencies {
 
     implementation(libs.bundles.androidx.room)
     ksp(libs.bundles.androidx.room.ksp)
+    implementation(libs.coroutine.core)
     implementation(libs.kotlinx.datetime)
     implementation(libs.bundles.ktor.client)
     implementation(libs.bundles.slf4j)

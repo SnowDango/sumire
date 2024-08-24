@@ -36,6 +36,7 @@ dependencies {
 
     implementation(project(":data"))
     implementation(project(":usecase"))
+    implementation(project(":ui"))
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
 
