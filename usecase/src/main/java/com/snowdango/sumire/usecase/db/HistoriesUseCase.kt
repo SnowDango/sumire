@@ -1,6 +1,7 @@
 package com.snowdango.sumire.usecase.db
 
 
+import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.Histories
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
 import com.snowdango.sumire.repository.SongsDatabase
@@ -13,15 +14,16 @@ class HistoriesUseCase : KoinComponent {
 
     private val songsDatabase: SongsDatabase by inject()
 
-    suspend fun saveHistories(songId: Long, playTime: LocalDateTime) {
+    suspend fun saveHistories(songId: Long, playTime: LocalDateTime, app: MusicApp) {
         val history = Histories(
             songId = songId,
             playTime = playTime,
+            app = app
         )
         songsDatabase.historiesDao.insert(history)
     }
 
-    suspend fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>> {
+    fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>> {
         return songsDatabase.historiesDao.getHistoriesSongRecent(size)
     }
 }

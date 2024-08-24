@@ -28,7 +28,7 @@ import com.snowdango.sumire.repository.typeconverter.LocalDataTimeConverter
         Histories::class,
         Tasks::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(

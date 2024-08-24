@@ -8,7 +8,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycle = "2.8.4"
 activityCompose = "1.9.1"
-composeBom = "2024.06.00"
+composeBom = "2024.08.00"
 appcompat = "1.7.0"
 material = "1.12.0"
 material3Android = "1.2.1"
@@ -19,8 +19,9 @@ uiTooling = "1.6.8"
 datetime = "0.6.1"
 room = "2.6.1"
 serialization = "1.7.1"
-ktor = "2.3.2"
+ktor = "2.3.12"
 slf4j = "1.7.36"
+coil = "2.7.0"
 
 [libraries]
 
@@ -39,6 +40,7 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -61,12 +63,17 @@ ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version
 ktor-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 slf4j-android = { group = "org.slf4j", name = "slf4j-android", version.ref = "slf4j" }
 
+coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+
+
 
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]
 androidx-room-ksp = ["androidx-room-compiler"]
 ktor-client = ["ktor-client", "ktor-client-connect", "ktor-client-logging", "ktor-serialization"]
 slf4j = ["slf4j-android"]
+coil = ["coil", "coil-compose"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -12,7 +12,7 @@ class GetHistoriesModel : KoinComponent {
 
     private val historiesUseCase: HistoriesUseCase by inject()
 
-    suspend fun getRecentHistoriesSongFlow(size: Long): Flow<List<SongCardViewData>> {
+    fun getRecentHistoriesSongFlow(size: Long): Flow<List<SongCardViewData>> {
         return historiesUseCase.getHistoriesSongRecent(size).map {
             it.map { data ->
                 SongCardViewData(
@@ -21,7 +21,8 @@ class GetHistoriesModel : KoinComponent {
                     albumName = data.song.albums.name,
                     thumbnail = data.song.albums.thumbnail,
                     isThumbUrl = data.song.albums.isThumbUrl,
-                    playTimeText = data.history.playTime.toFormatDateTime()
+                    playTimeText = data.history.playTime.toFormatDateTime(),
+                    app = data.history.app,
                 )
             }
         }

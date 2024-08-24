@@ -9,7 +9,7 @@ import kotlinx.datetime.format.byUnicodePattern
 fun LocalDateTime.toFormatDateTime(): String {
     return this.format(
         format = LocalDateTime.Format {
-            byUnicodePattern("yyyy/MM/DD-HH:mm:ss")
+            byUnicodePattern("yyyy/MM/dd-HH:mm:ss")
         }
     )
 }

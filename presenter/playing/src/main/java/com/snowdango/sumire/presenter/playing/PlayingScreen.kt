@@ -1,12 +1,16 @@
 package com.snowdango.sumire.presenter.playing
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +25,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.ui.component.CircleSongArtwork
+import com.snowdango.sumire.ui.component.ListSongCard
+import com.snowdango.sumire.ui.component.MusicAppImage
+import com.snowdango.sumire.ui.component.MusicAppText
+import com.snowdango.sumire.ui.theme.SumireTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PlayingScreen() {
     val viewModel: PlayingViewModel = koinViewModel()
     val currentSong = viewModel.currentPlayingSong.collectAsStateWithLifecycle()
+    val recentHistories = viewModel.recentHistories.collectAsStateWithLifecycle()
     val isNowPlaying = currentSong.value?.isActive ?: false
     if (isNowPlaying) {
         LazyColumn(
@@ -42,8 +52,25 @@ fun PlayingScreen() {
                         title = it.songData.title,
                         album = it.songData.album,
                         artist = it.songData.artist,
+                        app = it.songData.app,
                     )
                 }
+            }
+            item {
+                Text(
+                    text = "Recent",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            items(recentHistories.value) {
+                ListSongCard(
+                    songCardViewData = it,
+                    modifier = Modifier
+                        .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
+                )
             }
         }
     } else {
@@ -57,8 +84,11 @@ fun PlayingSongComponent(
     title: String,
     album: String,
     artist: String,
+    app: MusicApp,
 ) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         CircleSongArtwork(
             modifier = Modifier
                 .padding(top = 32.dp),
@@ -93,6 +123,39 @@ fun PlayingSongComponent(
             modifier = Modifier
                 .padding(top = 4.dp)
                 .fillMaxWidth(0.5f),
+        )
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "from",
+                style = MaterialTheme.typography.labelSmall
+            )
+            MusicAppImage(
+                app = app,
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .size(16.dp)
+            )
+            MusicAppText(
+                app = app,
+                style = MaterialTheme.typography.labelSmall,
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewPlayingSongComponent() {
+    SumireTheme {
+        PlayingSongComponent(
+            artwork = null,
+            title = "title",
+            album = "album",
+            artist = "artist",
+            app = MusicApp.APPLE_MUSIC
         )
     }
 }

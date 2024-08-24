@@ -56,7 +56,7 @@ class SaveModel : KoinComponent {
         }.toMap()
         withContext(Dispatchers.IO) {
             if (songId != -1L) {
-                saveHistory(songId, playingSongData.playTime)
+                saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
                 checkAppSongKey(songId, keyMap)
             } else {
                 saveData(
@@ -69,6 +69,7 @@ class SaveModel : KoinComponent {
                     keyMap,
                     SongLinkResponse.Status.OK,
                     playingSongData.songData.mediaId,
+                    playingSongData.songData.app
                 )
             }
         }
@@ -83,7 +84,7 @@ class SaveModel : KoinComponent {
             mapOf(playingSongData.songData.app to playingSongData.songData.mediaId)
         withContext(Dispatchers.IO) {
             if (songId != -1L) {
-                saveHistory(songId, playingSongData.playTime)
+                saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
                 checkAppSongKey(
                     songId,
                     keyMap
@@ -99,6 +100,7 @@ class SaveModel : KoinComponent {
                     keyMap,
                     status,
                     playingSongData.songData.mediaId,
+                    playingSongData.songData.app,
                 )
             }
         }
@@ -114,11 +116,12 @@ class SaveModel : KoinComponent {
         mapKey: Map<MusicApp, String>,
         status: SongLinkResponse.Status,
         mediaId: String,
+        app: MusicApp,
     ) {
         val artistId: Long = saveArtist(artist)
         val albumId: Long = saveAlbum(artistId, albumName, thumbnail, isThumbUrl)
         val songId = saveSong(title, artistId, albumId)
-        saveHistory(songId, playTime)
+        saveHistory(songId, playTime, app)
         checkAppSongKey(
             songId = songId,
             mapKey
@@ -156,8 +159,8 @@ class SaveModel : KoinComponent {
         return songsUseCase.saveSong(title, artistId, albumId)
     }
 
-    private suspend fun saveHistory(songId: Long, playTime: LocalDateTime) {
-        historiesUseCase.saveHistories(songId, playTime)
+    private suspend fun saveHistory(songId: Long, playTime: LocalDateTime, app: MusicApp) {
+        historiesUseCase.saveHistories(songId, playTime, app)
     }
 
     private suspend fun checkAppSongKey(songId: Long, keyMap: Map<MusicApp, String>) {

@@ -1,5 +1,8 @@
 package com.snowdango.sumire
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,7 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -26,15 +31,19 @@ import androidx.navigation.compose.rememberNavController
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun MainScreen() {
-    val navController = rememberNavController()
     SumireTheme {
+        val navController = rememberNavController()
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 4.dp,
+                    modifier = Modifier
+                        .shadow(8.dp)
                 ) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
@@ -56,7 +65,9 @@ fun MainScreen() {
                             label = { Text(text = route.label) },
                             onClick = {
                                 if (!selected) {
-                                    navController.navigate(route.name)
+                                    navController.navigate(route = route.name) {
+                                        launchSingleTop = true
+                                    }
                                 }
                             },
                         )
@@ -67,15 +78,29 @@ fun MainScreen() {
             NavHost(
                 navController = navController,
                 startDestination = ROUTE.PLAYING.name,
-                modifier = Modifier.padding(innerPadding),
+                exitTransition = { ExitTransition.None },
+                enterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
             ) {
                 composable(
                     route = ROUTE.PLAYING.name,
+                    exitTransition = null,
+                    enterTransition = null,
+                    popExitTransition = null,
+                    popEnterTransition = null,
                 ) {
                     PlayingScreen()
                 }
                 composable(
                     route = ROUTE.HISTORY.name,
+                    exitTransition = null,
+                    enterTransition = null,
+                    popExitTransition = null,
+                    popEnterTransition = null,
                 ) {
                     HistoryScreen()
                 }

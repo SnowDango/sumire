@@ -14,11 +14,11 @@ data class EntityByUniqueId(
     @SerialName("artistName")
     val artistName: String,
     @SerialName("thumbnailUrl")
-    val thumbnailUrl: String,
+    val thumbnailUrl: String = "",
     @SerialName("thumbnailWidth")
-    val thumbnailWidth: Int,
+    val thumbnailWidth: Int = 0,
     @SerialName("thumbnailHeight")
-    val thumbnailHeight: Int,
+    val thumbnailHeight: Int = 0,
     @SerialName("apiProvider")
     val provider: String,
     @SerialName("platforms")
