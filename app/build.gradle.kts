@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.material)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.windiow)
     implementation(libs.androidx.icons)
     implementation(libs.androidx.navigation)
     implementation(libs.koin)

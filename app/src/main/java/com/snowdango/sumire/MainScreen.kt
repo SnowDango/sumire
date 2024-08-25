@@ -17,6 +17,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -31,9 +33,12 @@ import androidx.navigation.compose.rememberNavController
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @SuppressLint("RestrictedApi")
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    windowSize: WindowSizeClass,
+) {
     SumireTheme {
         val navController = rememberNavController()
         Scaffold(
@@ -47,7 +52,6 @@ fun MainScreen() {
                 ) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
-
                     ROUTE.entries.forEach { route ->
                         val selected =
                             currentDestination?.hierarchy?.any { it.route == route.name } == true
@@ -93,7 +97,9 @@ fun MainScreen() {
                     popExitTransition = null,
                     popEnterTransition = null,
                 ) {
-                    PlayingScreen()
+                    PlayingScreen(
+                        windowSize
+                    )
                 }
                 composable(
                     route = ROUTE.HISTORY.name,

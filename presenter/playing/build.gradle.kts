@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.material)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.windiow)
     implementation(libs.androidX.lifecycleCompose)
     implementation(libs.koin)
     implementation(libs.koin.compose)

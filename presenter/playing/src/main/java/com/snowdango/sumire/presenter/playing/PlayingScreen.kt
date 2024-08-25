@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,7 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -26,55 +31,137 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.snowdango.sumire.data.entity.MusicApp
+import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.ui.component.CircleSongArtwork
 import com.snowdango.sumire.ui.component.ListSongCard
 import com.snowdango.sumire.ui.component.MusicAppImage
 import com.snowdango.sumire.ui.component.MusicAppText
 import com.snowdango.sumire.ui.theme.SumireTheme
+import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun PlayingScreen() {
+fun PlayingScreen(
+    windowSize: WindowSizeClass
+) {
     val viewModel: PlayingViewModel = koinViewModel()
     val currentSong = viewModel.currentPlayingSong.collectAsStateWithLifecycle()
     val recentHistories = viewModel.recentHistories.collectAsStateWithLifecycle()
     val isNowPlaying = currentSong.value?.isActive ?: false
     if (isNowPlaying) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            currentSong.value?.let {
-                item {
-                    PlayingSongComponent(
-                        artwork = it.songData.artwork,
-                        title = it.songData.title,
-                        album = it.songData.album,
-                        artist = it.songData.artist,
-                        app = it.songData.app,
-                    )
-                }
-            }
-            item {
-                Text(
-                    text = "Recent",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier
-                        .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
-                        .fillMaxWidth()
-                )
-            }
-            items(recentHistories.value) {
-                ListSongCard(
-                    songCardViewData = it,
-                    modifier = Modifier
-                        .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
-                )
-            }
+        when (windowSize.widthSizeClass) {
+            WindowWidthSizeClass.Compact -> PlayingCompatScreen(
+                currentSong = currentSong,
+                recentHistories = recentHistories
+            )
+
+            WindowWidthSizeClass.Medium -> PlayingMediumAndExtendedScreen(
+                currentSong = currentSong,
+                recentHistories = recentHistories,
+            )
+
+            WindowWidthSizeClass.Expanded -> PlayingMediumAndExtendedScreen(
+                currentSong = currentSong,
+                recentHistories = recentHistories,
+            )
         }
     } else {
         NothingPlayingSongComponent()
+    }
+}
+
+@Composable
+fun PlayingCompatScreen(
+    currentSong: State<PlayingSongData?>,
+    recentHistories: State<List<SongCardViewData>>
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        currentSong.value?.let {
+            item {
+                PlayingSongComponent(
+                    artwork = it.songData.artwork,
+                    title = it.songData.title,
+                    album = it.songData.album,
+                    artist = it.songData.artist,
+                    app = it.songData.app,
+                )
+            }
+        }
+        item {
+            Text(
+                text = "Recent",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier
+                    .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
+                    .fillMaxWidth()
+            )
+        }
+        items(recentHistories.value) {
+            ListSongCard(
+                songCardViewData = it,
+                modifier = Modifier
+                    .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PlayingMediumAndExtendedScreen(
+    currentSong: State<PlayingSongData?>,
+    recentHistories: State<List<SongCardViewData>>
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            currentSong.value?.let {
+                PlayingSongComponent(
+                    artwork = it.songData.artwork,
+                    title = it.songData.title,
+                    album = it.songData.album,
+                    artist = it.songData.artist,
+                    app = it.songData.app,
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .fillMaxHeight(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    Text(
+                        text = "Recent",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier
+                            .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
+                            .fillMaxWidth()
+                    )
+                }
+                items(recentHistories.value) {
+                    ListSongCard(
+                        songCardViewData = it,
+                        modifier = Modifier
+                            .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -87,11 +174,14 @@ fun PlayingSongComponent(
     app: MusicApp,
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
     ) {
         CircleSongArtwork(
             modifier = Modifier
-                .padding(top = 32.dp),
+                .padding(top = 32.dp)
+                .fillMaxWidth(0.5f)
+                .aspectRatio(1f),
             bitmap = artwork
         )
         Text(

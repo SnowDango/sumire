@@ -19,8 +19,6 @@ fun CircleSongArtwork(
 ){
     Box(
         modifier = modifier
-            .fillMaxWidth(0.5f)
-            .aspectRatio(1f)
             .clip(CircleShape)
     ){
         bitmap?.let {
