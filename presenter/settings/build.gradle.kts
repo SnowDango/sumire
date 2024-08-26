@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.presenter.playing"
+    namespace = "com.snowdango.sumire.settings"
     compileSdk = 34
 
     defaultConfig {
@@ -36,21 +36,14 @@ android {
 
 dependencies {
     implementation(project(":ui"))
-    implementation(project(":infla"))
-    implementation(project(":data"))
-    implementation(project(":model"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.material)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windiow)
-    implementation(libs.androidX.lifecycleCompose)
-    implementation(libs.koin)
-    implementation(libs.koin.compose)
-    implementation(libs.coroutine.core)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.bundles.settings)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)

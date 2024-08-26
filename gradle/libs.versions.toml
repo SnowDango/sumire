@@ -22,6 +22,8 @@ serialization = "1.7.1"
 ktor = "2.3.12"
 slf4j = "1.7.36"
 coil = "2.7.0"
+settings = "2.4.0"
+showkase = "1.0.3"
 
 [libraries]
 
@@ -67,6 +69,11 @@ slf4j-android = { group = "org.slf4j", name = "slf4j-android", version.ref = "sl
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 
+settings = { group = "com.github.alorma.compose-settings", name = "ui-tiles", version.ref = "settings" }
+settings-extended = { group = "com.github.alorma.compose-settings", name = "ui-tiles-extended", version.ref = "settings" }
+
+showkase = { group = "com.airbnb.android", name = "showkase", version.ref = "showkase" }
+showkase-prosessor = { group = "com.airbnb.android", name = "showkase-processor", version.ref = "showkase" }
 
 
 [bundles]
@@ -75,6 +82,7 @@ androidx-room-ksp = ["androidx-room-compiler"]
 ktor-client = ["ktor-client", "ktor-client-connect", "ktor-client-logging", "ktor-serialization"]
 slf4j = ["slf4j-android"]
 coil = ["coil", "coil-compose"]
+settings = ["settings", "settings-extended"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

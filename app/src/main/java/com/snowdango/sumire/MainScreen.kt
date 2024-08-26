@@ -33,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.presenter.playing.PlayingScreen
+import com.snowdango.sumire.settings.SettingsScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
 
@@ -111,6 +112,16 @@ fun MainScreen(
                     popEnterTransition = null,
                 ) {
                     HistoryScreen()
+                }
+
+                composable(
+                    route = ROUTE.SETTINGS.name,
+                    exitTransition = null,
+                    enterTransition = null,
+                    popExitTransition = null,
+                    popEnterTransition = null,
+                ) {
+                    SettingsScreen()
                 }
             }
         }

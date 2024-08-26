@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -13,7 +14,7 @@ android {
         minSdk = 34
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -56,6 +57,7 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":presenter:playing"))
     implementation(project(":presenter:history"))
+    implementation(project(":presenter:settings"))
     implementation(project(":repository"))
     implementation(project(":usecase"))
     implementation(project(":model"))
@@ -73,6 +75,10 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
+
+    debugImplementation(libs.showkase)
+    kspDebug(libs.showkase.prosessor)
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
