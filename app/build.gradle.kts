@@ -55,6 +55,7 @@ dependencies {
     implementation(project(":infla"))
     implementation(project(":data"))
     implementation(project(":presenter:playing"))
+    implementation(project(":presenter:history"))
     implementation(project(":repository"))
     implementation(project(":usecase"))
     implementation(project(":model"))

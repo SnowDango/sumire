@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +43,8 @@ fun ListSongCard(
     ) {
         Row(
             modifier = Modifier
-                .padding(start = 20.dp, top = 10.dp, bottom = 10.dp, end = 12.dp),
+                .padding(start = 20.dp, top = 10.dp, bottom = 10.dp, end = 12.dp)
+                .height(60.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -98,12 +101,35 @@ fun ListSongCard(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            MusicAppImage(
-                app = songCardViewData.app,
+            Box(
                 modifier = Modifier
                     .padding(start = 12.dp)
-                    .size(24.dp)
-            )
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.CenterEnd
+                ){
+                    MusicAppImage(
+                        app = songCardViewData.app,
+                        modifier = Modifier
+                            .size(24.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.BottomEnd
+                ){
+                    Text(
+                        text = songCardViewData.playTimeText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
         }
     }
 }
@@ -119,7 +145,7 @@ fun PreviewListSongCard() {
                 albumName = "albumName",
                 thumbnail = null,
                 isThumbUrl = false,
-                playTimeText = "2024/08/25-01:51:22",
+                playTimeText = "01:51:22",
                 app = MusicApp.APPLE_MUSIC
             )
         )

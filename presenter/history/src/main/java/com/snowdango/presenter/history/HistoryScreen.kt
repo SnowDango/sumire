@@ -1,4 +1,4 @@
-package com.snowdango.sumire
+package com.snowdango.presenter.history
 
 import androidx.compose.runtime.Composable
 

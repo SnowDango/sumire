@@ -1,5 +1,6 @@
 package com.snowdango.sumire.presenter.playing
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,18 +51,23 @@ fun PlayingScreen(
     val recentHistories = viewModel.recentHistories.collectAsStateWithLifecycle()
     val isNowPlaying = currentSong.value?.isActive ?: false
     if (isNowPlaying) {
+        val isLandScape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if(!isLandScape)
         when (windowSize.widthSizeClass) {
-            WindowWidthSizeClass.Compact -> PlayingCompatScreen(
+            WindowWidthSizeClass.Compact -> PlayingCompactScreen(
                 currentSong = currentSong,
                 recentHistories = recentHistories
             )
-
-            WindowWidthSizeClass.Medium -> PlayingMediumAndExtendedScreen(
+            WindowWidthSizeClass.Medium -> PlayingSplit2Screen(
                 currentSong = currentSong,
                 recentHistories = recentHistories,
             )
-
-            WindowWidthSizeClass.Expanded -> PlayingMediumAndExtendedScreen(
+            WindowWidthSizeClass.Expanded -> PlayingSplit2Screen(
+                currentSong = currentSong,
+                recentHistories = recentHistories,
+            )
+        }else{
+            PlayingSplit2Screen(
                 currentSong = currentSong,
                 recentHistories = recentHistories,
             )
@@ -70,8 +77,9 @@ fun PlayingScreen(
     }
 }
 
+// 縦画面用
 @Composable
-fun PlayingCompatScreen(
+fun PlayingCompactScreen(
     currentSong: State<PlayingSongData?>,
     recentHistories: State<List<SongCardViewData>>
 ) {
@@ -110,8 +118,9 @@ fun PlayingCompatScreen(
     }
 }
 
+// 横画面とFold用
 @Composable
-fun PlayingMediumAndExtendedScreen(
+fun PlayingSplit2Screen(
     currentSong: State<PlayingSongData?>,
     recentHistories: State<List<SongCardViewData>>
 ) {
