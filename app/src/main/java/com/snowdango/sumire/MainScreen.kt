@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -17,7 +19,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,7 +35,7 @@ import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+
 @SuppressLint("RestrictedApi")
 @Composable
 fun MainScreen(
@@ -131,4 +132,9 @@ private enum class ROUTE(
         unSelectedIcon = Icons.Outlined.MusicNote,
         label = "history"
     ),
+    SETTINGS(
+        selectedIcon = Icons.Filled.Settings,
+        unSelectedIcon = Icons.Outlined.Settings,
+        label = "settings"
+    )
 }
