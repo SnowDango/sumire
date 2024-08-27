@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.roborazzi.plugin)
 }
 
 android {
@@ -12,7 +13,6 @@ android {
     defaultConfig {
         applicationId = "com.snowdango.sumire"
         minSdk = 34
-        targetSdk = 34
         versionCode = 1
         versionName = "0.0.1"
 
@@ -43,6 +43,14 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
+    }
+    ksp {
+        arg("skipPrivatePreviews", "true")
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
     packaging {
         resources {
@@ -75,10 +83,11 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ui.tooling)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -86,4 +95,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.bundles.roborazzi)
 }
