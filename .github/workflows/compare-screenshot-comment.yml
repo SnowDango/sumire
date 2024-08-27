@@ -1,0 +1,153 @@
+name: Screenshot compare comment
+
+on:
+  ## CompareScreenshotワークフローが完了したとき
+  workflow_run:
+    workflows:
+      - CompareScreenshot
+    types: [ completed ]
+
+## 並列処理を行う
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+jobs:
+  comment-compare-screenshot:
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
+    timeout-minutes: 2
+
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      ## PR番号をダウンロード
+      - uses: dawidd6/action-download-artifact@v2
+        with:
+          name: pr
+          run_id: ${{ github.event.workflow_run.id }}
+
+      # PR番号を取得
+      - id: get-pull-request-number
+        name: Get pull request number
+        shell: bash
+        run: |
+          echo "pull_request_number=$(cat NR)" >> "$GITHUB_OUTPUT"
+
+      ## mainブランチに戻る
+      - name: develop checkout
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      ## コミット履歴を持たないブランチを作成
+      - name: switch companion branch
+        env:
+          BRANCH_NAME: companion_${{ github.event.workflow_run.head_branch }}
+        run: |
+          git branch -D $BRANCH_NAME || true
+          git checkout --orphan $BRANCH_NAME
+          git rm -rf .
+
+      ## CompareScreenshotワークフローで生成された差分を取得
+      - uses: dawidd6/action-download-artifact@v3
+        with:
+          name: screenshots-diff
+          path: screenshots-diff
+          run_id: ${{ github.event.workflow_run.id }}
+
+      ## 差分の画像が命名規則に従っているか確認
+      - id: check-if-there-are-valid-files
+        name: Check if there are valid files
+        shell: bash
+        run: |
+          mapfile -t files_to_add < <(find . -type f -name "*_compare.png")
+          
+          exist_valid_files="false"
+          for file in "${files_to_add[@]}"; do
+            if [[ $file =~ ^[a-zA-Z0-9_./-]+$ ]]; then
+              exist_valid_files="true"
+              break
+            fi
+          done
+          echo "exist_valid_files=$exist_valid_files" >> "$GITHUB_OUTPUT"
+      ## 差分の画像をcompanionブランチにpush
+      - id: push-screenshot-diff
+        shell: bash
+        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
+        env:
+          BRANCH_NAME: companion_${{ github.event.workflow_run.head_branch }}
+        run: |
+          files_to_add=$(find . -type f -name "*_compare.png")
+          
+          
+          for file in $files_to_add; do
+            if [[ $file =~ ^[a-zA-Z0-9_./-]+$ ]]; then
+              git add $file
+            fi
+          done
+          git config --global user.name ScreenshotBot
+          git config --global user.email app.snowdango@gmail.com
+          git commit -m "Add screenshot diff"
+          git push origin HEAD:$BRANCH_NAME -f
+      ## 差分の画像をPRに表示するためのコメントを生成
+      - id: generate-diff-reports
+        name: Generate diff reports
+        if: steps.check-if-there-are-valid-files.outputs.exist_valid_files == 'true'
+        env:
+          BRANCH_NAME: companion_${{ github.event.workflow_run.head_branch }}
+        shell: bash
+        run: |
+          files=$(find . -type f -name "*_compare.png" | grep "roborazzi/" | grep -E "^[a-zA-Z0-9_./-]+$")
+          delimiter="$(openssl rand -hex 8)"
+          {
+            echo "reports<<${delimiter}"
+          
+            echo "Snapshot diff report"
+            echo "| File name | Image |"
+            echo "|-------|-------|"
+          } >> "$GITHUB_OUTPUT"
+          
+          for file in $files; do
+            fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
+            echo "| [$fileName](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/$file) | ![](https://github.com/${{ github.repository }}/blob/$BRANCH_NAME/$file?raw=true) |" >> "$GITHUB_OUTPUT"
+          done
+          echo "${delimiter}" >> "$GITHUB_OUTPUT"
+      ## コメントを取得
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        if: steps.generate-diff-reports.outputs.reports != ''
+        with:
+          issue-number: ${{ steps.get-pull-request-number.outputs.pull_request_number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Snapshot diff report"
+      ## コメントが存在しない場合、新規作成
+      - name: Add or update comment on PR
+        uses: peter-evans/create-or-update-comment@v3
+        if: steps.generate-diff-reports.outputs.reports != ''
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ steps.get-pull-request-number.outputs.pull_request_number }}
+          body: ${{ steps.generate-diff-reports.outputs.reports }}
+          edit-mode: replace
+      ## 期限切れになったcompanionブランチを削除
+      - name: Clean up outdated companion branches
+        run: |
+          git branch -r --format="%(refname:lstrip=3)" | grep "companion_" | while read -r branch; do
+            last_commit_date_timestamp=$(git log -1 --format="%ct" "origin/$branch")
+            now_timestamp=$(date +%s)
+          
+            echo "branch: $branch now_timestamp: $now_timestamp last_commit_date_timestamp: $last_commit_date_timestamp"
+            if [ $((now_timestamp - last_commit_date_timestamp)) -gt 2592000 ]; then
+              echo "Deleting branch $branch"
+              git push origin --delete $branch
+            fi
+          done

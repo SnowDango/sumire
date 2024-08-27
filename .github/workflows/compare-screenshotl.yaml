@@ -1,0 +1,45 @@
+name: CompareScreenshot
+
+on:
+  pull_request:
+
+jobs:
+  compare-screenshot-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      ## mainブランチから変更前のスクリーンショットを取得
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: screenshots
+          workflow: StoreScreenshot
+          branch: develop
+      ## 変更前のスクリーンショットと比較し、差分を生成
+      - name: compare screenshot test
+        id: compare-screenshot-test
+        run: |
+          ./gradlew compareRoborazziDebug --stacktrace
+      ## 差分を成果物として保存
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: screenshots-diff
+          path: "**/build/outputs/roborazzi/"
+          retention-days: 30
+      ## PR番号を保存
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+            echo "${{ github.event.number }}" > ./pr/NR
+      ## PR番号を成果物として保存
+      - name: upload PR number
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr
+          path: pr/
