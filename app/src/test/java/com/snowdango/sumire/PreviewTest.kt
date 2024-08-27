@@ -2,6 +2,7 @@ package com.snowdango.sumire
 
 import com.airbnb.android.showkase.models.Showkase
 import com.airbnb.android.showkase.models.ShowkaseBrowserComponent
+import com.github.takahirom.roborazzi.DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import org.junit.Test
@@ -20,7 +21,8 @@ class PreviewTest(
     @Test
     fun previewScreenshot() {
         val componentName = showkaseBrowserComponent.componentName.replace(" ", "")
-        val filePath = "roborazzi/" + showkaseBrowserComponent.group + "_" + componentName + ".png"
+        val filePath =
+            DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH + "roborazzi/" + showkaseBrowserComponent.group + "_" + componentName + ".png"
         captureRoboImage(filePath) {
             showkaseBrowserComponent.component()
         }
