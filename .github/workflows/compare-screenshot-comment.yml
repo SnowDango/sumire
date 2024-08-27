@@ -1,7 +1,6 @@
 name: Screenshot compare comment
 
 on:
-  ## CompareScreenshotワークフローが完了したとき
   workflow_run:
     workflows:
       - CompareScreenshot

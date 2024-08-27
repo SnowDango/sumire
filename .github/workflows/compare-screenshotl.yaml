@@ -27,8 +27,8 @@ jobs:
         continue-on-error: true
         with:
           name: screenshots
-          workflow: StoreScreenshot
           branch: develop
+          path: "**/build/outputs/roborazzi"
       ## 変更前のスクリーンショットと比較し、差分を生成
       - name: compare screenshot test
         id: compare-screenshot-test
