@@ -251,7 +251,7 @@ fun PreviewPlayingSongComponent() {
     SumireTheme {
         PlayingSongComponent(
             artwork = null,
-            title = "title",
+            title = "title2",
             album = "album",
             artist = "artist",
             app = MusicApp.APPLE_MUSIC

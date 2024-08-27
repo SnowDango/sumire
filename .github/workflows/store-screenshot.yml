@@ -30,5 +30,6 @@ jobs:
         if: ${{ always() }}
         with:
           name: screenshots
+
           path: "**/build/outputs/roborazzi"
           retention-days: 30
