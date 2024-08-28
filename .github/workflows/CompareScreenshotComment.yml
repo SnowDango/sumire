@@ -40,7 +40,7 @@ jobs:
           echo "pull_request_number=$(cat NR)" >> "$GITHUB_OUTPUT"
       - name: main checkout
         id: checkout-main
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
         with:
           ref: main
       - id: switch-companion-branch
