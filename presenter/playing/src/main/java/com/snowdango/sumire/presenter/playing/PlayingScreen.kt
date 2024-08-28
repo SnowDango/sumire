@@ -251,7 +251,7 @@ fun PreviewPlayingSongComponent() {
     SumireTheme {
         PlayingSongComponent(
             artwork = null,
-            title = "title6",
+            title = "title6w",
             album = "album",
             artist = "artist",
             app = MusicApp.APPLE_MUSIC
@@ -268,7 +268,7 @@ fun NothingPlayingSongComponent() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Music is not playing \nin all apps.",
+            text = "Music is not playing \nin all apps.sss",
             style = TextStyle(
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.Normal,
