@@ -18,7 +18,7 @@ jobs:
       actions: write # for upload-artifact
     steps:
       - name: Checkout
-        uses: actions/checkout@4
+        uses: actions/checkout@v4
       - name: set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -34,14 +34,14 @@ jobs:
           workflow: UnitTest.yml
           branch: develop
       - run: ./gradlew compareRoborazziDebug --stacktrace
-      - uses: actions/upload-artifact@4
+      - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
           name: screenshot-diff
           path: |
             **/build/outputs/roborazzi
           retention-days: 30
-      - uses: actions/upload-artifact@4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: screenshot-diff-reports
@@ -53,7 +53,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@4
+      - uses: actions/upload-artifact@v4
         with:
           name: pr
           path: pr/
