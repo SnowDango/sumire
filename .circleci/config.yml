@@ -108,10 +108,7 @@ commands:
       - run:
           name: Unit test
           command: |
-            if [ $IS_SKIPPING_VRT = "false" ]; then
-              roborazzi_option="-Proborazzi.test.compare=true"
-            fi
-            ./gradlew test<< parameters.build_variant >> $roborazzi_option --stacktrace
+            ./gradlew compareRoborazziDebug --stacktrace
 
   setting_git_config:
     steps:
@@ -128,21 +125,21 @@ commands:
           name: Push screenshots branch
           command: |
             git push origin --delete screenshots_$CIRCLE_BRANCH || true
-          
+            
             git checkout --orphan screenshots_$CIRCLE_BRANCH
             git rm --cached -rf .
-          
+            
             add_files=$(find . -type f -path "./app/build/outputs/roborazzi/*")
             for file in $add_files; do
               git add -f $file
             done
-          
+            
             echo $(date +%s) > timestamp
             git add -f timestamp
-          
+            
             echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
             git add -f .circleci/config.yml
-          
+            
             git commit -m "Add screenshot"
             git clean -df
             git push origin HEAD:screenshots_$CIRCLE_BRANCH -f
@@ -197,7 +194,7 @@ commands:
               url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${prNumber}/comments"
               commentId=$(echo -n $(curl -s -H "Authorization: token $GITHUB_ACCESS_TOKEN" $url -v | jq '.[] | select(.body | test("^Snapshot diff report.*")) | .id'))
               failedComment="$(echo -e "Snapshot diff report\n:warning: **Failed to show Snapshot diff**\n$CIRCLE_BUILD_URL")"
-              
+            
               if [ -n "$commentId" ]; then
                 comment="$(cat ./comment)"
                 endpoint="/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/comments/$commentId"
@@ -214,7 +211,7 @@ commands:
         type: string
       maximum_seconds_past:
         type: integer
-        default:  2592000 # 30 days
+        default: 2592000 # 30 days
     steps:
       - run:
           name: Cleanup old branch
