@@ -119,8 +119,8 @@ commands:
       - run:
           name: Setting git config
           command: |
-            git config --global user.name "$GITHUB_NAME"
-            git config --global user.email "$GITHUB_EMAIL"
+            git config --global user.name "SnowDango"
+            git config --global user.email "xdi.grand.you.winner@gmail.com"
 
   push_screenshots_branch:
     steps:
