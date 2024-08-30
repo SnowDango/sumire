@@ -114,6 +114,17 @@ commands:
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
 
+  save_screenshot:
+    steps:
+      - run:
+          name: permission
+          command: |
+            chmod +x gradlew
+      - run:
+          name: Unit test
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+
   setting_git_config:
     steps:
       - run:
@@ -248,9 +259,7 @@ jobs:
       - checkout
       - set_locale_properties
       - restore_and_save_gradle_cache
-      - run:
-          name: Create screenshots
-          command: ./gradlew recordRoborazziDebug --stacktrace
+      - save_screenshot
       - push_screenshots_branch
       - cleanup_old_branch:
           prefix: compare_
