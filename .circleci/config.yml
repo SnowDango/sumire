@@ -114,6 +114,17 @@ commands:
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
 
+  save_screenshot:
+    steps:
+      - run:
+          name: permission
+          command: |
+            chmod +x gradlew
+      - run:
+          name: Unit test
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+
   setting_git_config:
     steps:
       - run:
@@ -185,7 +196,7 @@ commands:
             echo "| File name | Image |" >> comment
             echo "|-------|-------|" >> comment
             
-            files=$(find . -type f -path "./app/build/outputs/roborazzi/*" -name "*_compare.png")
+            files=$(find . -type f -path "./app/build/outputs/roborazzi" -name "*_compare.png")
             for file in $files; do
               fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
               echo "| [$fileName](https://github.com/SnowDango/sumire/blob/compare_$CIRCLE_BRANCH/$file) | ![](https://github.com/SnowDango/sumire/blob/compare_$CIRCLE_BRANCH/$file?raw=true) |" >> comment
@@ -248,9 +259,7 @@ jobs:
       - checkout
       - set_locale_properties
       - restore_and_save_gradle_cache
-      - run:
-          name: Create screenshots
-          command: ./gradlew recordRoborazziDebug --stacktrace
+      - save_screenshot
       - push_screenshots_branch
       - cleanup_old_branch:
           prefix: compare_
