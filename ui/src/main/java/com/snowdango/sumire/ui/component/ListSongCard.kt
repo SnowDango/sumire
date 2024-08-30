@@ -111,7 +111,7 @@ fun ListSongCard(
                     modifier = Modifier
                         .fillMaxHeight(),
                     contentAlignment = Alignment.CenterEnd
-                ){
+                ) {
                     MusicAppImage(
                         app = songCardViewData.app,
                         modifier = Modifier
@@ -122,7 +122,7 @@ fun ListSongCard(
                     modifier = Modifier
                         .fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd
-                ){
+                ) {
                     Text(
                         text = songCardViewData.playTimeText,
                         style = MaterialTheme.typography.labelSmall,
@@ -140,7 +140,7 @@ fun PreviewListSongCard() {
     SumireTheme {
         ListSongCard(
             songCardViewData = SongCardViewData(
-                title = "title31e3414124214",
+                title = "title31e3awdwdwdwa",
                 artistName = "artistName",
                 albumName = "albumName",
                 thumbnail = null,
