@@ -238,7 +238,7 @@ jobs:
       - set_locale_properties
       - restore_and_save_gradle_cache
       - unit_test:
-          build_variant: ProdDebug
+          build_variant: Debug
       - push_compare_branch
       - comment_screenshot_diff
 
@@ -250,7 +250,7 @@ jobs:
       - restore_and_save_gradle_cache
       - run:
           name: Create screenshots
-          command: ./gradlew recordRoborazziProdDebug --stacktrace
+          command: ./gradlew recordRoborazziDebug --stacktrace
       - push_screenshots_branch
       - cleanup_old_branch:
           prefix: compare_
