@@ -173,7 +173,7 @@ commands:
                 git checkout --orphan compare_$CIRCLE_BRANCH
                 git rm --cached -rf .
             
-                add_files=$(find . -type f -path "./app/build/outputs/roborazzi/*" -name "*_compare.png")
+                add_files=$(find . -type f -path "./app/build/outputs/roborazzi" -name "*_compare.png")
                 for file in $add_files; do
                   git add -f $file
                 done
@@ -196,7 +196,7 @@ commands:
             echo "| File name | Image |" >> comment
             echo "|-------|-------|" >> comment
             
-            files=$(find . -type f -path "./app/build/outputs/roborazzi/*" -name "*_compare.png")
+            files=$(find . -type f -path "./app/build/outputs/roborazzi" -name "*_compare.png")
             for file in $files; do
               fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
               echo "| [$fileName](https://github.com/SnowDango/sumire/blob/compare_$CIRCLE_BRANCH/$file) | ![](https://github.com/SnowDango/sumire/blob/compare_$CIRCLE_BRANCH/$file?raw=true) |" >> comment
