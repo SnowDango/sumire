@@ -140,7 +140,7 @@ fun PreviewListSongCard() {
     SumireTheme {
         ListSongCard(
             songCardViewData = SongCardViewData(
-                title = "SongTitle",
+                title = "testfafa",
                 artistName = "artistName",
                 albumName = "albumName",
                 thumbnail = null,
