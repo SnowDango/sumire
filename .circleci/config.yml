@@ -39,7 +39,6 @@ jobs:
     steps:
       - checkout
       - run:
-      - run:
           name: get artifacts
           command: |
             mkdir -p app/build/outputs/roborazzi \
