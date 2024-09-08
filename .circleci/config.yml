@@ -89,7 +89,7 @@ jobs:
           name: pull request comment
           command: |
             echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
-            gh pr comment ${pr-number} -b "$comment"
+            gh pr comment "$CIRCLE_PULL_REQUEST" -b "$comment"
 workflows:
   save-screenshot:
     jobs:
@@ -108,4 +108,6 @@ workflows:
           target-branch: << pipeline.parameters.target-branch >>
       - result-comment:
           pr-number: << pipeline.parameters.pr-number >>
+          requires:
+            - vrt-test
 
