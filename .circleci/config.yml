@@ -44,7 +44,7 @@ jobs:
             mkdir -p app/build/outputs/roborazzi | \
             curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
             jq -c '.[]' | while read artifact; do
-              curl -o $(echo $artifact | jq -r '.path')  $(echo $artifact | jq -r '.url') 
+              curl -H "Circle-Token: $CIRCLE_TOKEN" -o $(echo $artifact | jq -r '.path')  $(echo $artifact | jq -r '.url') 
             done
       - run:
           name: chmod gradlew
