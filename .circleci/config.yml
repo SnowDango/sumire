@@ -62,11 +62,17 @@ jobs:
       - run:
           name: delete unnecessary files
           command: |
-            ls app/build/outputs/roborazzi
-            ls app/build/outputs/roborazzi | grep -v -E "*compare.png" | xargs rm -rf
-            ls app/build/outputs/roborazzi
+            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
       - store_artifacts:
           path: app/build/outputs/roborazzi
+      - run:
+          name: create result json file
+          command: |
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - artifact.json
   result-comment:
     parameters:
       pr-number:
@@ -77,6 +83,8 @@ jobs:
     steps:
       - checkout
       - gh/install
+      - attach_workspace:
+          at: ./
       - run:
           name: create comment
           command: |
@@ -84,7 +92,7 @@ jobs:
             echo "VRT Result" > comment.txt
             echo "| file | image |" >> comment.txt
             echo "|----|-------|" >> comment.txt
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" | \
+            echo artifact.json | \
             jq -c '.items[]' | while read artifact; do
               echo "| $(echo $artifact | jq -r '.path') | ![]($(echo $artifact | jq -r '.url')) |" >> comment.txt
             done
