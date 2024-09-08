@@ -62,7 +62,9 @@ jobs:
       - run:
           name: delete unnecessary files
           command: |
-            ls app/build/outputs/roborazzi | grep -v -E "*_compare.png" | xargs rm -rf
+            ls app/build/outputs/roborazzi
+            ls app/build/outputs/roborazzi | grep -v -E "*compare.png" | xargs rm -rf
+            ls app/build/outputs/roborazzi
       - store_artifacts:
           path: app/build/outputs/roborazzi
   result-comment:
