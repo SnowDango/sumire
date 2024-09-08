@@ -2,13 +2,17 @@ version: 2.1
 
 orbs:
   android: circleci/android@2.5.0
-  pr-comment: inari-build/pr-comment@0.0.25
+  gh: circleci/github-cli@2.0
 
 parameters:
   target-branch:
     description: "PR先のbranch"
     type: string
     default: ""
+  pr-number:
+    description: "PRの番号"
+    type: integer
+    default: 0
 
 jobs:
   save-screenshot:
@@ -62,6 +66,10 @@ jobs:
       - store_artifacts:
           path: app/build/outputs/roborazzi
   result-comment:
+    parameters:
+      pr-number:
+        type: integer
+        default: 0
     docker:
       - image: cimg/base:stable
     steps:
@@ -76,10 +84,11 @@ jobs:
             jq -c '.[]' | while read artifact; do
               echo "| ![]($(echo $artifact | jq -r '.url')) |" >> comment
             done
-      - pr-comment:
-          gh-user: "SnowDango"
-          gh-token: $GITHUB_TOKEN
-          comment: comment
+      - run:
+          name: pull request comment
+          command: |
+            echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
+            gh pr comment $pr-number -b "$comment"
 workflows:
   save-screenshot:
     jobs:
@@ -96,3 +105,6 @@ workflows:
     jobs:
       - vrt-test:
           target-branch: << pipeline.parameters.target-branch >>
+      - result-comment:
+          pr-number: << pipeline.parameters.pr-number >>
+
