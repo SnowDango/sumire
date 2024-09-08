@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  android: circleci/android@1.0.3
+  android: circleci/android@2.5.0
 
 jobs:
   save-screenshot:
@@ -9,6 +9,10 @@ jobs:
       name: android/android-machine
     steps:
       - checkout
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
       - run:
           name: take screenshot
           command: |
