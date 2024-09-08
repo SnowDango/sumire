@@ -78,18 +78,19 @@ jobs:
       - run:
           name: create comment
           command: |
-            echo "VRT Result" > comment
-            echo "| image |" >> comment
-            echo "|-------|" >> comment
+            touch comment.txt
+            echo "VRT Result" > comment.txt
+            echo "| file | image |" >> comment.txt
+            echo "|----|-------|" >> comment.txt
             curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" | \
             jq -c '.[]' | while read artifact; do
-              echo "| ![]($(echo $artifact | jq -r '.url')) |" >> comment
+              echo "| $(echo $artifact | jq -r '.path') | ![]($(echo $artifact | jq -r '.url')) |" >> comment.txt
             done
       - run:
           name: pull request comment
           command: |
             echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
-            gh pr comment "$CIRCLE_PULL_REQUEST" -b "$comment"
+            gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
 workflows:
   save-screenshot:
     jobs:
