@@ -7,6 +7,8 @@ jobs:
   save-screenshot:
     executor:
       name: android/android-machine
+      resource-class: large
+      tag: default
     steps:
       - checkout
       - run:
