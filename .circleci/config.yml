@@ -45,7 +45,7 @@ jobs:
             curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
             jq -c '.[]' | while read artifact; do
               echo $artifact | jq -r '.url'
-              curl -H "Circle-Token: $CIRCLE_TOKEN" -o $(echo $artifact | jq -r '.path')  "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" 
+              curl -H "Circle-Token: $CIRCLE_TOKEN" -OL "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" 
             done
       - run:
           name: chmod gradlew
