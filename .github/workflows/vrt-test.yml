@@ -15,7 +15,7 @@ jobs:
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -H "Circle-Token: ${CIRCLE_TOKEN}" \
-          -d "{\"branch\": \"${{ github.head_ref }}\" , \"parameters\": {\"target-branch\": \"${{ github.base_ref }}\", \"pr-number\": ${{ github.event.pull_request.number }}}" \
+          -d "{\"branch\": \"${{ github.head_ref }}\" , \"parameters\": {\"target-branch\": \"${{ github.base_ref }}\", \"pr-number\": ${{ github.event.pull_request.number }} } }" \
           https://circleci.com/api/v2/project/github/SnowDango/sumire/pipeline
     env:
       CIRCLE_TOKEN: ${{ secrets.CIRCLE_TOKEN }}
