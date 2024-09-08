@@ -39,15 +39,12 @@ jobs:
     steps:
       - checkout
       - run:
+      - run:
           name: get artifacts
           command: |
-            mkdir -p app/build/outputs/roborazzi |
-            curl -H "Circle-Token: $CIRCLE_TOKEN" https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed | 
-            jq . |
-            while read -r artifact; do
-              url = $(echo "${artifact}" | jq -r '.url')
-              curl -o app/build/outputs/roborazzi ${url}
-            done
+            mkdir -p app/build/outputs/roborazzi \
+            artifacts=$(curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed") \
+            for artifact in $(echo $artifact | jq -c '.[]'); do curl -o app/build/outputs/roborazzi $(echo $artifact | jq -r '.url') done
       - run:
           name: chmod gradlew
           command: |
