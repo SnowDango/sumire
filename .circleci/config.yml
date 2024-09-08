@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   android: circleci/android@2.5.0
-  gh: circleci/github-cli@2.0
+  gh: circleci/github-cli@2.3.0
 
 parameters:
   target-branch:
@@ -74,6 +74,7 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - gh/install
       - run:
           name: create comment
           command: |
