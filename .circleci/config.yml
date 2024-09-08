@@ -3,6 +3,12 @@ version: 2.1
 orbs:
   android: circleci/android@2.5.0
 
+parameters:
+  target-branch:
+    description: "PR先のbranch"
+    type: string
+    default: ""
+
 jobs:
   save-screenshot:
     executor:
@@ -21,6 +27,34 @@ jobs:
             ./gradlew recordRoborazziDebug --stacktrace
       - store_artifacts:
           path: app/build/outputs/roborazzi
+  vrt-test:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: get artifacts
+          command: |
+            mkdir -p app/build/outputs/roborazzi |
+            curl -H "Circle-Token: $CIRCLE_TOKEN" https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed | 
+            jq . |
+            while read -r artifact; do
+              url = $(echo "${artifact}" | jq -r '.url')
+              curl -o app/build/outputs/roborazzi ${url}
+            done
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: compare screenshot
+          command: |
+            ./gradlew compareRoborazziDebug --stacktrace
+      - store_artifacts:
+          path: app/build/outputs/roborazzi
+
 
 workflows:
   save-screenshot:
@@ -31,3 +65,9 @@ workflows:
               only:
                 - "develop"
                 - "master"
+  vrt-test:
+    when:
+      not:
+        equal: [ "", << pipeline.parameters.target-branch >> ]
+    jobs:
+      - vrt-test
