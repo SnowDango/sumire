@@ -89,7 +89,7 @@ jobs:
           name: pull request comment
           command: |
             echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
-            gh pr comment $pr-number -b "$comment"
+            gh pr comment ${pr-number} -b "$comment"
 workflows:
   save-screenshot:
     jobs:
