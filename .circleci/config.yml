@@ -23,6 +23,5 @@ workflows:
           filters:
             branches:
               only:
-                  "develop"
-                    "release/*"
-                    "master"
+                - "develop"
+                - "master"
