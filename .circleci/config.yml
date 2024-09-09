@@ -96,7 +96,7 @@ jobs:
             echo "|----|-------|" >> comment.txt
             cat artifact.json | \
             jq -c '.items[]' | while read artifact; do
-              echo "| $(echo $artifact | jq -r '.path') | ![]($(echo $artifact | jq -r '.url')) | " >> comment.txt
+              echo "| $(echo $artifact | jq -r '.path') | ![]($(echo $artifact | jq -r '.url')) |" >> comment.txt
             done
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
