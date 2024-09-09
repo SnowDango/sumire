@@ -109,7 +109,7 @@ jobs:
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
             comments="true"
-            gh pr view --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
+            gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
               comments=${iscomment}
             done
             if [ ${comments} = "true" ]; then
