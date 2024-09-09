@@ -75,21 +75,6 @@ jobs:
           root: ./
           paths:
             - artifact.json
-      - run:
-          name: create branch
-          command: |
-            git push origin --delete vrt_$CIRCLE_BRANCH || true
-            git checkout --orphan vrt_$CIRCLE_BRANCH
-      - run:
-          name: push compare file
-          command: |
-            git rm --cached -rf .
-            git add -f ./app/build/outputs/roborazzi/
-            echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
-            git add -f .circleci/config.yml
-            git commit -m "Add screenshot"
-            git clean -df
-            git push origin HEAD:vrt_$CIRCLE_BRANCH -f
   result-comment:
     docker:
       - image: cimg/base:stable
@@ -123,7 +108,18 @@ jobs:
           name: pull request comment
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
-            gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
+            comments="true"
+            gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
+              comments=${iscomment}
+              if [ ${iscomment} = "true" ]; then
+                exit 0
+              fi
+            done
+            if [ ${comments} = "true" ]; then
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
+            else
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
+            fi
 workflows:
   save-screenshot:
     jobs:
