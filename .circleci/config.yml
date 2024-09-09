@@ -111,6 +111,9 @@ jobs:
             comments="true"
             gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
               comments=${iscomment}
+              if [ ${iscomment} = "true ]; then
+                exit 0
+              fi
             done
             if [ ${comments} = "true" ]; then
               gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
