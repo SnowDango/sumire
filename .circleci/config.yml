@@ -120,7 +120,6 @@ workflows:
       - vrt-test:
           target-branch: << pipeline.parameters.target-branch >>
       - result-comment:
-          pr-number: << pipeline.parameters.pr-number >>
           requires:
             - vrt-test
 
