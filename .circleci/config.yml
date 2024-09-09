@@ -3,7 +3,7 @@ version: 2.1
 orbs:
   android: circleci/android@2.5.0
   gh: circleci/github-cli@2.3.0
-  github-app-token: ostk0069/github-app-token@0.1.0
+  github-app-token: ostk0069/github-app-token@0.0.1
 
 parameters:
   target-branch:
