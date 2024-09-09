@@ -76,10 +76,6 @@ jobs:
           paths:
             - artifact.json
   result-comment:
-    parameters:
-      github_install_id:
-        type: integer
-        default: ${GITHUB_APPS_INSTALL_ID}
     docker:
       - image: cimg/base:stable
     steps:
@@ -101,7 +97,7 @@ jobs:
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
-          installation_id: << parameters.github_install_id >>
+          installation_id: 54651436
       - run:
           name: pull request comment
           command: |
