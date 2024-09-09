@@ -78,16 +78,13 @@ jobs:
       - run:
           name: create branch
           command: |
-            git push origin --delete screenshots_$CIRCLE_BRANCH || true
+            git push origin --delete vrt_$CIRCLE_BRANCH || true
             git checkout --orphan vrt_$CIRCLE_BRANCH
       - run:
           name: push compare file
           command: |
             git rm --cached -rf .
-            add_files=$(find . -type f -path "./app/build/outputs/roborazzi/*")
-            for file in $add_files; do
-              git add -f $file
-            done
+            git add ./app/build/outputs/roborazzi/
             echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
             git add -f .circleci/config.yml
             git commit -m "Add screenshot"
