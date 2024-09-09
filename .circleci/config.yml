@@ -2,7 +2,8 @@ version: 2.1
 
 orbs:
   android: circleci/android@2.5.0
-  gh: circleci/github-cli@2.0
+  gh: circleci/github-cli@2.3.0
+  github-app-token: ostk0069/github-app-token@0.0.1
 
 parameters:
   target-branch:
@@ -62,33 +63,67 @@ jobs:
       - run:
           name: delete unnecessary files
           command: |
-            ls app/build/outputs/roborazzi | grep -v -E "*_compare.png" | xargs rm -rf
+            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
       - store_artifacts:
           path: app/build/outputs/roborazzi
+      - run:
+          name: create result json file
+          command: |
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
+            cat artifact.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - artifact.json
+      - run:
+          name: create branch
+          command: |
+            git push origin --delete vrt_$CIRCLE_BRANCH || true
+            git checkout --orphan vrt_$CIRCLE_BRANCH
+      - run:
+          name: push compare file
+          command: |
+            git rm --cached -rf .
+            git add -f ./app/build/outputs/roborazzi/
+            echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
+            git add -f .circleci/config.yml
+            git commit -m "Add screenshot"
+            git clean -df
+            git push origin HEAD:vrt_$CIRCLE_BRANCH -f
   result-comment:
-    parameters:
-      pr-number:
-        type: integer
-        default: 0
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
+      - gh/install
+      - attach_workspace:
+          at: ./
       - run:
           name: create comment
           command: |
-            echo "VRT Result" > comment
-            echo "| image |" >> comment
-            echo "|-------|" >> comment
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" | \
-            jq -c '.[]' | while read artifact; do
-              echo "| ![]($(echo $artifact | jq -r '.url')) |" >> comment
-            done
+            touch comment.txt
+            length=$(cat artifact.json | jq -c '.items[] | length')
+            if [ $length -gt 0 ]; then
+              echo "VRT Result" > comment.txt
+              echo "| changed |" >> comment.txt
+              echo "|-------|" >> comment.txt
+              cat artifact.json | \
+              jq -c '.items[]' | while read artifact; do
+                echo "| $(echo $artifact | jq -r '.url') |" >> comment.txt
+              done
+            else
+              echo "VRT Result" > comment.txt
+              echo "not changed screen" >> comment.txt
+            fi
+      - github-app-token/fetch-token:
+          app_id: $GITHUB_APPS_ID
+          base64_private_key: $GITHUB_APPS_PRIVATE_KEY
+          installation_id: 54651436
       - run:
           name: pull request comment
           command: |
-            echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
-            gh pr comment $pr-number -b "$comment"
+            echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
+            gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
 workflows:
   save-screenshot:
     jobs:
@@ -106,5 +141,6 @@ workflows:
       - vrt-test:
           target-branch: << pipeline.parameters.target-branch >>
       - result-comment:
-          pr-number: << pipeline.parameters.pr-number >>
+          requires:
+            - vrt-test
 
