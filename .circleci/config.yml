@@ -102,13 +102,19 @@ jobs:
           name: create comment
           command: |
             touch comment.txt
-            echo "VRT Result" > comment.txt
-            echo "| image |" >> comment.txt
-            echo "|-------|" >> comment.txt
-            cat artifact.json | \
-            jq -c '.items[]' | while read artifact; do
-              echo "| ![](https://github.com/SnowDango/sumire/blob/vrt_$CIRCLE_BRANCH/$(echo $artifact | jq -r '.path')) |" >> comment.txt
-            done
+            length=$(cat artifact.json | jq -c '.items[] | length')
+            if [ $length -gt 0 ]; then
+              echo "VRT Result" > comment.txt
+              echo "| changed |" >> comment.txt
+              echo "|-------|" >> comment.txt
+              cat artifact.json | \
+              jq -c '.items[]' | while read artifact; do
+                echo "| $(echo $artifact | jq -r '.url') |" >> comment.txt
+              done
+            else
+              echo "VRT Result" > comment.txt
+              echo "not changed screen" >> comment.txt
+            fi
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
