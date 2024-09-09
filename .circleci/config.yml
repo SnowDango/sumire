@@ -108,7 +108,7 @@ jobs:
           name: pull request comment
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
-            gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
+            gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
 workflows:
   save-screenshot:
     jobs:
