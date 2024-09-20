@@ -109,13 +109,7 @@ jobs:
           name: pull request comment
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
-            comments="false"
-            gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{"login":"sumire-apps"}})' | while read iscomment; do
-              comments=${iscomment}
-              if [ ${iscomment} = "true" ]; then
-                exit 0
-              fi
-            done
+            comments=$(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '[.comments[].author.login]|any(.=="sumire-apps")')
             echo $comments
             if [ ${comments} = "true" ]; then
               gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
