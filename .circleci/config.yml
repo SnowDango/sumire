@@ -16,6 +16,37 @@ parameters:
     default: 0
 
 jobs:
+  build:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: build
+          command: |
+            ./gradlew assembleDebug
+  unittest:
+    build:
+      executor:
+        name: android/android-machine
+        resource-class: large
+        tag: default
+      steps:
+        - checkout
+        - run:
+            name: chmod gradlew
+            command: |
+              chmod +x gradlew
+        - run:
+            name: UnitTest
+            command: |
+              ./gradlew testDebugUnitTest
   save-screenshot:
     executor:
       name: android/android-machine
@@ -125,6 +156,16 @@ workflows:
               only:
                 - "develop"
                 - "master"
+  build-test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore:
+                - "master"
+      - unittest:
+          requires:
+            - build
   vrt-test:
     when:
       not:
