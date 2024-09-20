@@ -1,4 +1,9 @@
 [versions]
+minsdk = "33"
+compileSdk = "34"
+versionCode = "1"
+versionName = "0.0.1"
+
 agp = "8.5.2"
 ksp = "2.0.10-1.0.24"
 kotlin = "2.0.10"

@@ -7,10 +7,10 @@ plugins {
 
 android {
     namespace = "com.snowdango.presenter.history"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 34
+        minSdk = libs.versions.minsdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
