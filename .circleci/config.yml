@@ -38,6 +38,8 @@ jobs:
       tag: default
     steps:
       - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
@@ -46,6 +48,8 @@ jobs:
           name: build
           command: |
             ./gradlew assembleDebug
+      - android/save-gradle-cache
+      - android/save-build-cache
   unittest:
     executor:
       name: android/android-machine
@@ -53,6 +57,8 @@ jobs:
       tag: default
     steps:
       - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
@@ -61,6 +67,8 @@ jobs:
           name: UnitTest
           command: |
             ./gradlew testDebugUnitTest
+      - android/save-gradle-cache
+      - android/save-build-cache
   save-screenshot:
     executor:
       name: android/android-machine
@@ -97,6 +105,8 @@ jobs:
             jq -c '.[]' | while read artifact; do
               curl -H "Circle-Token: $CIRCLE_TOKEN" -L "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" --create-dirs --output "$(echo $artifact | jq -r '.path')"
             done
+      - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
@@ -105,6 +115,8 @@ jobs:
           name: compare screenshot
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
           name: delete unnecessary files
           command: |
