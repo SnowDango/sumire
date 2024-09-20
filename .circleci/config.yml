@@ -16,6 +16,21 @@ parameters:
     default: 0
 
 jobs:
+  lint:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: lint
+          command: |
+            ./gradlew detekt
   build:
     executor:
       name: android/android-machine
@@ -158,11 +173,14 @@ workflows:
                 - "master"
   build-test:
     jobs:
-      - build:
+      - lint:
           filters:
             branches:
               ignore:
                 - "master"
+      - build:
+          requires:
+            - lint
       - unittest:
           requires:
             - build
