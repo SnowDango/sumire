@@ -22,7 +22,7 @@ class PreviewTest(
     fun previewScreenshot() {
         val componentName = showkaseBrowserComponent.componentName.replace(" ", "")
         val filePath =
-            DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH + "/" + showkaseBrowserComponent.group + "_" + componentName + ".png"
+            DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH + "/" + showkaseBrowserComponent.group + "_" + componentName + "_" + showkaseBrowserComponent.componentKey + ".png"
         captureRoboImage(filePath) {
             showkaseBrowserComponent.component()
         }
@@ -32,8 +32,8 @@ class PreviewTest(
         @ParameterizedRobolectricTestRunner.Parameters
         @JvmStatic
         fun components(): Iterable<Array<Any?>> {
-            return Showkase.getMetadata().componentList.map { showkaseBrowserComponent ->
-                arrayOf(showkaseBrowserComponent)
+            return Showkase.getMetadata().componentList.map {
+                arrayOf(it)
             }
         }
     }
