@@ -1,15 +1,11 @@
 package com.snowdango.sumire
 
 import android.content.Intent
-import android.icu.util.Calendar
 import android.os.Bundle
-import android.provider.CalendarContract.CalendarAlerts
-import android.provider.CalendarContract.Calendars
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.CalendarLocale
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -19,7 +15,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.NotificationManagerCompat
 import com.snowdango.sumire.service.SongListenerService
 import com.snowdango.sumire.ui.theme.SumireTheme
-import kotlinx.datetime.Clock
 
 class MainActivity : ComponentActivity() {
 
@@ -29,7 +24,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MainScreen(
-                calculateWindowSizeClass(activity = this)
+                calculateWindowSizeClass(activity = this),
             )
         }
         if (!NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)) {
@@ -46,7 +41,7 @@ class MainActivity : ComponentActivity() {
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
-        modifier = modifier
+        modifier = modifier,
     )
 }
 

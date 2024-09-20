@@ -29,7 +29,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.android.ext.android.inject
 
-
 class SongListenerService : NotificationListenerService() {
 
     private val songSharedFlow: PlayingSongSharedFlow by inject()
@@ -53,7 +52,7 @@ class SongListenerService : NotificationListenerService() {
         val channel = NotificationChannel(
             channelId,
             channelName,
-            NotificationManager.IMPORTANCE_NONE
+            NotificationManager.IMPORTANCE_NONE,
         ).also {
             it.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         }
@@ -112,7 +111,7 @@ class SongListenerService : NotificationListenerService() {
                                     createPlayingSongData(metadata, it)
                                 } else {
                                     null
-                                }
+                                },
                             )
                             loggingMediaController(metadata, it)
                         } catch (e: NullPointerException) {
@@ -125,7 +124,7 @@ class SongListenerService : NotificationListenerService() {
 
     private fun createPlayingSongData(
         metadata: MediaMetadata,
-        mediaController: MediaController
+        mediaController: MediaController,
     ): PlayingSongData {
         return PlayingSongData(
             SongData(
@@ -144,7 +143,7 @@ class SongListenerService : NotificationListenerService() {
 
     private fun loggingMediaController(
         metadata: MediaMetadata?,
-        mediaController: MediaController?
+        mediaController: MediaController?,
     ) {
         metadata?.let { Logging.loggingMetaData(it) }
         mediaController?.playbackState?.let {

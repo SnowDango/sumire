@@ -60,6 +60,17 @@ android {
     }
 }
 
+detekt {
+    autoCorrect = true
+    parallel = true
+    config.setFrom("$rootDir/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+    ignoreFailures = true
+    // Dangerで指摘するときのためにリポジトリルートにする
+    // danger-checkstyle_reportsのバグでカスタマイズできないため
+    basePath = file("$rootDir/../").absolutePath
+}
+
 dependencies {
     implementation(project(":ui"))
     implementation(project(":infla"))
@@ -98,4 +109,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.robolectric)
     testImplementation(libs.bundles.roborazzi)
+
+    detektPlugins(libs.detekt.formatting)
 }

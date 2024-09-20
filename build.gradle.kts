@@ -10,6 +10,9 @@ plugins {
 }
 
 buildscript {
+    repositories {
+        mavenCentral()
+    }
     dependencies {
         classpath(libs.android.gradle)
         classpath(libs.android.application.plugin)

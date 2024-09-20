@@ -31,7 +31,7 @@ coil = "2.7.0"
 settings = "2.4.0"
 showkase = "1.0.3"
 roborazzi = "1.26.0"
-detekt = "1.23.3"
+detekt = "1.23.7"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -90,6 +90,8 @@ robolectric = { group = "org.robolectric", name = "robolectric", version = "4.13
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
+
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
 
 
 [bundles]
