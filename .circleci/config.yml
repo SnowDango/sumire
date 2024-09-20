@@ -110,12 +110,14 @@ jobs:
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
             comments="false"
+            echo $(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments)
             gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
               comments=${iscomment}
               if [ ${iscomment} = "true" ]; then
                 exit 0
               fi
             done
+            echo $comments
             if [ ${comments} = "true" ]; then
               gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
             else
