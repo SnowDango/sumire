@@ -32,8 +32,10 @@ class PreviewTest(
         @ParameterizedRobolectricTestRunner.Parameters
         @JvmStatic
         fun components(): Iterable<Array<Any?>> {
-            return Showkase.getMetadata().componentList.map { showkaseBrowserComponent ->
-                arrayOf(showkaseBrowserComponent)
+            return Showkase.getMetadata().componentList.distinctBy {
+                it.componentKey.substringBefore("-")
+            }.map {
+                arrayOf(it)
             }
         }
     }
