@@ -24,7 +24,6 @@ class MainViewModel : ViewModel() {
     val dateChangeFlow = _dateChangeFlow.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        initialValue = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        initialValue = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
     )
-
 }

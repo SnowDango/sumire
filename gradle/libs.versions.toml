@@ -4,7 +4,7 @@ compileSdk = "34"
 versionCode = "1"
 versionName = "0.0.1"
 
-agp = "8.5.2"
+agp = "8.6.1"
 ksp = "2.0.10-1.0.24"
 kotlin = "2.0.10"
 coreKtx = "1.13.1"
@@ -31,6 +31,7 @@ coil = "2.7.0"
 settings = "2.4.0"
 showkase = "1.0.3"
 roborazzi = "1.26.0"
+detekt = "1.23.7"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -90,6 +91,8 @@ roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", versi
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
 
+detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
+
 
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]
@@ -108,4 +111,5 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 roborazzi-plugin = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 

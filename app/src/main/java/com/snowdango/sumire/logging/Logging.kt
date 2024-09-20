@@ -15,7 +15,7 @@ object Logging {
                 album = ${metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)}
                 artwork = ${
                 metadata.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: metadata.getBitmap(
-                    MediaMetadata.METADATA_KEY_ALBUM_ART
+                    MediaMetadata.METADATA_KEY_ALBUM_ART,
                 )
             }
                 artworkUri = ${metadata.getString(MediaMetadata.METADATA_KEY_ART_URI)}
@@ -23,7 +23,7 @@ object Logging {
                 completion = ${metadata.getString(MediaMetadata.METADATA_KEY_COMPILATION)}
                 displayIcon = ${metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)}
                 mediaId = ${metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)}
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -37,7 +37,7 @@ object Logging {
                 PlaybackState.STATE_SKIPPING_TO_NEXT -> "SkipNext"
                 PlaybackState.STATE_SKIPPING_TO_PREVIOUS -> "SkipPrevious"
                 else -> "UnknownState"
-            }
+            },
         )
     }
 
@@ -56,8 +56,7 @@ object Logging {
                 PlaybackState.ACTION_PREPARE -> "Prepare"
                 PlaybackState.ACTION_REWIND -> "Rewind"
                 else -> "UnknownAction: $action"
-            }
+            },
         )
     }
-
 }
