@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.util.toBitmap
 import com.snowdango.sumire.ui.R
+import com.snowdango.sumire.ui.UTIL_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 
@@ -134,7 +135,7 @@ fun ListSongCard(
     }
 }
 
-@Preview
+@Preview(group = UTIL_GROUP, name = "ListSongCard")
 @Composable
 fun PreviewListSongCard() {
     SumireTheme {

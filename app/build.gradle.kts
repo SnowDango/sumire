@@ -8,13 +8,13 @@ plugins {
 
 android {
     namespace = "com.snowdango.sumire"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.snowdango.sumire"
-        minSdk = 34
-        versionCode = 1
-        versionName = "0.0.1"
+        minSdk = libs.versions.minsdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -5,10 +5,10 @@ plugins {
 
 android {
     namespace = "com.snowdango.sumire.model"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 34
+        minSdk = libs.versions.minsdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
