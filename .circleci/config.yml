@@ -47,21 +47,20 @@ jobs:
           command: |
             ./gradlew assembleDebug
   unittest:
-    build:
-      executor:
-        name: android/android-machine
-        resource-class: large
-        tag: default
-      steps:
-        - checkout
-        - run:
-            name: chmod gradlew
-            command: |
-              chmod +x gradlew
-        - run:
-            name: UnitTest
-            command: |
-              ./gradlew testDebugUnitTest
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: UnitTest
+          command: |
+            ./gradlew testDebugUnitTest
   save-screenshot:
     executor:
       name: android/android-machine
