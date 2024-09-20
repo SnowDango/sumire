@@ -53,17 +53,16 @@ fun SettingsScreen(
     }
 }
 
-@Preview
+@Preview(group = SETTING_GROUP, name = "SettingsMenuLink")
 @Composable
-fun PreviewVersionSetting() {
+fun PreviewSettingsMenuLink() {
     SumireTheme {
         SettingsGroup(
-            modifier = Modifier.padding(top = 32.dp),
-            title = { Text(text = "Settings") }
+            title = { Text("SettingGroup") }
         ) {
             SettingsMenuLink(
-                title = { Text("Versions") },
-                subtitle = { Text(Build.VERSION.CODENAME) },
+                title = { Text("MenuLink") },
+                subtitle = { Text("sub title") },
                 onClick = {},
             )
         }
