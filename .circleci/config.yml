@@ -87,8 +87,7 @@ jobs:
           name: create comment
           command: |
             touch comment.txt
-            length=$(cat artifact.json | jq -c '.items[] | length')
-            echo $length
+            length=$(cat artifact.json | jq -c '.items | length')
             if [ $length -gt 0 ]; then
               echo "VRT Result" > comment.txt
               echo "| changed |" >> comment.txt
@@ -110,8 +109,7 @@ jobs:
           command: |
             echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
             comments="false"
-            echo $(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments)
-            gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumireapps" }})' | while read iscomment; do
+            gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '.comments[]|contains({"author":{ login: "sumire-apps" }})' | while read iscomment; do
               comments=${iscomment}
               if [ ${iscomment} = "true" ]; then
                 exit 0
