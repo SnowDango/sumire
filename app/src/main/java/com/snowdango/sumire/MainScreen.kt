@@ -36,7 +36,6 @@ import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.settings.SettingsScreen
 import com.snowdango.sumire.ui.theme.SumireTheme
 
-
 @SuppressLint("RestrictedApi")
 @Composable
 fun MainScreen(
@@ -51,7 +50,7 @@ fun MainScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     tonalElevation = 4.dp,
                     modifier = Modifier
-                        .shadow(8.dp)
+                        .shadow(8.dp),
                 ) {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
@@ -60,13 +59,13 @@ fun MainScreen(
                             currentDestination?.hierarchy?.any { it.route == route.name } == true
                         NavigationBarItem(
                             colors = NavigationBarItemDefaults.colors().copy(
-                                selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer
+                                selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                             ),
                             selected = selected,
                             icon = {
                                 Icon(
                                     imageVector = if (selected) route.selectedIcon else route.unSelectedIcon,
-                                    contentDescription = null
+                                    contentDescription = null,
                                 )
                             },
                             label = { Text(text = route.label) },
@@ -101,7 +100,7 @@ fun MainScreen(
                     popEnterTransition = null,
                 ) {
                     PlayingScreen(
-                        windowSize
+                        windowSize,
                     )
                 }
                 composable(
@@ -131,21 +130,21 @@ fun MainScreen(
 private enum class ROUTE(
     val selectedIcon: ImageVector,
     val unSelectedIcon: ImageVector,
-    val label: String
+    val label: String,
 ) {
     PLAYING(
         selectedIcon = Icons.Filled.PlayArrow,
         unSelectedIcon = Icons.Outlined.PlayArrow,
-        label = "playing"
+        label = "playing",
     ),
     HISTORY(
         selectedIcon = Icons.Filled.MusicNote,
         unSelectedIcon = Icons.Outlined.MusicNote,
-        label = "history"
+        label = "history",
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,
         unSelectedIcon = Icons.Outlined.Settings,
-        label = "settings"
-    )
+        label = "settings",
+    ),
 }

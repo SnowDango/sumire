@@ -51,22 +51,25 @@ fun PlayingScreen(
     val recentHistories = viewModel.recentHistories.collectAsStateWithLifecycle()
     val isNowPlaying = currentSong.value?.isActive ?: false
     if (isNowPlaying) {
-        val isLandScape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if(!isLandScape)
-        when (windowSize.widthSizeClass) {
-            WindowWidthSizeClass.Compact -> PlayingCompactScreen(
-                currentSong = currentSong,
-                recentHistories = recentHistories
-            )
-            WindowWidthSizeClass.Medium -> PlayingSplit2Screen(
-                currentSong = currentSong,
-                recentHistories = recentHistories,
-            )
-            WindowWidthSizeClass.Expanded -> PlayingSplit2Screen(
-                currentSong = currentSong,
-                recentHistories = recentHistories,
-            )
-        }else{
+        val isLandScape =
+            LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (!isLandScape)
+            when (windowSize.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> PlayingCompactScreen(
+                    currentSong = currentSong,
+                    recentHistories = recentHistories
+                )
+
+                WindowWidthSizeClass.Medium -> PlayingSplit2Screen(
+                    currentSong = currentSong,
+                    recentHistories = recentHistories,
+                )
+
+                WindowWidthSizeClass.Expanded -> PlayingSplit2Screen(
+                    currentSong = currentSong,
+                    recentHistories = recentHistories,
+                )
+            } else {
             PlayingSplit2Screen(
                 currentSong = currentSong,
                 recentHistories = recentHistories,
@@ -245,13 +248,13 @@ fun PlayingSongComponent(
     }
 }
 
-@Preview
+@Preview(group = PLAYING_GROUP, name = "PlayingSong")
 @Composable
 fun PreviewPlayingSongComponent() {
     SumireTheme {
         PlayingSongComponent(
             artwork = null,
-            title = "title",
+            title = "title6",
             album = "album",
             artist = "artist",
             app = MusicApp.APPLE_MUSIC
@@ -259,7 +262,7 @@ fun PreviewPlayingSongComponent() {
     }
 }
 
-@Preview
+@Preview(group = PLAYING_GROUP, name = "NothingPlayingSong")
 @Composable
 fun NothingPlayingSongComponent() {
     Box(

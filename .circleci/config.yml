@@ -1,270 +1,208 @@
 version: 2.1
 
 orbs:
+  android: circleci/android@2.5.0
   gh: circleci/github-cli@2.3.0
+  github-app-token: ostk0069/github-app-token@0.0.1
 
-executors:
-  android:
-    docker:
-      - image: cimg/android:2024.01
+parameters:
+  target-branch:
+    description: "PR先のbranch"
+    type: string
+    default: ""
+  pr-number:
+    description: "PRの番号"
+    type: integer
+    default: 0
 
-commands:
-  check_is_skipping_vrt:
+jobs:
+  lint:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
     steps:
-      - gh/install
+      - checkout
       - run:
-          name: Gh login
-          command: echo "$GITHUB_ACCESS_TOKEN" | gh auth login --with-token
-      - run:
-          name: Save IS_SKIPPING_VRT to env
-          command: |
-            is_skipping_vrt=false
-            if [[ "$(echo $(git log -1 --pretty=%B))" == *"[skip vrt]"* ]]; then
-              is_skipping_vrt=true
-            else
-              if [ -z "$CIRCLE_PULL_REQUEST" ] || [ "$(gh pr view $CIRCLE_BRANCH --json labels | jq '.labels | any(.name == "skip vrt")')" = "true" ]; then
-                is_skipping_vrt=true
-              fi
-            fi
-            echo "export IS_SKIPPING_VRT=$is_skipping_vrt" >> $BASH_ENV
-
-  get_screenshots:
-    steps:
-      - run:
-          name: Save BASE_BRANCH_NAME to env
-          command: |
-            pr=$(echo https://api.github.com/repos/${CIRCLE_PULL_REQUEST:19} | sed "s/\/pull\//\/pulls\//")
-            base=$(curl -s -H "Authorization: token ${GITHUB_ACCESS_TOKEN}" $pr | jq '.base.ref')
-            echo "export BASE_BRANCH_NAME=${base}" >> $BASH_ENV
-      - run:
-          name: Save IS_EXIST_SCREENSHOTS to env
-          command: |
-            is_exist=false
-            if [ $IS_SKIPPING_VRT = "false" ]; then
-              is_exist=$(echo -n "$(git fetch origin screenshots_$BASE_BRANCH_NAME && echo true || echo false)")
-            fi
-            echo "export IS_EXIST_SCREENSHOTS=${is_exist}" >> $BASH_ENV
-      - run:
-          name: Checkout screenshots branch
-          command: |
-            if [ $IS_EXIST_SCREENSHOTS = "true" ]; then
-              git fetch origin screenshots_$BASE_BRANCH_NAME
-              git checkout screenshots_$BASE_BRANCH_NAME
-            fi
-      - run:
-          name: Save SCREENSHOTS_TIMESTAMP to env
-          command: |
-            if [ $IS_EXIST_SCREENSHOTS = "false" ]; then
-              echo "no-op" > timestamp
-            fi
-            echo "export SCREENSHOTS_TIMESTAMP=$(echo -n $(cat timestamp))" >> $BASH_ENV
-      - run:
-          name: Zip screenshots
-          command: |
-            mkdir -p ./temp/zip
-            if [ $IS_EXIST_SCREENSHOTS = "true" ]; then
-              zip -r ./temp/zip/screenshots.zip ./app/build/outputs/roborazzi
-            fi
-      - save_cache:
-          paths:
-            - ./temp/zip
-          key: screenshots-{{ checksum "timestamp" }}
-      - run:
-          name: Checkout pr branch
-          command: git checkout $CIRCLE_BRANCH
-      - run:
-          name: Restore timestamp file
-          command: echo $SCREENSHOTS_TIMESTAMP > timestamp
-      - restore_cache:
-          key: screenshots-{{ checksum "timestamp" }}
-      - run:
-          name: Unzip screenshots
-          command: |
-            unzip ./temp/zip/screenshots.zip || true
-            rm -rf ./temp || true
-
-  set_locale_properties:
-    steps:
-      - run:
-          name: Set local.properties
-          command: |
-            LOCAL_PROPERTIES_PATH=./local.properties
-            echo "apiKey=$.Environment.DEBUG_AD_APPLICATION_ID" >> $LOCAL_PROPERTIES_PATH
-
-  restore_and_save_gradle_cache:
-    steps:
-      - restore_cache:
-          key: jars-{{ checksum "build.gradle.kts" }}-{{ checksum  "app/build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: jars-{{ checksum "build.gradle.kts" }}-{{ checksum  "app/build.gradle.kts" }}-{{ checksum "gradle/libs.versions.toml" }}
-
-  unit_test:
-    parameters:
-      build_variant:
-        type: string
-    steps:
-      - run:
-          name: permission
+          name: chmod gradlew
           command: |
             chmod +x gradlew
       - run:
-          name: Unit test
+          name: lint
+          command: |
+            ./gradlew detekt
+  build:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: build
+          command: |
+            ./gradlew assembleDebug
+      - android/save-gradle-cache
+      - android/save-build-cache
+  unittest:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: UnitTest
+          command: |
+            ./gradlew testDebugUnitTest
+      - android/save-gradle-cache
+      - android/save-build-cache
+  save-screenshot:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: take screenshot
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+      - store_artifacts:
+          path: app/build/outputs/roborazzi
+  vrt-test:
+    parameters:
+      target-branch:
+        type: string
+        default: ""
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - run:
+          name: get artifacts
+          command: |
+            mkdir -p app/build/outputs/roborazzi | \
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
+            jq -c '.[]' | while read artifact; do
+              curl -H "Circle-Token: $CIRCLE_TOKEN" -L "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" --create-dirs --output "$(echo $artifact | jq -r '.path')"
+            done
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: compare screenshot
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
-
-  setting_git_config:
-    steps:
+      - android/save-gradle-cache
+      - android/save-build-cache
       - run:
-          name: Setting git config
+          name: delete unnecessary files
           command: |
-            git config --global user.name "$GITHUB_NAME"
-            git config --global user.email "$GITHUB_EMAIL"
-
-  push_screenshots_branch:
-    steps:
-      - setting_git_config
+            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
+      - store_artifacts:
+          path: app/build/outputs/roborazzi
       - run:
-          name: Push screenshots branch
+          name: create result json file
           command: |
-            git push origin --delete screenshots_$CIRCLE_BRANCH || true
-            
-            git checkout --orphan screenshots_$CIRCLE_BRANCH
-            git rm --cached -rf .
-            
-            add_files=$(find . -type f -path "./app/build/outputs/roborazzi/*")
-            for file in $add_files; do
-              git add -f $file
-            done
-            
-            echo $(date +%s) > timestamp
-            git add -f timestamp
-            
-            echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
-            git add -f .circleci/config.yml
-            
-            git commit -m "Add screenshot"
-            git clean -df
-            git push origin HEAD:screenshots_$CIRCLE_BRANCH -f
-
-  push_compare_branch:
-    steps:
-      - setting_git_config
-      - run:
-          name: Push compare branch
-          command: |
-            if [ $IS_SKIPPING_VRT = "false" ]; then
-              git push origin --delete compare_$CIRCLE_BRANCH || true
-            
-              fileSize=$(echo $(find ./app/build/outputs/roborazzi -type f | grep -e '.*_compare.png' | wc -l | sed -e 's/ //g'))
-              if [ $fileSize -ne 0 ]; then
-                git checkout --orphan compare_$CIRCLE_BRANCH
-                git rm --cached -rf .
-            
-                add_files=$(find . -type f -path "./app/build/outputs/roborazzi/*" -name "*_compare.png")
-                for file in $add_files; do
-                  git add -f $file
-                done
-            
-                echo -e "version: 2.1\njobs:\n no-op:\n  machine: true\n  steps:\n  - run: no-op\nworkflows:\n build:\n  jobs:\n   - no-op:\n      filters:\n       branches:\n        only: no-op" > .circleci/config.yml
-                git add .circleci/config.yml
-            
-                git commit -m "Add screenshot diff"
-                git clean -df
-                git push origin HEAD:compare_$CIRCLE_BRANCH -f
-              fi
-            fi
-
-  comment_screenshot_diff:
-    steps:
-      - run:
-          name: Create comment
-          command: |
-            echo "Snapshot diff report" > comment
-            echo "| File name | Image |" >> comment
-            echo "|-------|-------|" >> comment
-            
-            files=$(find . -type f -path "./app/build/outputs/roborazzi/*" -name "*_compare.png")
-            for file in $files; do
-              fileName=$(basename "$file" | sed -r 's/(.{20})/\1<br>/g')
-              echo "| [$fileName](https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/blob/compare_$CIRCLE_BRANCH/$file) | ![](https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/blob/compare_$CIRCLE_BRANCH/$file?raw=true) |" >> comment
-            done
-      - run:
-          name: Comment screenshot diff
-          command: |
-            if [ $IS_SKIPPING_VRT = "false" ]; then
-              prNumber=$(echo $CIRCLE_PULL_REQUEST | sed "s:.*/::")
-              url="https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/${prNumber}/comments"
-              commentId=$(echo -n $(curl -s -H "Authorization: token $GITHUB_ACCESS_TOKEN" $url -v | jq '.[] | select(.body | test("^Snapshot diff report.*")) | .id'))
-              failedComment="$(echo -e "Snapshot diff report\n:warning: **Failed to show Snapshot diff**\n$CIRCLE_BUILD_URL")"
-            
-              if [ -n "$commentId" ]; then
-                comment="$(cat ./comment)"
-                endpoint="/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/comments/$commentId"
-                gh api --method PATCH -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" $endpoint -f body="$comment" ||
-                gh api --method PATCH -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" $endpoint -f body="$failedComment"
-              else
-                gh pr comment "$CIRCLE_PULL_REQUEST" -F ./comment || gh pr comment "$CIRCLE_PULL_REQUEST" -b "$failedComment"
-              fi
-            fi
-
-  cleanup_old_branch:
-    parameters:
-      prefix:
-        type: string
-      maximum_seconds_past:
-        type: integer
-        default: 2592000 # 30 days
-    steps:
-      - run:
-          name: Cleanup old branch
-          command: |
-            git branch -r --format="%(refname:lstrip=3)" | grep << parameters.prefix >> | while read -r branch; do
-              last_commit_date_timestamp=$(git log -1 --format=%ct "origin/$branch")
-              now_timestamp=$(date +%s)
-              if [ $((now_timestamp - last_commit_date_timestamp)) -gt << parameters.maximum_seconds_past >> ]; then
-                git push origin --delete "$branch"
-              fi
-            done || true
-
-jobs:
-  unit_test:
-    executor: android
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
+            cat artifact.json
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - artifact.json
+  result-comment:
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
-      - check_is_skipping_vrt
-      - get_screenshots
-      - set_locale_properties
-      - restore_and_save_gradle_cache
-      - unit_test:
-          build_variant: ProdDebug
-      - push_compare_branch
-      - comment_screenshot_diff
-
-  save_screenshots:
-    executor: android
-    steps:
-      - checkout
-      - set_locale_properties
-      - restore_and_save_gradle_cache
+      - gh/install
+      - attach_workspace:
+          at: ./
       - run:
-          name: Create screenshots
-          command: ./gradlew recordRoborazziProdDebug --stacktrace
-      - push_screenshots_branch
-      - cleanup_old_branch:
-          prefix: compare_
-      - cleanup_old_branch:
-          prefix: screenshots_
-          maximum_seconds_past: 15552000 # 180 days
-
+          name: create comment
+          command: |
+            touch comment.txt
+            length=$(cat artifact.json | jq -c '.items | length')
+            echo $length
+            if [ $length -gt 0 ]; then
+              echo "VRT Result" > comment.txt
+              echo "| changed |" >> comment.txt
+              echo "|-------|" >> comment.txt
+              cat artifact.json | \
+              jq -c '.items[]' | while read artifact; do
+                echo "| [$(echo $artifact | jq -r '.path')]($(echo $artifact | jq -r '.url')) |" >> comment.txt
+              done
+            else
+              echo "VRT Result" > comment.txt
+              echo "not changed screen" >> comment.txt
+            fi
+      - github-app-token/fetch-token:
+          app_id: $GITHUB_APPS_ID
+          base64_private_key: $GITHUB_APPS_PRIVATE_KEY
+          installation_id: 54651436
+      - run:
+          name: pull request comment
+          command: |
+            echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
+            comments=$(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '[.comments[].author.login]|any(.=="sumire-apps")')
+            echo $comments
+            if [ ${comments} = "true" ]; then
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
+            else
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
+            fi
 workflows:
-  test:
+  save-screenshot:
     jobs:
-      - unit_test
-      - save_screenshots:
+      - save-screenshot:
           filters:
             branches:
               only:
-                - main
-                - develop
+                - "develop"
+                - "master"
+  build-test:
+    jobs:
+      - lint:
+          filters:
+            branches:
+              ignore:
+                - "master"
+      - build:
+          requires:
+            - lint
+      - unittest:
+          requires:
+            - build
+  vrt-test:
+    when:
+      not:
+        equal: [ "", << pipeline.parameters.target-branch >> ]
+    jobs:
+      - vrt-test:
+          target-branch: << pipeline.parameters.target-branch >>
+      - result-comment:
+          requires:
+            - vrt-test
+

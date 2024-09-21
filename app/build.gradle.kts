@@ -3,18 +3,19 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.roborazzi.plugin)
+    alias(libs.plugins.detekt)
 }
 
 android {
     namespace = "com.snowdango.sumire"
-    compileSdk = 34
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "com.snowdango.sumire"
-        minSdk = 34
-        targetSdk = 34
-        versionCode = 1
-        versionName = "0.0.1"
+        minSdk = libs.versions.minsdk.get().toInt()
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -44,11 +45,30 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
     }
+    ksp {
+        arg("skipPrivatePreviews", "true")
+    }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+}
+
+detekt {
+    autoCorrect = true
+    parallel = true
+    config.setFrom("$rootDir/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+    ignoreFailures = true
+    // Dangerで指摘するときのためにリポジトリルートにする
+    // danger-checkstyle_reportsのバグでカスタマイズできないため
+    basePath = file("$rootDir/../").absolutePath
 }
 
 dependencies {
@@ -75,10 +95,11 @@ dependencies {
     implementation(libs.androidx.navigation)
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.ui.tooling)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -86,4 +107,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.bundles.roborazzi)
+
+    detektPlugins(libs.detekt.formatting)
 }

@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.util.toBitmap
 import com.snowdango.sumire.ui.R
+import com.snowdango.sumire.ui.UTIL_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 
@@ -111,7 +112,7 @@ fun ListSongCard(
                     modifier = Modifier
                         .fillMaxHeight(),
                     contentAlignment = Alignment.CenterEnd
-                ){
+                ) {
                     MusicAppImage(
                         app = songCardViewData.app,
                         modifier = Modifier
@@ -122,7 +123,7 @@ fun ListSongCard(
                     modifier = Modifier
                         .fillMaxHeight(),
                     contentAlignment = Alignment.BottomEnd
-                ){
+                ) {
                     Text(
                         text = songCardViewData.playTimeText,
                         style = MaterialTheme.typography.labelSmall,
@@ -134,13 +135,13 @@ fun ListSongCard(
     }
 }
 
-@Preview
+@Preview(group = UTIL_GROUP, name = "ListSongCard")
 @Composable
 fun PreviewListSongCard() {
     SumireTheme {
         ListSongCard(
             songCardViewData = SongCardViewData(
-                title = "title",
+                title = "Title",
                 artistName = "artistName",
                 albumName = "albumName",
                 thumbnail = null,
