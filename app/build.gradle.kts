@@ -96,6 +96,8 @@ dependencies {
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
     implementation(libs.ui.tooling)
+    implementation(libs.glance.widget)
+    implementation(libs.glance.material3)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
