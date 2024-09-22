@@ -96,7 +96,8 @@ detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-form
 
 glance-widget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
-
+glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
+glance-previewer = { group = "com.google.android.glance.tools", name = "appwidget-viewer", version = "0.2.2" }
 
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]
@@ -106,6 +107,7 @@ slf4j = ["slf4j-android"]
 coil = ["coil", "coil-compose"]
 settings = ["settings", "settings-extended"]
 roborazzi = ["roborazzi", "roborazzi-compose", "roborazzi-rule"]
+glance = ["glance", "glance-widget", "glance-material3"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
