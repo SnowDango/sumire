@@ -99,6 +99,8 @@ dependencies {
     implementation(libs.ui.tooling)
     implementation(libs.bundles.glance)
 
+    implementation(libs.workmanager.ktx)
+
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
 

@@ -4,6 +4,10 @@
     android:previewLayout="@layout/first_time_widget_layout"
     android:resizeMode="none"
     android:previewImage="@mipmap/ic_launcher"
-    android:updatePeriodMillis="1800"
-    android:widgetCategory="home_screen"
-    android:widgetFeatures="reconfigurable|configuration_optional" />
+    android:description="@string/small_artwork_description"
+    android:maxResizeHeight="100dp"
+    android:maxResizeWidth="150dp"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

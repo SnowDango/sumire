@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Sumire</string>
+
+    <string name="small_artwork_description">Small Artwork Only</string>
 </resources>

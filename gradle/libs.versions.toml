@@ -33,6 +33,7 @@ showkase = "1.0.3"
 roborazzi = "1.26.0"
 detekt = "1.23.7"
 glance = "1.1.0"
+workmanager = "2.9.1"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -98,6 +99,7 @@ glance-widget = { group = "androidx.glance", name = "glance-appwidget", version.
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-previewer = { group = "com.google.android.glance.tools", name = "appwidget-viewer", version = "0.2.2" }
+workmanager-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx"]

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_gravity="center"
-    android:gravity="center"
-    android:background="#ffffff">
+    android:gravity="center">
 
-    <TextView
+    <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAlignment="center"
-        android:text="Sorry. First Time Loading." />
+        android:src="@mipmap/ic_launcher"
+        tools:ignore="ContentDescription" />
 
 </LinearLayout>

@@ -40,6 +40,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":data"))
+    implementation(project(":infla"))
     implementation(project(":ui"))
 
     implementation(libs.androidx.core.ktx)
@@ -53,6 +55,12 @@ dependencies {
     implementation(libs.ui.tooling)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.bundles.coil)
+    implementation(libs.workmanager.ktx)
+
+    implementation(libs.koin)
+    implementation(libs.koin.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

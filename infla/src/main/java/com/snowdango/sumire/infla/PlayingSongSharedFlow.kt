@@ -17,6 +17,13 @@ class PlayingSongSharedFlow : KoinComponent {
     private val saveModel: SaveModel by inject()
 
     private var playingSong: Pair<Long, PlayingSongData>? = null
+        set(value) {
+            field = value
+            listeners.forEach { (_, listener) ->
+                listener.onChanged()
+            }
+        }
+    val listeners: MutableMap<String, ChangeListener> = mutableMapOf()
     private var isWaitingTime: Boolean = false
     private val playingSongMutex = Mutex()
     private val isWaitingMutex = Mutex()
@@ -161,6 +168,10 @@ class PlayingSongSharedFlow : KoinComponent {
         COMPLETE,
         WAIT,
         NONE
+    }
+
+    interface ChangeListener {
+        fun onChanged()
     }
 
 }
