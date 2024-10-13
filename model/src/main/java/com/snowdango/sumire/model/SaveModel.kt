@@ -54,10 +54,17 @@ class SaveModel : KoinComponent {
             MusicApp.entries.first { app -> app.apiProvider == it.value.provider } to
                     it.value.id
         }.toMap()
+        val urlMap: Map<MusicApp, String> = songLinkData.links.filter {
+            MusicApp.entries.find { app -> app.platform == it.key } != null
+        }.map {
+            MusicApp.entries.first { app -> app.platform == it.key } to
+                    it.value.url
+        }.toMap()
+
         withContext(Dispatchers.IO) {
             if (songId != -1L) {
                 saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
-                checkAppSongKey(songId, keyMap)
+                checkAppSongKey(songId, keyMap, urlMap)
             } else {
                 saveData(
                     playingSongData.songData.artist,
@@ -67,6 +74,7 @@ class SaveModel : KoinComponent {
                     playingSongData.songData.title,
                     playingSongData.playTime,
                     keyMap,
+                    urlMap,
                     SongLinkResponse.Status.OK,
                     playingSongData.songData.mediaId,
                     playingSongData.songData.app
@@ -87,7 +95,8 @@ class SaveModel : KoinComponent {
                 saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
                 checkAppSongKey(
                     songId,
-                    keyMap
+                    keyMap,
+                    mapOf(),
                 )
             } else {
                 saveData(
@@ -98,6 +107,7 @@ class SaveModel : KoinComponent {
                     playingSongData.songData.title,
                     playingSongData.playTime,
                     keyMap,
+                    mapOf(),
                     status,
                     playingSongData.songData.mediaId,
                     playingSongData.songData.app,
@@ -114,6 +124,7 @@ class SaveModel : KoinComponent {
         title: String,
         playTime: LocalDateTime,
         mapKey: Map<MusicApp, String>,
+        mapUrl: Map<MusicApp, String?>,
         status: SongLinkResponse.Status,
         mediaId: String,
         app: MusicApp,
@@ -124,7 +135,8 @@ class SaveModel : KoinComponent {
         saveHistory(songId, playTime, app)
         checkAppSongKey(
             songId = songId,
-            mapKey
+            mapKey,
+            mapUrl,
         )
         if (status == SongLinkResponse.Status.Error) {
             saveTasks(songId, mediaId)
@@ -163,7 +175,11 @@ class SaveModel : KoinComponent {
         historiesUseCase.saveHistories(songId, playTime, app)
     }
 
-    private suspend fun checkAppSongKey(songId: Long, keyMap: Map<MusicApp, String>) {
+    private suspend fun checkAppSongKey(
+        songId: Long,
+        keyMap: Map<MusicApp, String>,
+        urlMap: Map<MusicApp, String?>
+    ) {
         val result = appSongKeyUseCase.getBySongId(songId)
         val addKeyMap = keyMap.filter {
             result.find { appSongKey: AppSongKey ->
@@ -172,7 +188,7 @@ class SaveModel : KoinComponent {
             } == null
         }
         if (addKeyMap.isNotEmpty()) {
-            appSongKeyUseCase.insertAll(songId, keyMap)
+            appSongKeyUseCase.insertAll(songId, keyMap, urlMap)
         }
     }
 

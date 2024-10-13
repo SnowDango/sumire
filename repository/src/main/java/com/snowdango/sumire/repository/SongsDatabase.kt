@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.snowdango.sumire.data.entity.db.Albums
 import com.snowdango.sumire.data.entity.db.AppSongKey
 import com.snowdango.sumire.data.entity.db.Artists
@@ -28,7 +30,7 @@ import com.snowdango.sumire.repository.typeconverter.LocalDataTimeConverter
         Histories::class,
         Tasks::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(
@@ -55,11 +57,12 @@ abstract class SongsDatabase : RoomDatabase() {
                     context.applicationContext,
                     SongsDatabase::class.java,
                     DATABASE_NAME
-                ).build().also {
+                ).apply {
+
+                }.build().also {
                     INSTANCE = it
                 }
             }
         }
     }
-
 }

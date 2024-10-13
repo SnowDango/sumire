@@ -18,12 +18,17 @@ class AppSongKeyUseCase : KoinComponent {
         return songsDatabase.appSongKeyDao.getBySongId(songId)
     }
 
-    suspend fun insertAll(songId: Long, keyMap: Map<MusicApp, String>): List<Long> {
+    suspend fun insertAll(
+        songId: Long,
+        keyMap: Map<MusicApp, String>,
+        urlMap: Map<MusicApp, String?>
+    ): List<Long> {
         val appSongKeys = keyMap.map {
             AppSongKey(
                 songId = songId,
                 app = it.key,
-                mediaKey = it.value
+                mediaKey = it.value,
+                url = urlMap[it.key],
             )
         }
         return songsDatabase.appSongKeyDao.insert(appSongKeys)
