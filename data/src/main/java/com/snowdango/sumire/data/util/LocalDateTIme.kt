@@ -13,3 +13,12 @@ fun LocalDateTime.toFormatDateTime(): String {
         }
     )
 }
+
+@OptIn(FormatStringsInDatetimeFormats::class)
+fun LocalDateTime.toDate(): String {
+    return this.format(
+        format = LocalDateTime.Format {
+            byUnicodePattern("yyyy/MM/dd")
+        }
+    )
+}

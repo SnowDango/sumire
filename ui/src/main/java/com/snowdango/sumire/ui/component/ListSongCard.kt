@@ -147,6 +147,7 @@ fun PreviewListSongCard() {
                 thumbnail = null,
                 isThumbUrl = false,
                 playTimeText = "01:51:22",
+                headerDay = "2024/10/13",
                 app = MusicApp.APPLE_MUSIC
             )
         )

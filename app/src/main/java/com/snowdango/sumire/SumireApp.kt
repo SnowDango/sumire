@@ -1,6 +1,7 @@
 package com.snowdango.sumire
 
 import android.app.Application
+import com.snowdango.presenter.history.historyKoinModule
 import com.snowdango.sumire.infla.EventSharedFlow
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.model.modelModule
@@ -21,7 +22,13 @@ class SumireApp : Application() {
         GlobalContext.getOrNull() ?: startKoin {
             androidLogger()
             androidContext(this@SumireApp)
-            modules(sharedModule, playingKoinModule, modelModule, useCaseModule)
+            modules(
+                sharedModule,
+                playingKoinModule,
+                historyKoinModule,
+                modelModule,
+                useCaseModule,
+            )
         }
     }
 
