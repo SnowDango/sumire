@@ -2,7 +2,7 @@ package com.snowdango.sumire.model
 
 import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
-import com.snowdango.sumire.data.util.toDate
+import com.snowdango.sumire.data.util.LocalDateTimeFormatType
 import com.snowdango.sumire.data.util.toFormatDateTime
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import com.snowdango.sumire.usecase.db.HistoriesUseCase
@@ -19,7 +19,8 @@ class GetHistoriesModel : KoinComponent {
         return historiesUseCase.getHistoriesSongRecent(size).map {
             it.map { data ->
                 convertHistorySongToSongCardViewData(
-                    data
+                    data,
+                    LocalDateTimeFormatType.FULL_DATE_TIME
                 )
             }
         }
@@ -30,7 +31,8 @@ class GetHistoriesModel : KoinComponent {
     }
 
     fun convertHistorySongToSongCardViewData(
-        historySong: HistorySong
+        historySong: HistorySong,
+        type: LocalDateTimeFormatType,
     ): SongCardViewData {
         return SongCardViewData(
             title = historySong.song.songs.title,
@@ -38,8 +40,8 @@ class GetHistoriesModel : KoinComponent {
             albumName = historySong.song.albums.name,
             thumbnail = historySong.song.albums.thumbnail,
             isThumbUrl = historySong.song.albums.isThumbUrl,
-            playTimeText = historySong.history.playTime.toFormatDateTime(),
-            headerDay = historySong.history.playTime.toDate(),
+            playTimeText = historySong.history.playTime.toFormatDateTime(type),
+            headerDay = historySong.history.playTime.toFormatDateTime(LocalDateTimeFormatType.ONLY_DATE),
             app = historySong.history.app,
         )
     }

@@ -6,6 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.snowdango.sumire.data.util.LocalDateTimeFormatType
 import com.snowdango.sumire.model.GetHistoriesModel
 import kotlinx.coroutines.flow.map
 import org.koin.core.component.KoinComponent
@@ -17,13 +18,18 @@ class HistoryViewModel : ViewModel(), KoinComponent {
 
     val getHistories = Pager(
         config = PagingConfig(
-            pageSize = 20,
-            prefetchDistance = 40,
+            pageSize = 100,
+            prefetchDistance = 100,
         )
     ) {
         getHistoriesModel.getPagingHistorySongs()
     }.flow.map { pagingData ->
-        pagingData.map { getHistoriesModel.convertHistorySongToSongCardViewData(it) }
+        pagingData.map {
+            getHistoriesModel.convertHistorySongToSongCardViewData(
+                it,
+                LocalDateTimeFormatType.ONLY_TIME
+            )
+        }
     }.cachedIn(viewModelScope)
 
 }
