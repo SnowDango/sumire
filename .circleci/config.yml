@@ -156,8 +156,10 @@ jobs:
           paths:
             - artifact.json
   result-comment:
-    docker:
-      - image: cimg/base:stable
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
     steps:
       - checkout
       - gh/install
