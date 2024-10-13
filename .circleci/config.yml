@@ -86,7 +86,7 @@ jobs:
             ./gradlew recordRoborazziDebug --stacktrace
       - store_artifacts:
           path: app/build/outputs/roborazzi
-  vrt-test:
+  screen-shot:
     parameters:
       target-branch:
         type: string
@@ -98,13 +98,36 @@ jobs:
     steps:
       - checkout
       - run:
-          name: get artifacts
+          name: checkout target branch
           command: |
-            mkdir -p app/build/outputs/roborazzi | \
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
-            jq -c '.[]' | while read artifact; do
-              curl -H "Circle-Token: $CIRCLE_TOKEN" -L "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" --create-dirs --output "$(echo $artifact | jq -r '.path')"
-            done
+            git checkout <<parameters.target-branch>>
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: take screenshot
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+      - persist_to_workspace:
+          root: ./app/build/outputs/roborazzi
+          paths:
+            - .
+  vrt:
+    parameters:
+      target-branch:
+        type: string
+        default: ""
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./app/build/outputs/roborazzi
       - android/restore-gradle-cache
       - android/restore-build-cache
       - run:
@@ -133,8 +156,10 @@ jobs:
           paths:
             - artifact.json
   result-comment:
-    docker:
-      - image: cimg/base:stable
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
     steps:
       - checkout
       - gh/install
@@ -143,21 +168,7 @@ jobs:
       - run:
           name: create comment
           command: |
-            touch comment.txt
-            length=$(cat artifact.json | jq -c '.items | length')
-            echo $length
-            if [ $length -gt 0 ]; then
-              echo "VRT Result" > comment.txt
-              echo "| changed |" >> comment.txt
-              echo "|-------|" >> comment.txt
-              cat artifact.json | \
-              jq -c '.items[]' | while read artifact; do
-                echo "| [$(echo $artifact | jq -r '.path')]($(echo $artifact | jq -r '.url')) |" >> comment.txt
-              done
-            else
-              echo "VRT Result" > comment.txt
-              echo "not changed screen" >> comment.txt
-            fi
+            sh create-comment.sh
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
@@ -200,9 +211,13 @@ workflows:
       not:
         equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
-      - vrt-test:
+      - screen-shot:
           target-branch: << pipeline.parameters.target-branch >>
+      - vrt:
+          target-branch: << pipeline.parameters.target-branch >>
+          requires:
+            - screen-shot
       - result-comment:
           requires:
-            - vrt-test
+            - vrt
 

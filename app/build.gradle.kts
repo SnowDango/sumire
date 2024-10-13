@@ -78,6 +78,7 @@ dependencies {
     implementation(project(":presenter:playing"))
     implementation(project(":presenter:history"))
     implementation(project(":presenter:settings"))
+    implementation(project(":presenter:widget"))
     implementation(project(":repository"))
     implementation(project(":usecase"))
     implementation(project(":model"))
@@ -96,6 +97,9 @@ dependencies {
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
     implementation(libs.ui.tooling)
+    implementation(libs.bundles.glance)
+
+    implementation(libs.workmanager.ktx)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
