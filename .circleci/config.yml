@@ -86,7 +86,7 @@ jobs:
             ./gradlew recordRoborazziDebug --stacktrace
       - store_artifacts:
           path: app/build/outputs/roborazzi
-  vrt-test:
+  screen-shot:
     parameters:
       target-branch:
         type: string
@@ -98,13 +98,36 @@ jobs:
     steps:
       - checkout
       - run:
-          name: get artifacts
+          name: checkout target branch
           command: |
-            mkdir -p app/build/outputs/roborazzi | \
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
-            jq -c '.[]' | while read artifact; do
-              curl -H "Circle-Token: $CIRCLE_TOKEN" -L "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" --create-dirs --output "$(echo $artifact | jq -r '.path')"
-            done
+            git checkout <<parameters.target-branch>>
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - run:
+          name: take screenshot
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+      - persist_to_workspace:
+          root: ./app/build/outputs/roborazzi
+          paths:
+            - .
+  vrt:
+    parameters:
+      target-branch:
+        type: string
+        default: ""
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./app/build/outputs/roborazzi
       - android/restore-gradle-cache
       - android/restore-build-cache
       - run:
@@ -200,8 +223,12 @@ workflows:
       not:
         equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
-      - vrt-test:
+      - screen-shot:
           target-branch: << pipeline.parameters.target-branch >>
+      - vrt:
+          target-branch: << pipeline.parameters.target-branch >>
+          requires:
+            - screen-shot
       - result-comment:
           requires:
             - vrt-test
