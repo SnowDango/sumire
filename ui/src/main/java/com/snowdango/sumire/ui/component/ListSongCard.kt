@@ -51,7 +51,8 @@ fun ListSongCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .size(60.dp)
+                    .size(60.dp),
+                contentAlignment = Alignment.Center,
             ) {
                 if (songCardViewData.thumbnail != null) {
                     if (songCardViewData.isThumbUrl) {
