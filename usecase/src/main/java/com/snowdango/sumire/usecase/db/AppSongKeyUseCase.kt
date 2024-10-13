@@ -14,6 +14,10 @@ class AppSongKeyUseCase : KoinComponent {
         return songsDatabase.appSongKeyDao.getSongIdByKey(mediaId, app) ?: -1L
     }
 
+    suspend fun getUrlByKey(mediaId: String, app: MusicApp): String? {
+        return songsDatabase.appSongKeyDao.getUrlByKey(mediaId, app)
+    }
+
     suspend fun getBySongId(songId: Long): List<AppSongKey> {
         return songsDatabase.appSongKeyDao.getBySongId(songId)
     }

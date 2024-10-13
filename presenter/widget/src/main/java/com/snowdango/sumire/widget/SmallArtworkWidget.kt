@@ -3,7 +3,6 @@ package com.snowdango.sumire.widget
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
@@ -12,6 +11,8 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import androidx.glance.action.action
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
@@ -29,22 +30,34 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import com.snowdango.sumire.data.util.toBitmap
-import com.snowdango.sumire.widget.worker.PlayingSongWorker
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
 
+    private val widgetViewModel: WidgetViewModel by inject()
     override val sizeMode: SizeMode
         get() = SizeMode.Exact
 
+    init {
+        widgetViewModel.refresh()
+    }
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            val currentState = currentState<Preferences>()
-            val artwork = currentState[PlayingSongWorker.artworkKey]
-            val title = currentState[PlayingSongWorker.titleKey]
+            val current = currentState<Preferences>()
+            val title = current[WidgetViewModel.titleKey]
+            val artwork = current[WidgetViewModel.artworkKey]
+            val mediaId = current[WidgetViewModel.mediaId]
+            val platform = current[WidgetViewModel.platform]
             Content(
                 title,
-                artwork
+                artwork,
+                mediaId,
+                platform,
+                onClick = { id, app ->
+                    widgetViewModel.copyUrl(context, id, app)
+                }
             )
         }
     }
@@ -53,30 +66,33 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
     fun Content(
         title: String?,
         artwork: String?,
+        mediaId: String?,
+        appPlatform: String?,
+        onClick: (id: String?, appPlatform: String?) -> Unit
     ) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(Color.Transparent),
+                .background(Color.Transparent)
+                .clickable(action {
+                    onClick.invoke(
+                        mediaId,
+                        appPlatform
+                    )
+                }),
             verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             val size = LocalSize.current
-
             val minSize = if (size.width - size.height < (-1).dp) {
                 size.width
             } else {
                 size.height
             }
-
             Image(
-                provider = if (artwork.isNullOrEmpty()) {
-                    ImageProvider(com.snowdango.sumire.ui.R.mipmap.ic_launcher)
-                } else {
-                    artwork.toBitmap()?.let {
-                        ImageProvider(it.getRoundedCornerBitmap(LocalContext.current, 12.dp))
-                    } ?: ImageProvider(com.snowdango.sumire.ui.R.mipmap.ic_launcher)
-                },
+                provider = artwork?.toBitmap()?.let {
+                    ImageProvider(it.getRoundedCornerBitmap(LocalContext.current, 12.dp))
+                } ?: ImageProvider(com.snowdango.sumire.ui.R.mipmap.ic_launcher),
                 contentScale = ContentScale.Fit,
                 contentDescription = null,
                 modifier = GlanceModifier
@@ -94,11 +110,6 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
                     .padding(top = 8.dp)
             )
         }
-    }
-
-    companion object {
-        private val MINIMUM = DpSize(100.dp, 100.dp)
-        private val BIG_SQUARE = DpSize(200.dp, 200.dp)
     }
 
 }

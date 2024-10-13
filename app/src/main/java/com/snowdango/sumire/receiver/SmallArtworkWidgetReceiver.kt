@@ -2,6 +2,7 @@ package com.snowdango.sumire.receiver
 
 import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -19,6 +20,20 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
 
     override val glanceAppWidget: GlanceAppWidget
         get() = SmallArtworkWidget()
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        WorkManager.getInstance(context)
+            .enqueue(OneTimeWorkRequestBuilder<SmallArtworkWidgetWorker>().build())
+        playingSongSharedFlow.listeners[SmallArtworkWidgetReceiver::class.java.name] =
+            object : PlayingSongSharedFlow.ChangeListener {
+                override fun onChanged() {
+                    Log.d("ChangeListener", "onChange")
+                    WorkManager.getInstance(context)
+                        .enqueue(OneTimeWorkRequestBuilder<SmallArtworkWidgetWorker>().build())
+                }
+            }
+    }
 
     override fun onUpdate(
         context: Context,

@@ -23,4 +23,7 @@ interface AppSongKeyDao {
     @Query("select * from ${AppSongKey.TABLE_NAME} where ${AppSongKey.COLUMN_SONG_ID} = :songId")
     suspend fun getBySongId(songId: Long): List<AppSongKey>
 
+    @Query("select ${AppSongKey.COLUMN_URL} from ${AppSongKey.TABLE_NAME} where ${AppSongKey.COLUMN_KEY} = :key and ${AppSongKey.COLUMN_APP} = :app limit 1")
+    suspend fun getUrlByKey(key: String, app: MusicApp): String?
+
 }

@@ -9,6 +9,7 @@ import com.snowdango.sumire.presenter.playing.playingKoinModule
 import com.snowdango.sumire.repository.SongLinkApi
 import com.snowdango.sumire.repository.SongsDatabase
 import com.snowdango.sumire.usecase.useCaseModule
+import com.snowdango.sumire.widget.widgetModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
@@ -28,6 +29,7 @@ class SumireApp : Application() {
                 historyKoinModule,
                 modelModule,
                 useCaseModule,
+                widgetModule,
             )
         }
     }

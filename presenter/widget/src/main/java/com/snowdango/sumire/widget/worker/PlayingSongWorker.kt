@@ -42,6 +42,8 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
                 updateAppWidgetState(context, glanceId) { preferences ->
                     preferences[artworkKey] = playingSong?.songData?.artwork?.toBase64() ?: ""
                     preferences[titleKey] = playingSong?.songData?.title ?: ""
+                    preferences[mediaId] = playingSong?.songData?.mediaId ?: ""
+                    preferences[platform] = playingSong?.songData?.app?.platform ?: ""
                 }
                 widget.update(context, glanceId)
             }
@@ -50,6 +52,8 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
     companion object {
         val artworkKey = stringPreferencesKey("artwork")
         val titleKey = stringPreferencesKey("title")
+        val mediaId = stringPreferencesKey("mediaId")
+        val platform = stringPreferencesKey("platform")
     }
 
 }

@@ -5,6 +5,7 @@ import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.model.SaveModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -22,7 +23,9 @@ class PlayingSongSharedFlow : KoinComponent {
             listeners.forEach { (_, listener) ->
                 listener.onChanged()
             }
+            listener?.invoke(value?.second)
         }
+    var listener: ((playingSong: PlayingSongData?) -> Unit)? = null
     val listeners: MutableMap<String, ChangeListener> = mutableMapOf()
     private var isWaitingTime: Boolean = false
     private val playingSongMutex = Mutex()
@@ -153,9 +156,10 @@ class PlayingSongSharedFlow : KoinComponent {
         }
     }
 
-    suspend fun getCurrentPlayingSong(): PlayingSongData? {
+    fun getCurrentPlayingSong(): PlayingSongData? {
         return playingSong?.second
     }
+
 
     enum class PlayingSongChangeType {
         DATA_COMPLETE,
