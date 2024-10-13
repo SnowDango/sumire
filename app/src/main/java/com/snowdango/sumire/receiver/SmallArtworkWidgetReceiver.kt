@@ -28,6 +28,14 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         WorkManager.getInstance(context)
             .enqueue(OneTimeWorkRequestBuilder<SmallArtworkWidgetWorker>().build())
+        playingSongSharedFlow.listeners[SmallArtworkWidgetReceiver::class.java.name] =
+            object : PlayingSongSharedFlow.ChangeListener {
+                override fun onChanged() {
+                    Log.d("ChangeListener", "onChange")
+                    WorkManager.getInstance(context)
+                        .enqueue(OneTimeWorkRequestBuilder<SmallArtworkWidgetWorker>().build())
+                }
+            }
     }
 
     override fun onRestored(context: Context, oldWidgetIds: IntArray?, newWidgetIds: IntArray?) {
