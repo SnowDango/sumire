@@ -42,7 +42,9 @@ dependencies {
     implementation(libs.coroutine.core)
     implementation(libs.kotlinx.datetime)
     implementation(libs.bundles.ktor.client)
+    implementation(libs.bundles.paging)
     implementation(libs.bundles.slf4j)
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

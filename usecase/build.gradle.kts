@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.koin)
     implementation(libs.bundles.androidx.room)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.bundles.paging)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -110,7 +110,9 @@ fun MainScreen(
                     popExitTransition = null,
                     popEnterTransition = null,
                 ) {
-                    HistoryScreen()
+                    HistoryScreen(
+                        windowSize
+                    )
                 }
 
                 composable(

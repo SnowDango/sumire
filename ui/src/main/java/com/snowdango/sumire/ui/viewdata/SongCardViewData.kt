@@ -9,5 +9,6 @@ data class SongCardViewData(
     val thumbnail: String?,
     val isThumbUrl: Boolean,
     val playTimeText: String,
+    val headerDay: String,
     val app: MusicApp,
 )

@@ -1,6 +1,7 @@
 package com.snowdango.sumire.usecase.db
 
 
+import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.Histories
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
@@ -26,4 +27,10 @@ class HistoriesUseCase : KoinComponent {
     fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>> {
         return songsDatabase.historiesDao.getHistoriesSongRecent(size)
     }
+
+    fun getPagingHistorySongs(): PagingSource<Int, HistorySong> {
+        return songsDatabase.historiesDao.getPagingHistorySongs()
+    }
+
+
 }
