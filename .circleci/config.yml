@@ -231,5 +231,5 @@ workflows:
             - screen-shot
       - result-comment:
           requires:
-            - vrt-test
+            - vrt
 
