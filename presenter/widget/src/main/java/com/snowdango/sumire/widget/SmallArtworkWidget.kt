@@ -33,9 +33,9 @@ import com.snowdango.sumire.data.util.toBitmap
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
+class SmallArtworkWidget() : GlanceAppWidget(), KoinComponent {
 
-    private val widgetViewModel: WidgetViewModel by inject()
+    private val widgetViewModel: WidgetViewModel by inject<WidgetViewModel>()
     override val sizeMode: SizeMode
         get() = SizeMode.Exact
 

@@ -7,4 +7,5 @@ val modelModule = module {
     factory<SaveModel> { SaveModel() }
     factory<GetHistoriesModel> { GetHistoriesModel() }
     factory<ShareSongModel> { ShareSongModel() }
+    factory<SettingsModel> { SettingsModel(get()) }
 }

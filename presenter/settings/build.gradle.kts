@@ -35,6 +35,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":data"))
+    implementation(project(":model"))
     implementation(project(":ui"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -44,6 +46,10 @@ dependencies {
     implementation(libs.androidx.material3.windiow)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.bundles.settings)
+    implementation(libs.koin)
+    implementation(libs.koin.compose)
+
+    implementation(libs.androidx.datastore.preferences)
 
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)

@@ -64,8 +64,8 @@ class WidgetViewModel(val context: Context) : KoinComponent {
     fun copyUrl(context: Context, mediaId: String?, appPlatform: String?) {
         coroutineScope.launch {
             val url = shareSongModel.getUrl(mediaId, appPlatform)
-            url?.let {
-                copyClipboard(context, it)
+            if (url != null) {
+                copyClipboard(context, url)
             }
         }
     }

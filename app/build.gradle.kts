@@ -99,6 +99,8 @@ dependencies {
     implementation(libs.ui.tooling)
     implementation(libs.bundles.glance)
 
+    implementation(libs.androidx.datastore.preferences)
+
     implementation(libs.workmanager.ktx)
 
     debugImplementation(libs.showkase)
