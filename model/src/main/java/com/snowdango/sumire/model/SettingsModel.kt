@@ -1,5 +1,6 @@
 package com.snowdango.sumire.model
 
+import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
 import com.snowdango.sumire.usecase.setting.SettingsUseCase
 import org.koin.core.component.KoinComponent
@@ -23,7 +24,7 @@ class SettingsModel : KoinComponent {
         settingsUseCase.editUrlPlatform(urlPlatform)
     }
 
-    suspend fun getUrlPlatform(): String {
+    suspend fun getUrlPlatform(): UrlPriorityPlatform {
         return settingsUseCase.getUrlPlatform()
     }
 

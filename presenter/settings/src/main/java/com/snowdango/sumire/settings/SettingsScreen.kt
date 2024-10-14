@@ -18,6 +18,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.android.showkase.models.Showkase
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
+import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
+import com.snowdango.sumire.settings.component.UrlPriorityPlatformDialog
 import com.snowdango.sumire.settings.component.WidgetActionTypeDialog
 import com.snowdango.sumire.ui.theme.SumireTheme
 import org.koin.androidx.compose.koinViewModel
@@ -30,6 +32,7 @@ fun SettingsScreen() {
     val datastore = viewModel.settingsFlow.collectAsStateWithLifecycle(null)
 
     var isWidgetDialogShow by remember { mutableStateOf(false) }
+    var isUrlPriorityPlatformDialogShow by remember { mutableStateOf(false) }
 
     if (isWidgetDialogShow) {
         WidgetActionTypeDialog(
@@ -38,6 +41,16 @@ fun SettingsScreen() {
             },
             onSelect = {
                 it?.let { type -> viewModel.setWidgetActionType(type) }
+            }
+        )
+    }
+    if(isUrlPriorityPlatformDialogShow) {
+        UrlPriorityPlatformDialog(
+            onDismissRequest = {
+                isUrlPriorityPlatformDialogShow = false
+            },
+            onSelect = {
+                it?.let { platform -> viewModel.setUrlPlatform(platform) }
             }
         )
     }
@@ -60,6 +73,18 @@ fun SettingsScreen() {
                     },
                     onClick = {
                         isWidgetDialogShow = true
+                    }
+                )
+                SettingsMenuLink(
+                    title = { Text("URL取得時に優先されるサービス") },
+                    subtitle = {
+                        Text(
+                            text = datastore.value?.urlPlatform?.platform
+                                ?: UrlPriorityPlatform.SONG_LINK.platform
+                        )
+                    },
+                    onClick = {
+                        isUrlPriorityPlatformDialogShow = true
                     }
                 )
                 SettingsMenuLink(

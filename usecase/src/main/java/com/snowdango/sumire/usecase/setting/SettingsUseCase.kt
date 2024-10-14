@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.snowdango.sumire.data.entity.SettingsPreferences
+import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,8 @@ class SettingsUseCase(private val dataStore: DataStore<Preferences>) {
         SettingsPreferences(
             widgetActionType = WidgetActionType.entries.firstOrNull { it.name == preference[widgetActionTypeKey] }
                 ?: WidgetActionType.COPY,
-            urlPlatform = preference[urlPlatformKey] ?: ""
+            urlPlatform = UrlPriorityPlatform.entries.firstOrNull { it.platform == preference[urlPlatformKey] }
+                ?: UrlPriorityPlatform.SONG_LINK,
         )
     }
 
@@ -40,8 +42,10 @@ class SettingsUseCase(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun getUrlPlatform(): String {
-        return dataStore.data.first()[urlPlatformKey] ?: ""
+    suspend fun getUrlPlatform(): UrlPriorityPlatform {
+        return UrlPriorityPlatform.entries.firstOrNull {
+            it.platform == dataStore.data.first()[urlPlatformKey]
+        } ?: UrlPriorityPlatform.SONG_LINK
     }
 
 }

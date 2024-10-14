@@ -19,7 +19,7 @@ class ShareSongModel : KoinComponent {
         val app = MusicApp.entries.firstOrNull { it.platform == appPlatform } ?: return null
         val urlMap = getUrlMap(mediaId, app) ?: return null
         val priorityPlatform = settingsUseCase.getUrlPlatform()
-        urlMap[priorityPlatform]?.let {
+        urlMap[priorityPlatform.platform]?.let {
             return it // 優先されたplatformのurlを取得
         }
         urlMap[app.platform]?.let {
@@ -36,6 +36,9 @@ class ShareSongModel : KoinComponent {
             key.url?.let {
                 urlMap[key.app.platform] = it
             }
+        }
+        keys.song.url?.let {
+            urlMap["songlink"] = it
         }
         return urlMap
     }
