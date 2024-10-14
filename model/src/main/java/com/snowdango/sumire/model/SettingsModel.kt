@@ -1,35 +1,30 @@
 package com.snowdango.sumire.model
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import com.snowdango.sumire.data.entity.SettingsPreferences
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import com.snowdango.sumire.usecase.setting.SettingsUseCase
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class SettingsModel(private val dataStore: DataStore<Preferences>) {
+class SettingsModel : KoinComponent {
 
-    private val widgetActionTypeKey = stringPreferencesKey("widget_action_type")
+    private val settingsUseCase: SettingsUseCase by inject()
 
-    fun settingsFlow() = dataStore.data.map { preference ->
-        SettingsPreferences(
-            widgetActionType = WidgetActionType.entries.firstOrNull { it.name == preference[widgetActionTypeKey] }
-                ?: WidgetActionType.COPY,
-        )
-    }
+    fun getSettingsFlow() = settingsUseCase.settingsFlow()
 
-    suspend fun editWidgetActionType(widgetActionType: WidgetActionType) {
-        dataStore.edit { preferences ->
-            preferences[widgetActionTypeKey] = widgetActionType.name
-        }
+    suspend fun setWidgetActionType(widgetActionType: WidgetActionType) {
+        settingsUseCase.editWidgetActionType(widgetActionType)
     }
 
     suspend fun getWidgetActionType(): WidgetActionType {
-        return WidgetActionType.entries.firstOrNull {
-            it.name == dataStore.data.first()[widgetActionTypeKey]
-        } ?: WidgetActionType.COPY
+        return settingsUseCase.getWidgetActionType()
+    }
+
+    suspend fun setUrlPlatform(urlPlatform: String) {
+        settingsUseCase.editUrlPlatform(urlPlatform)
+    }
+
+    suspend fun getUrlPlatform(): String {
+        return settingsUseCase.getUrlPlatform()
     }
 
 }

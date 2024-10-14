@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.AppSongKey
+import com.snowdango.sumire.data.entity.db.relations.SongAppKeys
 
 
 @Dao
@@ -25,5 +27,9 @@ interface AppSongKeyDao {
 
     @Query("select ${AppSongKey.COLUMN_URL} from ${AppSongKey.TABLE_NAME} where ${AppSongKey.COLUMN_KEY} = :key and ${AppSongKey.COLUMN_APP} = :app limit 1")
     suspend fun getUrlByKey(key: String, app: MusicApp): String?
+
+    @Transaction
+    @Query("select * from ${AppSongKey.TABLE_NAME} where ${AppSongKey.COLUMN_KEY} = :key and ${AppSongKey.COLUMN_APP} = :app limit 1")
+    suspend fun getAppKeys(key: String, app: MusicApp): SongAppKeys
 
 }

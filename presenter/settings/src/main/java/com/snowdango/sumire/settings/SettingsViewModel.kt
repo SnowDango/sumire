@@ -13,15 +13,22 @@ import org.koin.core.component.inject
 
 class SettingsViewModel : ViewModel(), KoinComponent {
 
-    private val preferences: SettingsModel by inject()
-    val settingsFlow = preferences.settingsFlow().shareIn(
+    private val settingModel: SettingsModel by inject()
+
+    val settingsFlow = settingModel.getSettingsFlow().shareIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
     )
 
     fun setWidgetActionType(widgetActionType: WidgetActionType) {
         viewModelScope.launch(Dispatchers.IO) {
-            preferences.editWidgetActionType(widgetActionType)
+            settingModel.setWidgetActionType(widgetActionType)
+        }
+    }
+
+    fun setUrlPlatform(urlPlatform: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            settingModel.setUrlPlatform(urlPlatform)
         }
     }
 

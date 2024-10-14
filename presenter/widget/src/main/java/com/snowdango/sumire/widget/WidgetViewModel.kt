@@ -78,7 +78,9 @@ class WidgetViewModel(val context: Context) : KoinComponent {
                 val type = settingsModel.getWidgetActionType()
                 when (type) {
                     WidgetActionType.COPY -> {
-                        copyClipboard(context, url)
+                        shareSongModel.getUrl(mediaId, appPlatform)?.let { url ->
+                            copyClipboard(context, url)
+                        }
                     }
 
                     WidgetActionType.TWITTER -> {

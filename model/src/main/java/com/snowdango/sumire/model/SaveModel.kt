@@ -67,17 +67,18 @@ class SaveModel : KoinComponent {
                 checkAppSongKey(songId, keyMap, urlMap)
             } else {
                 saveData(
-                    playingSongData.songData.artist,
-                    playingSongData.songData.album,
-                    songLinkData.entities.values.first().thumbnailUrl,
-                    true,
-                    playingSongData.songData.title,
-                    playingSongData.playTime,
-                    keyMap,
-                    urlMap,
-                    SongLinkResponse.Status.OK,
-                    playingSongData.songData.mediaId,
-                    playingSongData.songData.app
+                    artist = playingSongData.songData.artist,
+                    albumName = playingSongData.songData.album,
+                    thumbnail = songLinkData.entities.values.first().thumbnailUrl,
+                    isThumbUrl = true,
+                    title = playingSongData.songData.title,
+                    url = songLinkData.pageUrl,
+                    playTime = playingSongData.playTime,
+                    mapKey = keyMap,
+                    mapUrl = urlMap,
+                    status = SongLinkResponse.Status.OK,
+                    mediaId = playingSongData.songData.mediaId,
+                    app = playingSongData.songData.app
                 )
             }
         }
@@ -100,17 +101,17 @@ class SaveModel : KoinComponent {
                 )
             } else {
                 saveData(
-                    playingSongData.songData.artist,
-                    playingSongData.songData.album,
-                    playingSongData.songData.artwork?.toBase64(),
-                    false,
-                    playingSongData.songData.title,
-                    playingSongData.playTime,
-                    keyMap,
-                    mapOf(),
-                    status,
-                    playingSongData.songData.mediaId,
-                    playingSongData.songData.app,
+                    artist = playingSongData.songData.artist,
+                    albumName = playingSongData.songData.album,
+                    thumbnail = playingSongData.songData.artwork?.toBase64(),
+                    isThumbUrl = false,
+                    title = playingSongData.songData.title,
+                    playTime = playingSongData.playTime,
+                    mapKey = keyMap,
+                    mapUrl = mapOf(),
+                    status = status,
+                    mediaId = playingSongData.songData.mediaId,
+                    app = playingSongData.songData.app,
                 )
             }
         }
@@ -122,6 +123,7 @@ class SaveModel : KoinComponent {
         thumbnail: String?,
         isThumbUrl: Boolean,
         title: String,
+        url: String? = null,
         playTime: LocalDateTime,
         mapKey: Map<MusicApp, String>,
         mapUrl: Map<MusicApp, String?>,
@@ -131,7 +133,7 @@ class SaveModel : KoinComponent {
     ) {
         val artistId: Long = saveArtist(artist)
         val albumId: Long = saveAlbum(artistId, albumName, thumbnail, isThumbUrl)
-        val songId = saveSong(title, artistId, albumId)
+        val songId = saveSong(title, artistId, albumId, url)
         saveHistory(songId, playTime, app)
         checkAppSongKey(
             songId = songId,
@@ -167,8 +169,8 @@ class SaveModel : KoinComponent {
         }
     }
 
-    private suspend fun saveSong(title: String, artistId: Long, albumId: Long): Long {
-        return songsUseCase.saveSong(title, artistId, albumId)
+    private suspend fun saveSong(title: String, artistId: Long, albumId: Long, url: String?): Long {
+        return songsUseCase.saveSong(title, artistId, albumId, url)
     }
 
     private suspend fun saveHistory(songId: Long, playTime: LocalDateTime, app: MusicApp) {

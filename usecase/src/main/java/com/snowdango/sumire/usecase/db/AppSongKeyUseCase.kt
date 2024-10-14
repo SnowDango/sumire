@@ -2,6 +2,7 @@ package com.snowdango.sumire.usecase.db
 
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.AppSongKey
+import com.snowdango.sumire.data.entity.db.relations.SongAppKeys
 import com.snowdango.sumire.repository.SongsDatabase
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -20,6 +21,10 @@ class AppSongKeyUseCase : KoinComponent {
 
     suspend fun getBySongId(songId: Long): List<AppSongKey> {
         return songsDatabase.appSongKeyDao.getBySongId(songId)
+    }
+
+    suspend fun getAppSongKeys(mediaId: String, app: MusicApp): SongAppKeys {
+        return songsDatabase.appSongKeyDao.getAppKeys(mediaId, app)
     }
 
     suspend fun insertAll(
