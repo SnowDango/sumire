@@ -3,7 +3,7 @@ package com.snowdango.sumire.model
 import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
 import com.snowdango.sumire.data.util.LocalDateTimeFormatType
-import com.snowdango.sumire.data.util.toFormatDateTime
+import com.snowdango.sumire.data.util.toFormatString
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import com.snowdango.sumire.usecase.db.HistoriesUseCase
 import kotlinx.coroutines.flow.Flow
@@ -40,8 +40,8 @@ class GetHistoriesModel : KoinComponent {
             albumName = historySong.song.albums.name,
             thumbnail = historySong.song.albums.thumbnail,
             isThumbUrl = historySong.song.albums.isThumbUrl,
-            playTimeText = historySong.history.playTime.toFormatDateTime(type),
-            headerDay = historySong.history.playTime.toFormatDateTime(LocalDateTimeFormatType.ONLY_DATE),
+            playTimeText = historySong.history.playTime.toFormatString(type),
+            headerDay = historySong.history.playTime.toFormatString(LocalDateTimeFormatType.ONLY_DATE),
             app = historySong.history.app,
         )
     }

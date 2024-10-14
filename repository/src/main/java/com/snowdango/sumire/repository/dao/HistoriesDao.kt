@@ -26,7 +26,6 @@ interface HistoriesDao {
 
     @Transaction
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc limit :size")
-
     fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>>
 
 }

@@ -54,22 +54,31 @@ class SaveModel : KoinComponent {
             MusicApp.entries.first { app -> app.apiProvider == it.value.provider } to
                     it.value.id
         }.toMap()
+        val urlMap: Map<MusicApp, String> = songLinkData.links.filter {
+            MusicApp.entries.find { app -> app.platform == it.key } != null
+        }.map {
+            MusicApp.entries.first { app -> app.platform == it.key } to
+                    it.value.url
+        }.toMap()
+
         withContext(Dispatchers.IO) {
             if (songId != -1L) {
                 saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
-                checkAppSongKey(songId, keyMap)
+                checkAppSongKey(songId, keyMap, urlMap)
             } else {
                 saveData(
-                    playingSongData.songData.artist,
-                    playingSongData.songData.album,
-                    songLinkData.entities.values.first().thumbnailUrl,
-                    true,
-                    playingSongData.songData.title,
-                    playingSongData.playTime,
-                    keyMap,
-                    SongLinkResponse.Status.OK,
-                    playingSongData.songData.mediaId,
-                    playingSongData.songData.app
+                    artist = playingSongData.songData.artist,
+                    albumName = playingSongData.songData.album,
+                    thumbnail = songLinkData.entities.values.first().thumbnailUrl,
+                    isThumbUrl = true,
+                    title = playingSongData.songData.title,
+                    url = songLinkData.pageUrl,
+                    playTime = playingSongData.playTime,
+                    mapKey = keyMap,
+                    mapUrl = urlMap,
+                    status = SongLinkResponse.Status.OK,
+                    mediaId = playingSongData.songData.mediaId,
+                    app = playingSongData.songData.app
                 )
             }
         }
@@ -87,20 +96,22 @@ class SaveModel : KoinComponent {
                 saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
                 checkAppSongKey(
                     songId,
-                    keyMap
+                    keyMap,
+                    mapOf(),
                 )
             } else {
                 saveData(
-                    playingSongData.songData.artist,
-                    playingSongData.songData.album,
-                    playingSongData.songData.artwork?.toBase64(),
-                    false,
-                    playingSongData.songData.title,
-                    playingSongData.playTime,
-                    keyMap,
-                    status,
-                    playingSongData.songData.mediaId,
-                    playingSongData.songData.app,
+                    artist = playingSongData.songData.artist,
+                    albumName = playingSongData.songData.album,
+                    thumbnail = playingSongData.songData.artwork?.toBase64(),
+                    isThumbUrl = false,
+                    title = playingSongData.songData.title,
+                    playTime = playingSongData.playTime,
+                    mapKey = keyMap,
+                    mapUrl = mapOf(),
+                    status = status,
+                    mediaId = playingSongData.songData.mediaId,
+                    app = playingSongData.songData.app,
                 )
             }
         }
@@ -112,19 +123,22 @@ class SaveModel : KoinComponent {
         thumbnail: String?,
         isThumbUrl: Boolean,
         title: String,
+        url: String? = null,
         playTime: LocalDateTime,
         mapKey: Map<MusicApp, String>,
+        mapUrl: Map<MusicApp, String?>,
         status: SongLinkResponse.Status,
         mediaId: String,
         app: MusicApp,
     ) {
         val artistId: Long = saveArtist(artist)
         val albumId: Long = saveAlbum(artistId, albumName, thumbnail, isThumbUrl)
-        val songId = saveSong(title, artistId, albumId)
+        val songId = saveSong(title, artistId, albumId, url)
         saveHistory(songId, playTime, app)
         checkAppSongKey(
             songId = songId,
-            mapKey
+            mapKey,
+            mapUrl,
         )
         if (status == SongLinkResponse.Status.Error) {
             saveTasks(songId, mediaId)
@@ -155,15 +169,19 @@ class SaveModel : KoinComponent {
         }
     }
 
-    private suspend fun saveSong(title: String, artistId: Long, albumId: Long): Long {
-        return songsUseCase.saveSong(title, artistId, albumId)
+    private suspend fun saveSong(title: String, artistId: Long, albumId: Long, url: String?): Long {
+        return songsUseCase.saveSong(title, artistId, albumId, url)
     }
 
     private suspend fun saveHistory(songId: Long, playTime: LocalDateTime, app: MusicApp) {
         historiesUseCase.saveHistories(songId, playTime, app)
     }
 
-    private suspend fun checkAppSongKey(songId: Long, keyMap: Map<MusicApp, String>) {
+    private suspend fun checkAppSongKey(
+        songId: Long,
+        keyMap: Map<MusicApp, String>,
+        urlMap: Map<MusicApp, String?>
+    ) {
         val result = appSongKeyUseCase.getBySongId(songId)
         val addKeyMap = keyMap.filter {
             result.find { appSongKey: AppSongKey ->
@@ -172,7 +190,7 @@ class SaveModel : KoinComponent {
             } == null
         }
         if (addKeyMap.isNotEmpty()) {
-            appSongKeyUseCase.insertAll(songId, keyMap)
+            appSongKeyUseCase.insertAll(songId, keyMap, urlMap)
         }
     }
 

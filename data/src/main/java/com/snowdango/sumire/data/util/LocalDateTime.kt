@@ -6,7 +6,7 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 
 @OptIn(FormatStringsInDatetimeFormats::class)
-fun LocalDateTime.toFormatDateTime(
+fun LocalDateTime.toFormatString(
     type: LocalDateTimeFormatType,
 ): String {
     return this.format(

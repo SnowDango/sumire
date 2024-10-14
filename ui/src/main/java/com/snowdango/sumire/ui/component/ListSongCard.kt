@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,6 +53,8 @@ fun ListSongCard(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .size(60.dp)
+                    .background(Color.White),
+                contentAlignment = Alignment.Center,
             ) {
                 if (songCardViewData.thumbnail != null) {
                     if (songCardViewData.isThumbUrl) {
