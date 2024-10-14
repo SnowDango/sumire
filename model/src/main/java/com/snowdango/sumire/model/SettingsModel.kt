@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.snowdango.sumire.data.entity.SettingsPreferences
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class SettingsModel(private val dataStore: DataStore<Preferences>) {
@@ -23,6 +24,12 @@ class SettingsModel(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { preferences ->
             preferences[widgetActionTypeKey] = widgetActionType.name
         }
+    }
+
+    suspend fun getWidgetActionType(): WidgetActionType {
+        return WidgetActionType.entries.firstOrNull {
+            it.name == dataStore.data.first()[widgetActionTypeKey]
+        } ?: WidgetActionType.COPY
     }
 
 }

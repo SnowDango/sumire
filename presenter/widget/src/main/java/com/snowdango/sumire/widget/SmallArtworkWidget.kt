@@ -47,16 +47,25 @@ class SmallArtworkWidget() : GlanceAppWidget(), KoinComponent {
         provideContent {
             val current = currentState<Preferences>()
             val title = current[WidgetViewModel.titleKey]
+            val artist = current[WidgetViewModel.artist]
             val artwork = current[WidgetViewModel.artworkKey]
             val mediaId = current[WidgetViewModel.mediaId]
             val platform = current[WidgetViewModel.platform]
             Content(
                 title,
+                artist,
                 artwork,
                 mediaId,
                 platform,
-                onClick = { id, app ->
-                    widgetViewModel.copyUrl(context, id, app)
+                onClick = {
+                    widgetViewModel.shareSong(
+                        context,
+                        title,
+                        artist,
+                        artwork?.toBitmap(),
+                        mediaId,
+                        platform
+                    )
                 }
             )
         }
@@ -65,20 +74,18 @@ class SmallArtworkWidget() : GlanceAppWidget(), KoinComponent {
     @Composable
     fun Content(
         title: String?,
+        artist: String?,
         artwork: String?,
         mediaId: String?,
         appPlatform: String?,
-        onClick: (id: String?, appPlatform: String?) -> Unit
+        onClick: () -> Unit
     ) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .background(Color.Transparent)
                 .clickable(action {
-                    onClick.invoke(
-                        mediaId,
-                        appPlatform
-                    )
+                    onClick.invoke()
                 }),
             verticalAlignment = Alignment.CenterVertically,
             horizontalAlignment = Alignment.CenterHorizontally,
