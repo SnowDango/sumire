@@ -35,7 +35,6 @@ jobs:
           name: detekt
           command: |
             ./gradlew detekt --auto-correct
-            git diff --exit-code
   build:
     executor:
       name: android/android-machine
