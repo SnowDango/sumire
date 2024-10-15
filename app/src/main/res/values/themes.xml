@@ -2,4 +2,10 @@
 <resources>
 
     <style name="Theme.Sumire" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Sumire.SplashScreen" parent="@style/Theme.SplashScreen">
+        <item name="android:windowSplashScreenBackground">@color/primary</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/primary</item>
+        <item name="postSplashScreenTheme">@style/Theme.Sumire</item>
+    </style>
 </resources>
