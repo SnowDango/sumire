@@ -49,6 +49,10 @@ jobs:
           command: |
             chmod +x gradlew
       - run:
+          name: local.properties
+          command:
+            touch local.properties
+      - run:
           name: build
           command: |
             ./gradlew assembleDebug
@@ -68,6 +72,10 @@ jobs:
           command: |
             chmod +x gradlew
       - run:
+          name: local.properties
+          command:
+            touch local.properties
+      - run:
           name: UnitTest
           command: |
             ./gradlew testDebugUnitTest
@@ -84,6 +92,10 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - run:
+          name: local.properties
+          command:
+            touch local.properties
       - run:
           name: take screenshot
           command: |
@@ -112,6 +124,10 @@ jobs:
           command: |
             chmod +x gradlew
       - run:
+          name: local.properties
+          command:
+            touch local.properties
+      - run:
           name: take screenshot
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
@@ -138,6 +154,10 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - run:
+          name: local.properties
+          command:
+            touch local.properties
       - run:
           name: compare screenshot
           command: |
