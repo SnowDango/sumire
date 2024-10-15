@@ -36,11 +36,13 @@ detekt = "1.23.7"
 glance = "1.1.0"
 workmanager = "2.9.1"
 datastore = "1.1.1"
+deploygate = "2.8.0"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 android-application-plugin = { group = "com.android.application", name = "com.android.application.gradle.plugin", version.ref = "agp" }
 android-library-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "agp" }
+deploygate-plugin = { group = "com.deploygate", name = "gradle", version.ref = "deploygate" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashcreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
@@ -132,4 +134,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 roborazzi-plugin = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+deploygate = { id = "deploygate" }
 

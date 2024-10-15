@@ -1,0 +1,23 @@
+name: Debug Upload DeployGate
+
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  prod-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: create local.properties
+        run: |
+          touch local.properties
+          echo "deploygate.user=${{ secrets.DEPLOYGATE_USER }}" >> local.properties
+          echo "deploygate.token=${{ secrets.DEPLOYGATE_TOKEN }}" >> local.properties
+      - name: build release
+        run:
+          ./gradlew assembleDebug
+      - name: deploy release
+        run:
+          ./gradlew uploadDeployGateDebug

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -5,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.roborazzi.plugin)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.deploygate)
 }
 
 android {
@@ -25,11 +28,15 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
         }
     }
     compileOptions {
@@ -56,6 +63,20 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+deploygate {
+    val properties = readProperties(file("../local.properties"))
+    appOwnerName = properties.getProperty("deploygate.user")
+    apiToken = properties.getProperty("deploygate.token")
+    deployments {
+        create("release") {
+            sourceFile = file("build/outputs/apk/release/app-release.apk")
+        }
+        create("debug") {
+            sourceFile = file("build/outputs/apk/debug/app-debug.apk")
         }
     }
 }
@@ -118,4 +139,10 @@ dependencies {
     testImplementation(libs.bundles.roborazzi)
 
     detektPlugins(libs.detekt.formatting)
+}
+
+fun readProperties(propertiesFile: File) = Properties().apply {
+    propertiesFile.inputStream().use { fis ->
+        load(fis)
+    }
 }
