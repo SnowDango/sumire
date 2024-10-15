@@ -18,5 +18,6 @@ buildscript {
         classpath(libs.android.application.plugin)
         classpath(libs.android.library.plugin)
         classpath(libs.roborazzi.gradle.plugin)
+        classpath(libs.deploygate.plugin)
     }
 }
