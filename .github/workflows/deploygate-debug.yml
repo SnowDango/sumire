@@ -27,4 +27,4 @@ jobs:
           ./gradlew assembleDebug
       - name: deploy debug
         run:
-          ./gradlew uploadDeployGateDebug
+          ./gradlew uploadDeployGateDebug --stacktrace
