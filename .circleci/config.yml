@@ -28,6 +28,10 @@ jobs:
           command: |
             chmod +x gradlew
       - run:
+          name: local.properties
+          command:
+            touch local.properties
+      - run:
           name: detekt
           command: |
             ./gradlew detekt --auto-correct
