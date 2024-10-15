@@ -15,9 +15,9 @@ jobs:
           touch local.properties
           echo "deploygate.user=${{ secrets.DEPLOYGATE_USER }}" >> local.properties
           echo "deploygate.token=${{ secrets.DEPLOYGATE_TOKEN }}" >> local.properties
-      - name: build release
+      - name: build debug
         run:
           ./gradlew assembleDebug
-      - name: deploy release
+      - name: deploy debug
         run:
           ./gradlew uploadDeployGateDebug
