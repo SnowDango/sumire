@@ -111,7 +111,7 @@ fun MainScreen(
                     popEnterTransition = null,
                 ) {
                     HistoryScreen(
-                        windowSize
+                        windowSize,
                     )
                 }
 

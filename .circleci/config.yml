@@ -28,9 +28,10 @@ jobs:
           command: |
             chmod +x gradlew
       - run:
-          name: lint
+          name: detekt
           command: |
-            ./gradlew detekt
+            ./gradlew detekt --auto-correct
+            git diff --exit-code
   build:
     executor:
       name: android/android-machine

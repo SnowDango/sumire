@@ -33,7 +33,7 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+        appWidgetIds: IntArray,
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         WorkManager.getInstance(context)
@@ -57,12 +57,11 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
         val request = PeriodicWorkRequest.Builder(
             SmallArtworkWidgetWorker::class.java,
             30,
-            TimeUnit.MINUTES
+            TimeUnit.MINUTES,
         ).addTag(
-            WORKER_TAG
+            WORKER_TAG,
         ).build()
         WorkManager.getInstance(context)
             .enqueue(request)
     }
-
 }
