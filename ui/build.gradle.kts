@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.animation)
     implementation(libs.bundles.coil)
+    implementation(libs.bundles.glance)
+    debugImplementation(libs.glance.previewer)
     implementation(libs.ui.tooling)
     implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
