@@ -34,96 +34,93 @@ import androidx.navigation.compose.rememberNavController
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.settings.SettingsScreen
-import com.snowdango.sumire.ui.theme.SumireTheme
 
 @SuppressLint("RestrictedApi")
 @Composable
 fun MainScreen(
     windowSize: WindowSizeClass,
 ) {
-    SumireTheme {
-        val navController = rememberNavController()
-        Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    tonalElevation = 4.dp,
-                    modifier = Modifier
-                        .shadow(8.dp),
-                ) {
-                    val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
-                    ROUTE.entries.forEach { route ->
-                        val selected =
-                            currentDestination?.hierarchy?.any { it.route == route.name } == true
-                        NavigationBarItem(
-                            colors = NavigationBarItemDefaults.colors().copy(
-                                selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                            ),
-                            selected = selected,
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) route.selectedIcon else route.unSelectedIcon,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = { Text(text = route.label) },
-                            onClick = {
-                                if (!selected) {
-                                    navController.navigate(route = route.name) {
-                                        launchSingleTop = true
-                                    }
-                                }
-                            },
-                        )
-                    }
-                }
-            },
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = ROUTE.PLAYING.name,
-                exitTransition = { ExitTransition.None },
-                enterTransition = { EnterTransition.None },
-                popExitTransition = { ExitTransition.None },
-                popEnterTransition = { EnterTransition.None },
+    val navController = rememberNavController()
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 4.dp,
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
+                    .shadow(8.dp),
             ) {
-                composable(
-                    route = ROUTE.PLAYING.name,
-                    exitTransition = null,
-                    enterTransition = null,
-                    popExitTransition = null,
-                    popEnterTransition = null,
-                ) {
-                    PlayingScreen(
-                        windowSize,
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+                ROUTE.entries.forEach { route ->
+                    val selected =
+                        currentDestination?.hierarchy?.any { it.route == route.name } == true
+                    NavigationBarItem(
+                        colors = NavigationBarItemDefaults.colors().copy(
+                            selectedIndicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                        ),
+                        selected = selected,
+                        icon = {
+                            Icon(
+                                imageVector = if (selected) route.selectedIcon else route.unSelectedIcon,
+                                contentDescription = null,
+                            )
+                        },
+                        label = { Text(text = route.label) },
+                        onClick = {
+                            if (!selected) {
+                                navController.navigate(route = route.name) {
+                                    launchSingleTop = true
+                                }
+                            }
+                        },
                     )
                 }
-                composable(
-                    route = ROUTE.HISTORY.name,
-                    exitTransition = null,
-                    enterTransition = null,
-                    popExitTransition = null,
-                    popEnterTransition = null,
-                ) {
-                    HistoryScreen(
-                        windowSize,
-                    )
-                }
+            }
+        },
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = ROUTE.PLAYING.name,
+            exitTransition = { ExitTransition.None },
+            enterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+        ) {
+            composable(
+                route = ROUTE.PLAYING.name,
+                exitTransition = null,
+                enterTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null,
+            ) {
+                PlayingScreen(
+                    windowSize,
+                )
+            }
+            composable(
+                route = ROUTE.HISTORY.name,
+                exitTransition = null,
+                enterTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null,
+            ) {
+                HistoryScreen(
+                    windowSize,
+                )
+            }
 
-                composable(
-                    route = ROUTE.SETTINGS.name,
-                    exitTransition = null,
-                    enterTransition = null,
-                    popExitTransition = null,
-                    popEnterTransition = null,
-                ) {
-                    SettingsScreen()
-                }
+            composable(
+                route = ROUTE.SETTINGS.name,
+                exitTransition = null,
+                enterTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null,
+            ) {
+                SettingsScreen()
             }
         }
     }

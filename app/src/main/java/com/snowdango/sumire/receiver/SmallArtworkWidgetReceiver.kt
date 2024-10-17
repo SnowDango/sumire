@@ -1,5 +1,6 @@
 package com.snowdango.sumire.receiver
 
+import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -8,7 +9,6 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.widget.SmallArtworkWidget
 import com.snowdango.sumire.widget.worker.SmallArtworkWidgetWorker
 import org.koin.core.component.KoinComponent
@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit
 
 class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
 
-    private val playingSongSharedFlow: PlayingSongSharedFlow by inject()
     private val widget: SmallArtworkWidget by inject()
     private val WORKER_TAG = this::class.java.name
 
@@ -52,12 +51,13 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
             .cancelAllWorkByTag(WORKER_TAG)
     }
 
+    @SuppressLint("InvalidPeriodicWorkRequestInterval")
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
         val request = PeriodicWorkRequest.Builder(
             SmallArtworkWidgetWorker::class.java,
             30,
-            TimeUnit.MINUTES,
+            TimeUnit.SECONDS,
         ).addTag(
             WORKER_TAG,
         ).build()

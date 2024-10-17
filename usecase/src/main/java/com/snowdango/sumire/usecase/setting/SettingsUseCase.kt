@@ -2,6 +2,7 @@ package com.snowdango.sumire.usecase.setting
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.snowdango.sumire.data.entity.SettingsPreferences
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.map
 
 class SettingsUseCase(private val dataStore: DataStore<Preferences>) {
 
+    private val isFirstTimeKey = booleanPreferencesKey("is_first_time")
     private val widgetActionTypeKey = stringPreferencesKey("widget_action_type")
     private val urlPlatformKey = stringPreferencesKey("url_platform")
 
@@ -46,6 +48,16 @@ class SettingsUseCase(private val dataStore: DataStore<Preferences>) {
         return UrlPriorityPlatform.entries.firstOrNull {
             it.platform == dataStore.data.first()[urlPlatformKey]
         } ?: UrlPriorityPlatform.SONG_LINK
+    }
+
+    suspend fun editIsFirstTime(isFirstTime: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[isFirstTimeKey] = isFirstTime
+        }
+    }
+
+    suspend fun getIsFirstTime(): Boolean {
+        return dataStore.data.first()[isFirstTimeKey] ?: true
     }
 
 }

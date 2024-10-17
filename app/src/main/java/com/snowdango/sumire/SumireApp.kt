@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.snowdango.presenter.history.historyKoinModule
 import com.snowdango.sumire.infla.EventSharedFlow
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
@@ -19,6 +20,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 class SumireApp : Application() {
@@ -33,6 +35,7 @@ class SumireApp : Application() {
             modules(
                 sharedModule,
                 playingKoinModule,
+                mainModule,
                 historyKoinModule,
                 settingsModule,
                 modelModule,
@@ -40,6 +43,10 @@ class SumireApp : Application() {
                 widgetModule,
             )
         }
+    }
+
+    private val mainModule = module {
+        viewModel { MainViewModel() }
     }
 
     private val sharedModule = module {

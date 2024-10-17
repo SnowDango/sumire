@@ -8,7 +8,7 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
-import androidx.glance.action.action
+import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.color.ColorProvider
@@ -29,8 +29,8 @@ import com.snowdango.sumire.widget.getRoundedCornerBitmap
 @Composable
 fun SmallArtworkContent(
     title: String,
-    artwork: String?,
-    onClick: () -> Unit,
+    artwork: String,
+    onClick: Action,
 ) {
     val size = LocalSize.current
     val minSize = if (size.width - size.height < (-1).dp) {
@@ -38,14 +38,12 @@ fun SmallArtworkContent(
     } else {
         size.height
     }
-    val artworkBitmap = artwork?.toBitmap()
+    val artworkBitmap = artwork.toBitmap()
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .cornerRadius(12.dp)
-            .clickable(action {
-                onClick.invoke()
-            }),
+            .clickable(onClick),
         contentAlignment = Alignment.Center,
     ) {
         Column(

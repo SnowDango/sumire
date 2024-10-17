@@ -5,10 +5,14 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.GlanceId
+import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.state.updateAppWidgetState
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
@@ -29,8 +33,6 @@ class WidgetViewModel(val context: Context) : KoinComponent {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val playingSongSharedFlow: PlayingSongSharedFlow by inject()
-    private val shareSongModel: ShareSongModel by inject()
-    private val settingsModel: SettingsModel by inject()
     private val widget: SmallArtworkWidget by inject()
 
     init {
@@ -64,44 +66,6 @@ class WidgetViewModel(val context: Context) : KoinComponent {
         }
     }
 
-    fun shareSong(
-        context: Context,
-        title: String?,
-        artist: String?,
-        artwork: Bitmap?,
-        mediaId: String?,
-        appPlatform: String?
-    ) {
-        coroutineScope.launch {
-            val url = shareSongModel.getUrl(mediaId, appPlatform)
-            url?.let {
-                val type = settingsModel.getWidgetActionType()
-                when (type) {
-                    WidgetActionType.COPY -> {
-                        shareSongModel.getUrl(mediaId, appPlatform)?.let { url ->
-                            copyClipboard(context, url)
-                        }
-                    }
-
-                    WidgetActionType.TWITTER -> {
-                        val message = "$title - $artist\n#NowPlaying\n$url"
-                        val uri = "twitter://post?message=${URLEncoder.encode(message, "utf-8")}"
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            data = Uri.parse(uri)
-                        }
-                        context.startActivity(intent)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun copyClipboard(context: Context, copyText: String?) {
-        val clipboardManager: ClipboardManager =
-            context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-        clipboardManager.setPrimaryClip(ClipData.newPlainText("", copyText))
-    }
 
     companion object {
         val artworkKey = stringPreferencesKey("artwork")
