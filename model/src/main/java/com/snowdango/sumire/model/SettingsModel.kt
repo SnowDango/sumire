@@ -28,4 +28,12 @@ class SettingsModel : KoinComponent {
         return settingsUseCase.getUrlPlatform()
     }
 
+    suspend fun setIsFirstTime(isFirstTime: Boolean) {
+        return settingsUseCase.editIsFirstTime(isFirstTime)
+    }
+
+    suspend fun getIsFirstTime(): Boolean {
+        return settingsUseCase.getIsFirstTime()
+    }
+
 }
