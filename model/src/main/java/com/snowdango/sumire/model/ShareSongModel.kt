@@ -1,6 +1,5 @@
 package com.snowdango.sumire.model
 
-import android.util.Log
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.usecase.db.AppSongKeyUseCase
 import com.snowdango.sumire.usecase.setting.SettingsUseCase
@@ -32,12 +31,12 @@ class ShareSongModel : KoinComponent {
         if (mediaId == null) return null
         val keys = appSongKeyUseCase.getAppSongKeys(mediaId, app)
         val urlMap: MutableMap<String, String> = mutableMapOf()
-        keys.appSongKeys.forEach { key ->
+        keys?.appSongKeys?.forEach { key ->
             key.url?.let {
                 urlMap[key.app.platform] = it
             }
         }
-        keys.song.url?.let {
+        keys?.song?.url?.let {
             urlMap["songlink"] = it
         }
         return urlMap

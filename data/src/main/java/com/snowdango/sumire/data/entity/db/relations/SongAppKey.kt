@@ -20,7 +20,7 @@ data class SongAppKeys(
         entityColumn = AppSongKey.COLUMN_SONG_ID,
         entity = AppSongKey::class,
     )
-    val appSongKeys: List<AppSongKey>
+    val appSongKeys: List<AppSongKey>?
 
 
 )

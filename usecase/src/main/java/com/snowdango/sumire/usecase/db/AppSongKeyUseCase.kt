@@ -23,7 +23,7 @@ class AppSongKeyUseCase : KoinComponent {
         return songsDatabase.appSongKeyDao.getBySongId(songId)
     }
 
-    suspend fun getAppSongKeys(mediaId: String, app: MusicApp): SongAppKeys {
+    suspend fun getAppSongKeys(mediaId: String, app: MusicApp): SongAppKeys? {
         return songsDatabase.appSongKeyDao.getAppKeys(mediaId, app)
     }
 

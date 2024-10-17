@@ -30,6 +30,6 @@ interface AppSongKeyDao {
 
     @Transaction
     @Query("select * from ${AppSongKey.TABLE_NAME} where ${AppSongKey.COLUMN_KEY} = :key and ${AppSongKey.COLUMN_APP} = :app limit 1")
-    suspend fun getAppKeys(key: String, app: MusicApp): SongAppKeys
+    suspend fun getAppKeys(key: String, app: MusicApp): SongAppKeys?
 
 }

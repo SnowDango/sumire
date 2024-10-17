@@ -39,7 +39,6 @@ fun HistoryScreen(
     val isLandScape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-
     if (!isLandScape) {
         when (windowSize.widthSizeClass) {
             WindowWidthSizeClass.Compact -> HistoryCompatScreen(histories)

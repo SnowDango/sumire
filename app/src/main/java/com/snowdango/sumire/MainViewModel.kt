@@ -2,28 +2,23 @@ package com.snowdango.sumire
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
 
-    private val _dateChangeFlow = flow {
-        while (currentCoroutineContext().isActive) {
-            val date = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-            emit(date)
-            delay(60000)
+    private val _isShowPermissionDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isShowPermissionDialog = _isShowPermissionDialog.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        _isShowPermissionDialog.value,
+    )
+
+    fun setIsShowPermissionDialog(isShow: Boolean) {
+        viewModelScope.launch {
+            _isShowPermissionDialog.emit(isShow)
         }
     }
-    val dateChangeFlow = _dateChangeFlow.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        initialValue = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
-    )
 }
