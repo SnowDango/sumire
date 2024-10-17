@@ -21,7 +21,7 @@ fun NotificationPostDialog(
                     onClick = {
                         onConfirmClick.invoke()
                         onDismissListener.invoke()
-                    }
+                    },
                 ) {
                     Text(text = "OK")
                 }
@@ -30,7 +30,7 @@ fun NotificationPostDialog(
                 TextButton(
                     onClick = {
                         onDismissListener.invoke()
-                    }
+                    },
                 ) {
                     Text("Cancel")
                 }
@@ -43,8 +43,9 @@ fun NotificationPostDialog(
                     text = """
                         このアプリでは、特にユーザーに通知を発信することはありませんが、ウィジェットのエラー表示用に権限を取得する必要があります。
                         権限を与えずにウィジェットを使用することは可能ですが、楽曲データの取得に失敗してもエラー表示がされません。
-                    """.trimIndent())
-            }
+                    """.trimIndent(),
+                )
+            },
         )
     }
 }

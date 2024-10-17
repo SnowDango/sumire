@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,7 +28,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModel<MainViewModel>()
     private val requestPermission = registerForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
-        callback = {}
+        callback = {},
     )
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
@@ -49,7 +48,7 @@ class MainActivity : ComponentActivity() {
                     },
                     onConfirmClick = {
                         requestPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
+                    },
                 )
                 NotificationListenerDialog(
                     isShow = isListenerPermission.value && isNotificationPermission.value.not(),
@@ -59,7 +58,7 @@ class MainActivity : ComponentActivity() {
                     onConfirmClick = {
                         val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                         startActivity(intent)
-                    }
+                    },
                 )
 
                 MainScreen(
@@ -68,7 +67,7 @@ class MainActivity : ComponentActivity() {
             }
         }
         viewModel.setIsShowPermissionDialog(
-            getEnabledListenerPackages(this).contains(packageName).not()
+            getEnabledListenerPackages(this).contains(packageName).not(),
         )
     }
 

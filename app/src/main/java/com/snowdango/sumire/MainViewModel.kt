@@ -32,7 +32,7 @@ class MainViewModel : ViewModel(), KoinComponent {
     init {
         viewModelScope.launch {
             _isShowNotificationPermissionDialog.emit(
-                settingsModel.getIsFirstTime()
+                settingsModel.getIsFirstTime(),
             )
         }
     }
@@ -50,10 +50,9 @@ class MainViewModel : ViewModel(), KoinComponent {
         }
     }
 
-    fun setFirstTimeLaunch(isFirstTime: Boolean){
+    fun setFirstTimeLaunch(isFirstTime: Boolean) {
         viewModelScope.launch {
             settingsModel.setIsFirstTime(isFirstTime)
         }
     }
-
 }

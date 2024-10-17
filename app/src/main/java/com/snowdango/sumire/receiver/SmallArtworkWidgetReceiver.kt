@@ -16,7 +16,7 @@ import org.koin.core.component.inject
 import java.util.concurrent.TimeUnit
 
 class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
-    
+
     private val widget: SmallArtworkWidget by inject()
     private val WORKER_TAG = this::class.java.name
 

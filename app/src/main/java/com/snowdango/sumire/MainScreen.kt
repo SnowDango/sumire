@@ -34,7 +34,6 @@ import androidx.navigation.compose.rememberNavController
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.settings.SettingsScreen
-import com.snowdango.sumire.ui.theme.SumireTheme
 
 @SuppressLint("RestrictedApi")
 @Composable
