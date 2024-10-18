@@ -32,6 +32,16 @@ jobs:
           command:
             touch local.properties
       - run:
+          name: siging.properties
+          command: |
+            touch siging.properties
+            echo "$SIGING_PROPERTIES" | base64 -d >> siging.properties
+      - run:
+          name: debug.jks
+          command: |
+            touch debug.jks
+            echo "$DEBUG_JKS" | base64 -d >> debug.jks
+      - run:
           name: detekt
           command: |
             ./gradlew detekt --auto-correct
