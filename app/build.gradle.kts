@@ -26,20 +26,6 @@ android {
         }
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-        debug {
-            isMinifyEnabled = false
-            applicationIdSuffix = ".debug"
-        }
-    }
-
     signingConfigs {
         val properties = readProperties(file("../siging.properties"))
         create("release") {
@@ -47,6 +33,28 @@ android {
             storePassword = properties.getProperty("release.store_pass")
             keyAlias = properties.getProperty("release.alias")
             keyPassword = properties.getProperty("release.alias_pass")
+        }
+        getByName("debug") {
+            storeFile = file("../debug.jks")
+            storePassword = properties.getProperty("debug.store_pass")
+            keyAlias = properties.getProperty("debug.alias")
+            keyPassword = properties.getProperty("debug.alias_pass")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

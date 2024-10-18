@@ -20,8 +20,14 @@ jobs:
       - name: create local.properties
         run: |
           touch local.properties
-          echo "deploygate.user=${{ secrets.DEPLOYGATE_USER }}" >> local.properties
-          echo "deploygate.token=${{ secrets.DEPLOYGATE_TOKEN }}" >> local.properties
+      - name: create siging.properties
+        run: |
+          touch siging.properties
+          echo "${{ secrets.SIGING_PROPERTIES }}" | base64 -d >> siging.properties
+      - name: create release.jks
+        run: |
+          touch release.jks
+          echo "${{ secrets.RELEASE_JKS }}" | base64 -d >> release.jks
       - name: build release
         run:
           ./gradlew assembleRelease
