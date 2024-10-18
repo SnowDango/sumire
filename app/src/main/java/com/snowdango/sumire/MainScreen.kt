@@ -25,12 +25,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.airbnb.android.showkase.models.Showkase
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.settings.SettingsScreen
@@ -40,6 +42,7 @@ import com.snowdango.sumire.settings.SettingsScreen
 fun MainScreen(
     windowSize: WindowSizeClass,
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -120,7 +123,12 @@ fun MainScreen(
                 popExitTransition = null,
                 popEnterTransition = null,
             ) {
-                SettingsScreen()
+                SettingsScreen(
+                    onShowkaseIntent = {
+                        val intent = Showkase.getBrowserIntent(context)
+                        context.startActivity(intent)
+                    }
+                )
             }
         }
     }

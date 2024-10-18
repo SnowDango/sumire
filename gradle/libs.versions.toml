@@ -99,6 +99,7 @@ settings = { group = "com.github.alorma.compose-settings", name = "ui-tiles", ve
 settings-extended = { group = "com.github.alorma.compose-settings", name = "ui-tiles-extended", version.ref = "settings" }
 
 showkase = { group = "com.airbnb.android", name = "showkase", version.ref = "showkase" }
+showkase-annotation = { group = "com.airbnb.android", name = "showkase-annotation", version.ref = "showkase" }
 showkase-prosessor = { group = "com.airbnb.android", name = "showkase-processor", version.ref = "showkase" }
 
 robolectric = { group = "org.robolectric", name = "robolectric", version = "4.13" }

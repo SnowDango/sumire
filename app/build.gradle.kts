@@ -26,6 +26,22 @@ android {
         }
     }
 
+    signingConfigs {
+        val properties = readProperties(file("../siging.properties"))
+        create("release") {
+            storeFile = file("../release.jks")
+            storePassword = properties.getProperty("release.store_pass")
+            keyAlias = properties.getProperty("release.alias")
+            keyPassword = properties.getProperty("release.alias_pass")
+        }
+        getByName("debug") {
+            storeFile = file("../debug.jks")
+            storePassword = properties.getProperty("debug.store_pass")
+            keyAlias = properties.getProperty("debug.alias")
+            keyPassword = properties.getProperty("debug.alias_pass")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -33,12 +49,15 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -48,6 +67,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -125,8 +145,8 @@ dependencies {
 
     implementation(libs.workmanager.ktx)
 
-    debugImplementation(libs.showkase)
-    kspDebug(libs.showkase.prosessor)
+    implementation(libs.showkase)
+    ksp(libs.showkase.prosessor)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
