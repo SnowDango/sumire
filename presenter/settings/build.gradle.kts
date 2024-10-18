@@ -25,6 +25,9 @@ android {
             )
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -51,6 +54,7 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    implementation(libs.showkase.annotation)
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
 

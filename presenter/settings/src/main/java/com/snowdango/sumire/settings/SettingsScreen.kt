@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.airbnb.android.showkase.models.Showkase
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
@@ -25,7 +24,9 @@ import com.snowdango.sumire.ui.theme.SumireTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(
+    onShowkaseIntent: () -> Unit,
+) {
     val context = LocalContext.current
     val viewModel: SettingsViewModel = koinViewModel()
 
@@ -44,7 +45,7 @@ fun SettingsScreen() {
             }
         )
     }
-    if(isUrlPriorityPlatformDialogShow) {
+    if (isUrlPriorityPlatformDialogShow) {
         UrlPriorityPlatformDialog(
             onDismissRequest = {
                 isUrlPriorityPlatformDialogShow = false
@@ -94,18 +95,19 @@ fun SettingsScreen() {
                 )
             }
         }
-        item {
-            SettingsGroup(
-                title = { Text(text = "Dev") }
-            ) {
-                SettingsMenuLink(
-                    title = { Text(text = "showkaseの表示") },
-                    subtitle = { Text(text = "UiCatalogの表示をします。") },
-                    onClick = {
-                        val intent = Showkase.getBrowserIntent(context)
-                        context.startActivity(intent)
-                    }
-                )
+        if (BuildConfig.DEBUG) {
+            item {
+                SettingsGroup(
+                    title = { Text(text = "Dev") }
+                ) {
+                    SettingsMenuLink(
+                        title = { Text(text = "showkaseの表示") },
+                        subtitle = { Text(text = "UiCatalogの表示をします。") },
+                        onClick = {
+                            onShowkaseIntent.invoke()
+                        }
+                    )
+                }
             }
         }
     }
