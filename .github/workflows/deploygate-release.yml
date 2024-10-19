@@ -31,7 +31,7 @@ jobs:
       - name: create google-services.json
         run:
           touch ./app/src/release/google-services.json
-          echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> ./app/src/debug/google-services.json
+          echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> ./app/src/release/google-services.json
       - name: build release
         run:
           ./gradlew assembleRelease
