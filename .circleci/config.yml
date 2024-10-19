@@ -86,6 +86,28 @@ jobs:
           name: detekt
           command: |
             ./gradlew detekt --auto-correct
+  release-build:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-release
+      - setup-release-google-services
+      - run:
+          name: build
+          command: |
+            ./gradlew assembleRelease
+      - android/save-gradle-cache
+      - android/save-build-cache
   build:
     executor:
       name: android/android-machine
