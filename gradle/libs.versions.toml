@@ -6,7 +6,7 @@ versionName = "0.0.1"
 
 agp = "8.7.1"
 ksp = "2.0.21-1.0.25"
-kotlin = "2.0.10"
+kotlin = "2.0.21"
 coreKtx = "1.13.1"
 splashscreen = "1.0.1"
 junit = "4.13.2"
