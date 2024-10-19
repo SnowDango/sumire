@@ -28,6 +28,10 @@ jobs:
         run: |
           touch release.jks
           echo "${{ secrets.RELEASE_JKS }}" | base64 -d >> release.jks
+      - name: create google-services.json
+        run:
+          touch ./app/src/release/google-services.json
+          echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> ./app/src/debug/google-services.json
       - name: build release
         run:
           ./gradlew assembleRelease

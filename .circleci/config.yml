@@ -15,6 +15,58 @@ parameters:
     type: integer
     default: 0
 
+commands:
+  setup-siging-debug:
+    description: "Debug用のsigingのsetup"
+    steps:
+      - run:
+          name: siging.properties
+          command: |
+            touch siging.properties
+            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
+      - run:
+          name: debug.jks
+          command: |
+            touch debug.jks
+            echo $DEBUG_JKS | base64 -d >> debug.jks
+  setup-siging-release:
+    description: "Release用のsigingのsetup"
+    steps:
+      - run:
+          name: siging.properties
+          command: |
+            touch siging.properties
+            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
+      - run:
+          name: release.jks
+          command: |
+            touch release.jks
+            echo $RELEASE_JKS | base64 -d >> release.jks
+  setup-local-properties:
+    description: "local.propertiesのsetup(Empty)"
+    steps:
+      - run:
+          name: local.properties
+          command:
+            touch local.properties
+  setup-debug-google-services:
+    description: "Debug用のgoogle-services.jsonのsetup"
+    steps:
+      - run:
+          name: google-services.json
+          command: |
+            touch ./app/src/debug/google-services.json
+            echo $DEBUG_SERVICE_JSON | base64 -d >> ./app/src/debug/google-services.json
+  setup-release-google-services:
+    description: "Release用のgoogle-services.jsonのsetup"
+    steps:
+      - run:
+          name: google-services.json
+          command: |
+            touch ./app/src/release/google-services.json
+            echo $RELEASE_SERVICE_JSON | base64 -d >> ./app/src/release/google-services.json
+
+
 jobs:
   lint:
     executor:
@@ -27,20 +79,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: detekt
           command: |
@@ -58,20 +99,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: build
           command: |
@@ -91,20 +121,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: UnitTest
           command: |
@@ -122,20 +141,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: take screenshot
           command: |
@@ -163,20 +171,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: take screenshot
           command: |
@@ -204,20 +201,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
-      - run:
-          name: local.properties
-          command:
-            touch local.properties
-      - run:
-          name: siging.properties
-          command: |
-            touch siging.properties
-            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
-      - run:
-          name: debug.jks
-          command: |
-            touch debug.jks
-            echo $DEBUG_JKS | base64 -d >> debug.jks
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: compare screenshot
           command: |

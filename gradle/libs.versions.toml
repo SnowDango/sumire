@@ -37,6 +37,9 @@ glance = "1.1.0"
 workmanager = "2.9.1"
 datastore = "1.1.1"
 deploygate = "2.8.0"
+google-services = "4.4.2"
+firebase = "33.4.0"
+crashlytics-plugin = "3.0.2"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -115,6 +118,10 @@ glance = { group = "androidx.glance", name = "glance", version.ref = "glance" }
 glance-previewer = { group = "com.google.android.glance.tools", name = "appwidget-viewer", version = "0.2.2" }
 workmanager-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
+
 [bundles]
 androidx-room = ["androidx-room-runtime", "androidx-room-ktx", "androidx-room-paging"]
 androidx-room-ksp = ["androidx-room-compiler"]
@@ -136,4 +143,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 roborazzi-plugin = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 deploygate = { id = "deploygate" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
+firebase-clashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
+
 

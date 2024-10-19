@@ -17,12 +17,18 @@ android {
     }
 
     buildTypes {
+        val versionName: String = libs.versions.versionName.get()
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
+        }
+        debug {
+            isMinifyEnabled = false
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         }
     }
     buildFeatures {
