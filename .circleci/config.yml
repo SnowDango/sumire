@@ -291,7 +291,7 @@ workflows:
           filters:
             branches:
               only:
-                - "master"
+                - "develop"
   build-test:
     jobs:
       - lint:
