@@ -1,9 +1,15 @@
-name: Release Upload DeployGate
+name: Release
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+
+permissions:
+  contents: write
+  discussions: write
+
 jobs:
   prod-deploy:
     runs-on: ubuntu-latest
@@ -32,9 +38,21 @@ jobs:
         run:
           touch ./app/src/release/google-services.json
           echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> ./app/src/release/google-services.json
-      - name: build release
+      - name: build release apk
         run:
-          ./gradlew assembleRelease
-      - name: deploy release
+          ./gradlew assembleRelease --no-daemon
+      - name: build release aab
         run:
-          ./gradlew uploadDeployGateRelease
+          ./gradlew bundleRelease --no-daemon
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: ${{ github.event.inputs.tag }}
+          body: ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag }}
+          files: |
+            ./app/build/outputs/apk/release/app-release.apk
+            ./app/build/outputs/bundle/release/app-release.aab
+          make_latest: true
+
