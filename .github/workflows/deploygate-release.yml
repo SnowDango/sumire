@@ -47,7 +47,6 @@ jobs:
           ./gradlew bundleRelease --no-daemon
       - name: Release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           name: ${{ github.event.inputs.tag }}
           body: ${{ github.event.inputs.tag }}
