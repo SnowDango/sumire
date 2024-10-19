@@ -127,7 +127,7 @@ fun MainScreen(
                     onShowkaseIntent = {
                         val intent = Showkase.getBrowserIntent(context)
                         context.startActivity(intent)
-                    }
+                    },
                 )
             }
         }
