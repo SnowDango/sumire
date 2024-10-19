@@ -90,7 +90,7 @@ fun SettingsScreen(
                 )
                 SettingsMenuLink(
                     title = { Text("Versions") },
-                    subtitle = { Text(Build.VERSION.CODENAME) },
+                    subtitle = { Text(Build.VERSION.RELEASE) },
                     onClick = {},
                 )
             }
