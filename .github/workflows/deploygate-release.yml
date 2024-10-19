@@ -36,7 +36,7 @@ jobs:
           echo "${{ secrets.RELEASE_JKS }}" | base64 -d >> release.jks
       - name: create google-services.json
         working-directory: app/src/release
-        run:
+        run: |
           touch google-services.json
           echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> google-services.json
       - name: build release apk
