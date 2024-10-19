@@ -285,6 +285,13 @@ workflows:
               only:
                 - "develop"
                 - "master"
+  release-build-test:
+    jobs:
+      - release-build:
+          filters:
+            branches:
+              only:
+                - "master"
   build-test:
     jobs:
       - lint:
