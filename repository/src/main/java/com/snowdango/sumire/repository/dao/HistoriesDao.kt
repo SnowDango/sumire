@@ -1,5 +1,6 @@
 package com.snowdango.sumire.repository.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -18,6 +19,10 @@ interface HistoriesDao {
 
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc limit :from,:size")
     suspend fun getHistories(from: Long, size: Long): List<Histories>
+
+    @Transaction
+    @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc")
+    fun getPagingHistorySongs(): PagingSource<Int, HistorySong>
 
     @Transaction
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc limit :size")

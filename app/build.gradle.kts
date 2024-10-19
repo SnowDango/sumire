@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -5,6 +7,9 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.roborazzi.plugin)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.deploygate)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.clashlytics)
 }
 
 android {
@@ -23,15 +28,42 @@ android {
         }
     }
 
+    signingConfigs {
+        val properties = readProperties(file("../siging.properties"))
+        create("release") {
+            storeFile = file("../release.jks")
+            storePassword = properties.getProperty("release.store_pass")
+            keyAlias = properties.getProperty("release.alias")
+            keyPassword = properties.getProperty("release.alias_pass")
+        }
+        getByName("debug") {
+            storeFile = file("../debug.jks")
+            storePassword = properties.getProperty("debug.store_pass")
+            keyAlias = properties.getProperty("debug.alias")
+            keyPassword = properties.getProperty("debug.alias_pass")
+        }
+    }
+
     buildTypes {
+        val versionName = libs.versions.versionName.get()
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
+        }
+        debug {
+            isMinifyEnabled = false
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -41,6 +73,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -56,6 +89,20 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+deploygate {
+    val properties = readProperties(file("../local.properties"))
+    appOwnerName = properties.getProperty("deploygate.user")
+    apiToken = properties.getProperty("deploygate.token")
+    deployments {
+        create("release") {
+            sourceFile = file("build/outputs/apk/release/app-release.apk")
+        }
+        create("debug") {
+            sourceFile = file("build/outputs/apk/debug/app-debug.apk")
         }
     }
 }
@@ -78,10 +125,12 @@ dependencies {
     implementation(project(":presenter:playing"))
     implementation(project(":presenter:history"))
     implementation(project(":presenter:settings"))
+    implementation(project(":presenter:widget"))
     implementation(project(":repository"))
     implementation(project(":usecase"))
     implementation(project(":model"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashcreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -96,9 +145,18 @@ dependencies {
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
     implementation(libs.ui.tooling)
+    implementation(libs.bundles.glance)
 
-    debugImplementation(libs.showkase)
-    kspDebug(libs.showkase.prosessor)
+    implementation(libs.androidx.datastore.preferences)
+
+    implementation(libs.workmanager.ktx)
+
+    implementation(libs.showkase)
+    ksp(libs.showkase.prosessor)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -111,4 +169,10 @@ dependencies {
     testImplementation(libs.bundles.roborazzi)
 
     detektPlugins(libs.detekt.formatting)
+}
+
+fun readProperties(propertiesFile: File) = Properties().apply {
+    propertiesFile.inputStream().use { fis ->
+        load(fis)
+    }
 }

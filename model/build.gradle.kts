@@ -39,6 +39,8 @@ dependencies {
     implementation(project(":ui"))
     implementation(libs.koin)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.bundles.paging)
+    implementation(libs.androidx.datastore.preferences)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

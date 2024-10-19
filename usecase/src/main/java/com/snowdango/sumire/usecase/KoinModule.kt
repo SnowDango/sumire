@@ -7,6 +7,7 @@ import com.snowdango.sumire.usecase.db.ArtistsUseCase
 import com.snowdango.sumire.usecase.db.HistoriesUseCase
 import com.snowdango.sumire.usecase.db.SongsUseCase
 import com.snowdango.sumire.usecase.db.TasksUseCase
+import com.snowdango.sumire.usecase.setting.SettingsUseCase
 import org.koin.dsl.module
 
 
@@ -18,4 +19,5 @@ val useCaseModule = module {
     factory<AlbumsUseCase> { AlbumsUseCase() }
     factory<ArtistsUseCase> { ArtistsUseCase() }
     factory<TasksUseCase> { TasksUseCase() }
+    factory<SettingsUseCase> { SettingsUseCase(get()) }
 }

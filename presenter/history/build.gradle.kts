@@ -20,9 +20,12 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
+                getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
     compileOptions {
@@ -35,14 +38,27 @@ android {
 }
 
 dependencies {
+    implementation(project(":ui"))
+    implementation(project(":infla"))
+    implementation(project(":data"))
+    implementation(project(":model"))
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.material)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windiow)
+    implementation(libs.androidX.lifecycleCompose)
+    implementation(libs.koin)
+    implementation(libs.koin.compose)
+    implementation(libs.coroutine.core)
+    implementation(libs.bundles.paging)
 
+    implementation(libs.showkase.annotation)
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
 

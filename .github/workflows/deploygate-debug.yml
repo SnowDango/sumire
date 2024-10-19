@@ -1,0 +1,42 @@
+name: Debug Upload DeployGate
+
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  debug-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: chmod gradlew
+        run: |
+          chmod +x gradlew
+      - name: create local.properties
+        run: |
+          touch local.properties
+          echo "deploygate.user=${{ secrets.DEPLOYGATE_USER }}" >> local.properties
+          echo "deploygate.token=${{ secrets.DEPLOYGATE_TOKEN }}" >> local.properties
+      - name: create siging.properties
+        run: |
+          touch siging.properties
+          echo "${{ secrets.SIGING_PROPERTIES }}" | base64 -d >> siging.properties
+      - name: create debug.jks
+        run: |
+          touch debug.jks
+          echo "${{ secrets.DEBUG_JKS }}" | base64 -d >> debug.jks
+      - name: create google-services.json
+        run: |
+          touch ./app/src/debug/google-services.json
+          echo "${{ secrets.DEBUG_SERVICE_JSON }}" | base64 -d >> ./app/src/debug/google-services.json
+      - name: build debug
+        run:
+          ./gradlew assembleDebug
+      - name: deploy debug
+        run:
+          ./gradlew uploadDeployGateDebug --stacktrace

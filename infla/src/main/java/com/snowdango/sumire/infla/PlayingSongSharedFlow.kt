@@ -17,6 +17,11 @@ class PlayingSongSharedFlow : KoinComponent {
     private val saveModel: SaveModel by inject()
 
     private var playingSong: Pair<Long, PlayingSongData>? = null
+        set(value) {
+            field = value
+            listener?.invoke(value?.second)
+        }
+    var listener: ((playingSong: PlayingSongData?) -> Unit)? = null
     private var isWaitingTime: Boolean = false
     private val playingSongMutex = Mutex()
     private val isWaitingMutex = Mutex()
@@ -146,9 +151,10 @@ class PlayingSongSharedFlow : KoinComponent {
         }
     }
 
-    suspend fun getCurrentPlayingSong(): PlayingSongData? {
+    fun getCurrentPlayingSong(): PlayingSongData? {
         return playingSong?.second
     }
+
 
     enum class PlayingSongChangeType {
         DATA_COMPLETE,
@@ -161,6 +167,10 @@ class PlayingSongSharedFlow : KoinComponent {
         COMPLETE,
         WAIT,
         NONE
+    }
+
+    interface ChangeListener {
+        fun onChanged()
     }
 
 }

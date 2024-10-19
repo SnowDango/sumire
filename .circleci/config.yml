@@ -15,6 +15,58 @@ parameters:
     type: integer
     default: 0
 
+commands:
+  setup-siging-debug:
+    description: "Debug用のsigingのsetup"
+    steps:
+      - run:
+          name: siging.properties
+          command: |
+            touch siging.properties
+            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
+      - run:
+          name: debug.jks
+          command: |
+            touch debug.jks
+            echo $DEBUG_JKS | base64 -d >> debug.jks
+  setup-siging-release:
+    description: "Release用のsigingのsetup"
+    steps:
+      - run:
+          name: siging.properties
+          command: |
+            touch siging.properties
+            echo $SIGING_PROPERTIES | base64 -d >> siging.properties
+      - run:
+          name: release.jks
+          command: |
+            touch release.jks
+            echo $RELEASE_JKS | base64 -d >> release.jks
+  setup-local-properties:
+    description: "local.propertiesのsetup(Empty)"
+    steps:
+      - run:
+          name: local.properties
+          command:
+            touch local.properties
+  setup-debug-google-services:
+    description: "Debug用のgoogle-services.jsonのsetup"
+    steps:
+      - run:
+          name: google-services.json
+          command: |
+            touch ./app/src/debug/google-services.json
+            echo $DEBUG_SERVICE_JSON | base64 -d >> ./app/src/debug/google-services.json
+  setup-release-google-services:
+    description: "Release用のgoogle-services.jsonのsetup"
+    steps:
+      - run:
+          name: google-services.json
+          command: |
+            touch ./app/src/release/google-services.json
+            echo $RELEASE_SERVICE_JSON | base64 -d >> ./app/src/release/google-services.json
+
+
 jobs:
   lint:
     executor:
@@ -27,10 +79,35 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
-          name: lint
+          name: detekt
           command: |
-            ./gradlew detekt
+            ./gradlew detekt --auto-correct
+  release-build:
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-release
+      - setup-release-google-services
+      - run:
+          name: build
+          command: |
+            ./gradlew assembleRelease
+      - android/save-gradle-cache
+      - android/save-build-cache
   build:
     executor:
       name: android/android-machine
@@ -44,6 +121,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: build
           command: |
@@ -63,6 +143,9 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: UnitTest
           command: |
@@ -80,13 +163,16 @@ jobs:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: take screenshot
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
       - store_artifacts:
           path: app/build/outputs/roborazzi
-  vrt-test:
+  screen-shot:
     parameters:
       target-branch:
         type: string
@@ -98,19 +184,48 @@ jobs:
     steps:
       - checkout
       - run:
-          name: get artifacts
+          name: checkout target branch
           command: |
-            mkdir -p app/build/outputs/roborazzi | \
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v1.1/project/github/SnowDango/sumire/latest/artifacts?branch=<<parameters.target-branch>>&filter=completed" | \
-            jq -c '.[]' | while read artifact; do
-              curl -H "Circle-Token: $CIRCLE_TOKEN" -L "$(echo $artifact | jq -r '.url')?circle-token=$CIRCLE_TOKEN" --create-dirs --output "$(echo $artifact | jq -r '.path')"
-            done
+            git checkout <<parameters.target-branch>>
       - android/restore-gradle-cache
       - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
             chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
+      - run:
+          name: take screenshot
+          command: |
+            ./gradlew recordRoborazziDebug --stacktrace
+      - persist_to_workspace:
+          root: ./app/build/outputs/roborazzi
+          paths:
+            - .
+  vrt:
+    parameters:
+      target-branch:
+        type: string
+        default: ""
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./app/build/outputs/roborazzi
+      - android/restore-gradle-cache
+      - android/restore-build-cache
+      - run:
+          name: chmod gradlew
+          command: |
+            chmod +x gradlew
+      - setup-local-properties
+      - setup-siging-debug
+      - setup-debug-google-services
       - run:
           name: compare screenshot
           command: |
@@ -133,8 +248,10 @@ jobs:
           paths:
             - artifact.json
   result-comment:
-    docker:
-      - image: cimg/base:stable
+    executor:
+      name: android/android-machine
+      resource-class: large
+      tag: default
     steps:
       - checkout
       - gh/install
@@ -143,21 +260,7 @@ jobs:
       - run:
           name: create comment
           command: |
-            touch comment.txt
-            length=$(cat artifact.json | jq -c '.items | length')
-            echo $length
-            if [ $length -gt 0 ]; then
-              echo "VRT Result" > comment.txt
-              echo "| changed |" >> comment.txt
-              echo "|-------|" >> comment.txt
-              cat artifact.json | \
-              jq -c '.items[]' | while read artifact; do
-                echo "| [$(echo $artifact | jq -r '.path')]($(echo $artifact | jq -r '.url')) |" >> comment.txt
-              done
-            else
-              echo "VRT Result" > comment.txt
-              echo "not changed screen" >> comment.txt
-            fi
+            sh create-comment.sh
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
@@ -182,6 +285,13 @@ workflows:
               only:
                 - "develop"
                 - "master"
+  release-build-test:
+    jobs:
+      - release-build:
+          filters:
+            branches:
+              only:
+                - "develop"
   build-test:
     jobs:
       - lint:
@@ -200,9 +310,13 @@ workflows:
       not:
         equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
-      - vrt-test:
+      - screen-shot:
           target-branch: << pipeline.parameters.target-branch >>
+      - vrt:
+          target-branch: << pipeline.parameters.target-branch >>
+          requires:
+            - screen-shot
       - result-comment:
           requires:
-            - vrt-test
+            - vrt
 

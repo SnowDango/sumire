@@ -6,10 +6,20 @@ import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 
 @OptIn(FormatStringsInDatetimeFormats::class)
-fun LocalDateTime.toFormatDateTime(): String {
+fun LocalDateTime.toFormatString(
+    type: LocalDateTimeFormatType,
+): String {
     return this.format(
         format = LocalDateTime.Format {
-            byUnicodePattern("yyyy/MM/dd-HH:mm:ss")
+            byUnicodePattern(type.pattern)
         }
     )
+}
+
+enum class LocalDateTimeFormatType(
+    val pattern: String
+) {
+    ONLY_DATE("yyyy/MM/dd"),
+    FULL_DATE_TIME("yyyy/MM/dd-HH:mm:ss"),
+    ONLY_TIME("HH:mm:ss")
 }

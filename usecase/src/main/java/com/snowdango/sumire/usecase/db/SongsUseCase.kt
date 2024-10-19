@@ -14,11 +14,13 @@ class SongsUseCase : KoinComponent {
         title: String,
         artistId: Long,
         albumId: Long,
+        url: String?,
     ): Long {
         val songs = Songs(
             title = title,
             artistId = artistId,
             albumId = albumId,
+            url = url,
         )
         return songsDatabase.songsDao.insert(songs)
 

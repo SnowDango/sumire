@@ -24,6 +24,9 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            isMinifyEnabled = false
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -48,10 +51,13 @@ dependencies {
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.animation)
     implementation(libs.bundles.coil)
+    implementation(libs.bundles.glance)
+    debugImplementation(libs.glance.previewer)
     implementation(libs.ui.tooling)
     implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 
+    implementation(libs.showkase.annotation)
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
 
