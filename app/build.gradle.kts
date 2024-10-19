@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.roborazzi.plugin)
     alias(libs.plugins.detekt)
     alias(libs.plugins.deploygate)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.clashlytics)
 }
 
 android {
@@ -43,6 +45,7 @@ android {
     }
 
     buildTypes {
+        val versionName = libs.versions.versionName.get()
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -51,11 +54,13 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         }
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
         }
     }
 
@@ -148,6 +153,10 @@ dependencies {
 
     implementation(libs.showkase)
     ksp(libs.showkase.prosessor)
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.analytics)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

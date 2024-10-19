@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.roborazzi.plugin) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.firebase.clashlytics) apply false
 }
 
 buildscript {

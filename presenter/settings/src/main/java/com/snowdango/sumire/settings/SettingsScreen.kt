@@ -1,6 +1,5 @@
 package com.snowdango.sumire.settings
 
-import android.os.Build
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -89,8 +88,9 @@ fun SettingsScreen(
                     }
                 )
                 SettingsMenuLink(
+                    enabled = false,
                     title = { Text("Versions") },
-                    subtitle = { Text(Build.VERSION.RELEASE) },
+                    subtitle = { Text(BuildConfig.VERSION_NAME) },
                     onClick = {},
                 )
             }
