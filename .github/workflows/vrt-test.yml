@@ -12,6 +12,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: run circle ci
+        env:
+          CIRCLE_TOKEN: ${{ secrets.CIRCLE_TOKEN }}
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -H "Circle-Token: ${CIRCLE_TOKEN}" \
