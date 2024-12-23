@@ -105,7 +105,7 @@ showkase = { group = "com.airbnb.android", name = "showkase", version.ref = "sho
 showkase-annotation = { group = "com.airbnb.android", name = "showkase-annotation", version.ref = "showkase" }
 showkase-prosessor = { group = "com.airbnb.android", name = "showkase-processor", version.ref = "showkase" }
 
-robolectric = { group = "org.robolectric", name = "robolectric", version = "4.13" }
+robolectric = { group = "org.robolectric", name = "robolectric", version = "4.14.1" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
