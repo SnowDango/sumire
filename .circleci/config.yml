@@ -239,6 +239,10 @@ jobs:
       - store_artifacts:
           path: app/build/outputs/roborazzi
       - run:
+          name: create compare.png json
+          command: |
+            sh create-base64.sh
+      - run:
           name: create result json file
           command: |
             curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
@@ -247,6 +251,7 @@ jobs:
           root: ./
           paths:
             - artifact.json
+            - compare.json
   result-comment:
     executor:
       name: android/android-machine
@@ -257,6 +262,10 @@ jobs:
       - gh/install
       - attach_workspace:
           at: ./
+      - run:
+          name: echo compare.json
+          command: |
+            cat compare.json
       - run:
           name: create comment
           command: |
