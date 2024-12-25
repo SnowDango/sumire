@@ -281,9 +281,9 @@ jobs:
             comments=$(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '[.comments[].author.login]|any(.=="sumire-apps")')
             echo $comments
             if [ ${comments} = "true" ]; then
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.md --edit-last
             else
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
+              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.md
             fi
 workflows:
   save-screenshot:
