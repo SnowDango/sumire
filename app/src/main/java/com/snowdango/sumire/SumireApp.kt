@@ -5,7 +5,6 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.snowdango.presenter.history.historyKoinModule
 import com.snowdango.sumire.infla.EventSharedFlow
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
