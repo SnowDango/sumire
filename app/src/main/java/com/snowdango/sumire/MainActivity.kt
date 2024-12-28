@@ -19,13 +19,16 @@ import androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.snowdango.sumire.dialog.NotificationListenerDialog
 import com.snowdango.sumire.dialog.NotificationPostDialog
+import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.service.SongListenerService
 import com.snowdango.sumire.ui.theme.SumireTheme
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModel<MainViewModel>()
+    private val logEvent: LogEvent by inject()
     private val requestPermission = registerForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         callback = {},
@@ -63,6 +66,7 @@ class MainActivity : ComponentActivity() {
 
                 MainScreen(
                     calculateWindowSizeClass(activity = this),
+                    logEvent,
                 )
             }
         }

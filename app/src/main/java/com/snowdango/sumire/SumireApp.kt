@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.snowdango.presenter.history.historyKoinModule
 import com.snowdango.sumire.infla.EventSharedFlow
+import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.model.modelModule
 import com.snowdango.sumire.presenter.playing.playingKoinModule
@@ -54,5 +55,6 @@ class SumireApp : Application() {
         single<EventSharedFlow> { EventSharedFlow() }
         single<PlayingSongSharedFlow> { PlayingSongSharedFlow() }
         single<DataStore<Preferences>> { dataStore }
+        factory<LogEvent> { LogEvent(get()) }
     }
 }
