@@ -11,6 +11,7 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.currentState
+import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.ui.theme.glance.SumireGlanceTheme
 import com.snowdango.sumire.widget.actions.ShareSongAction
 import com.snowdango.sumire.widget.component.NoInfoContent
@@ -21,6 +22,7 @@ import org.koin.core.component.inject
 class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
 
     private val widgetViewModel: WidgetViewModel by inject<WidgetViewModel>()
+    private val logEvent: LogEvent by inject()
     override val sizeMode: SizeMode
         get() = SizeMode.Exact
 
