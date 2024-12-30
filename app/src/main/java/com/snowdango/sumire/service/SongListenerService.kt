@@ -20,7 +20,6 @@ import androidx.core.app.NotificationCompat
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.playing.SongData
-import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.logging.Logging
 import kotlinx.coroutines.MainScope
@@ -33,7 +32,6 @@ import org.koin.android.ext.android.inject
 class SongListenerService : NotificationListenerService() {
 
     private val songSharedFlow: PlayingSongSharedFlow by inject()
-    private val logEvent: LogEvent by inject()
 
     private val channelId = "sumire_song_listener"
     private val channelName = "SumireSongListener"
@@ -104,8 +102,6 @@ class SongListenerService : NotificationListenerService() {
             MainScope().launch {
                 mediaSessionManager.getActiveSessions(componentName)
                     .find { it.packageName == packageName }?.let {
-                        val app =
-                            MusicApp.entries.find { apps -> it.packageName == apps.packageName }
                         val metadata = it.metadata
                         val currentQueueId = it.queue?.first()?.queueId
                         try {
@@ -117,7 +113,7 @@ class SongListenerService : NotificationListenerService() {
                                     null
                                 },
                             )
-                            loggingMediaController(metadata, it, app)
+                            loggingMediaController(metadata, it)
                         } catch (e: NullPointerException) {
                             Log.e("GetMetadata", "failed get metadata")
                         }
@@ -148,9 +144,8 @@ class SongListenerService : NotificationListenerService() {
     private fun loggingMediaController(
         metadata: MediaMetadata?,
         mediaController: MediaController?,
-        app: MusicApp?,
     ) {
-        metadata?.let { Logging.loggingMetaData(it, logEvent, app) }
+        metadata?.let { Logging.loggingMetaData(it) }
         mediaController?.playbackState?.let {
             Logging.loggingPlaybackState(it.state)
             Logging.loggingPlaybackAction(it.actions)
