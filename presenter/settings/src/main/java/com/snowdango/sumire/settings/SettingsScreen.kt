@@ -107,6 +107,13 @@ fun SettingsScreen(
                             onShowkaseIntent.invoke()
                         }
                     )
+                    SettingsMenuLink(
+                        title = { Text(text = "Crashlytics") },
+                        subtitle = { Text(text = "crashさせる") },
+                        onClick = {
+                            throw RuntimeException("意図的なCrash")
+                        }
+                    )
                 }
             }
         }

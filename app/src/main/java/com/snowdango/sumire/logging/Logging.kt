@@ -7,12 +7,15 @@ import android.util.Log
 object Logging {
 
     fun loggingMetaData(metadata: MediaMetadata) {
+        val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
+        val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)
+        val album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)
         Log.d(
             "CurrentMetadata",
             """
-                title = ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}
-                artist = ${metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)}
-                album = ${metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)}
+                title = $title
+                artist = $artist
+                album = $album
                 artwork = ${
                 metadata.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: metadata.getBitmap(
                     MediaMetadata.METADATA_KEY_ALBUM_ART,

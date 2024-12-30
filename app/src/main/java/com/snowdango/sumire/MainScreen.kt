@@ -27,6 +27,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleStartEffect
+import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.android.showkase.models.Showkase
 import com.snowdango.presenter.history.HistoryScreen
+import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.presenter.playing.PlayingScreen
 import com.snowdango.sumire.settings.SettingsScreen
 
@@ -41,9 +44,24 @@ import com.snowdango.sumire.settings.SettingsScreen
 @Composable
 fun MainScreen(
     windowSize: WindowSizeClass,
+    logEvent: LogEvent,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
+    val destinationListener = NavController.OnDestinationChangedListener { _, destination, _ ->
+        logEvent.sendEvent(
+            event = LogEvent.Event.VIEW_SCREEN_EVENT,
+            params = mapOf(LogEvent.Param.PARAM_SCREEN to destination.route.toString()),
+        )
+    }
+
+    LifecycleStartEffect(logEvent) {
+        navController.addOnDestinationChangedListener(destinationListener)
+        onStopOrDispose {
+            navController.removeOnDestinationChangedListener(destinationListener)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {

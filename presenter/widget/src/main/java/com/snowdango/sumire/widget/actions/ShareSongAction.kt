@@ -14,6 +14,7 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
+import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.model.SettingsModel
 import com.snowdango.sumire.model.ShareSongModel
 import org.koin.core.component.KoinComponent
@@ -24,6 +25,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
 
     private val shareSongModel: ShareSongModel by inject()
     private val settingsModel: SettingsModel by inject()
+    private val logEvent: LogEvent by inject()
 
     override suspend fun onAction(
         context: Context,
@@ -40,6 +42,10 @@ class ShareSongAction : ActionCallback, KoinComponent {
             Handler(context.mainLooper).post {
                 Toast.makeText(context, "URLの取得に失敗しました。", Toast.LENGTH_SHORT).show()
             }
+            logEvent.sendEvent(
+                LogEvent.Event.SHARE_EVENT,
+                params = mapOf(LogEvent.Param.PARAM_ERROR to "url isNullOrBlank")
+            )
         } else {
             val type = settingsModel.getWidgetActionType()
             Log.d("ShareSongAction", type.name)
@@ -48,6 +54,13 @@ class ShareSongAction : ActionCallback, KoinComponent {
                     val clipboardManager: ClipboardManager =
                         context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
                     clipboardManager.setPrimaryClip(ClipData.newPlainText("", url))
+                    logEvent.sendEvent(
+                        LogEvent.Event.SHARE_EVENT,
+                        params = mapOf(
+                            LogEvent.Param.PARAM_SHARE_TYPE to "copy",
+                            LogEvent.Param.PARAM_URL to url,
+                        )
+                    )
                 }
 
                 WidgetActionType.TWITTER -> {
@@ -58,6 +71,15 @@ class ShareSongAction : ActionCallback, KoinComponent {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             data = Uri.parse(uri)
                         }
+                        logEvent.sendEvent(
+                            LogEvent.Event.SHARE_EVENT,
+                            params = mapOf(
+                                LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
+                                LogEvent.Param.PARAM_TITLE to title,
+                                LogEvent.Param.PARAM_ARTIST to artist,
+                                LogEvent.Param.PARAM_URL to url,
+                            )
+                        )
                         actionStartActivity(intent)
                     } else {
                         Handler(context.mainLooper).post {
@@ -67,6 +89,13 @@ class ShareSongAction : ActionCallback, KoinComponent {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+                        logEvent.sendEvent(
+                            LogEvent.Event.SHARE_EVENT,
+                            params = mapOf(
+                                LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
+                                LogEvent.Param.PARAM_ERROR to "not found metadata",
+                            )
+                        )
                     }
                 }
             }
