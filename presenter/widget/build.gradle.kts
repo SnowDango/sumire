@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.widget"
+    namespace = "com.snowdango.sumire.presenter.widget"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

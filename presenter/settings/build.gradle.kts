@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.settings"
+    namespace = "com.snowdango.sumire.presenter.settings"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
