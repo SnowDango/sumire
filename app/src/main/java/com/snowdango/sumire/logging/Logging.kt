@@ -36,8 +36,8 @@ object Logging {
                 LogEvent.Param.PARAM_TITLE to title,
                 LogEvent.Param.PARAM_ARTIST to artist,
                 LogEvent.Param.PARAM_ALBUM to album,
-                LogEvent.Param.PARAM_APP_NAME to (app?.platform ?: "unknown app")
-            )
+                LogEvent.Param.PARAM_APP_NAME to (app?.platform ?: "unknown app"),
+            ),
         )
     }
 
