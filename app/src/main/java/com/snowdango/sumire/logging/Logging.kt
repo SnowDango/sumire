@@ -3,16 +3,21 @@ package com.snowdango.sumire.logging
 import android.media.MediaMetadata
 import android.media.session.PlaybackState
 import android.util.Log
+import com.snowdango.sumire.data.entity.MusicApp
+import com.snowdango.sumire.infla.LogEvent
 
 object Logging {
 
-    fun loggingMetaData(metadata: MediaMetadata) {
+    fun loggingMetaData(metadata: MediaMetadata, logEvent: LogEvent, app: MusicApp?) {
+        val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
+        val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)
+        val album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)
         Log.d(
             "CurrentMetadata",
             """
-                title = ${metadata.getString(MediaMetadata.METADATA_KEY_TITLE)}
-                artist = ${metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)}
-                album = ${metadata.getString(MediaMetadata.METADATA_KEY_ALBUM)}
+                title = $title
+                artist = $artist
+                album = $album
                 artwork = ${
                 metadata.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: metadata.getBitmap(
                     MediaMetadata.METADATA_KEY_ALBUM_ART,
@@ -24,6 +29,15 @@ object Logging {
                 displayIcon = ${metadata.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)}
                 mediaId = ${metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)}
             """.trimIndent(),
+        )
+        logEvent.sendEvent(
+            event = LogEvent.Event.SAVE_SONG_DATA_EVENT,
+            params = mapOf(
+                LogEvent.Param.PARAM_TITLE to title,
+                LogEvent.Param.PARAM_ARTIST to artist,
+                LogEvent.Param.PARAM_ALBUM to album,
+                LogEvent.Param.PARAM_APP_NAME to (app?.platform ?: "unknown app")
+            )
         )
     }
 
