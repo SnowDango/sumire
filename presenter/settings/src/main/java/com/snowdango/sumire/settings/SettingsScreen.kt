@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alorma.compose.settings.ui.SettingsGroup
 import com.alorma.compose.settings.ui.SettingsMenuLink
 import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
+import com.snowdango.sumire.presenter.settings.BuildConfig
 import com.snowdango.sumire.settings.component.UrlPriorityPlatformDialog
 import com.snowdango.sumire.settings.component.WidgetActionTypeDialog
 import com.snowdango.sumire.ui.theme.SumireTheme

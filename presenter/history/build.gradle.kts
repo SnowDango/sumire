@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.presenter.history"
+    namespace = "com.snowdango.sumire.presenter.history"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
