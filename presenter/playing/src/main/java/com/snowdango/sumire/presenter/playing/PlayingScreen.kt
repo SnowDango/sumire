@@ -1,7 +1,9 @@
 package com.snowdango.sumire.presenter.playing
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -28,12 +33,14 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
+import com.snowdango.sumire.presenter.playing.mock.MockData
 import com.snowdango.sumire.ui.component.CircleSongArtwork
 import com.snowdango.sumire.ui.component.ListSongCard
 import com.snowdango.sumire.ui.component.MusicAppImage
@@ -248,21 +255,6 @@ fun PlayingSongComponent(
     }
 }
 
-@Preview(group = PLAYING_GROUP, name = "PlayingSong")
-@Composable
-fun PreviewPlayingSongComponent() {
-    SumireTheme {
-        PlayingSongComponent(
-            artwork = null,
-            title = "title6",
-            album = "album",
-            artist = "artist",
-            app = MusicApp.APPLE_MUSIC
-        )
-    }
-}
-
-@Preview(group = PLAYING_GROUP, name = "NothingPlayingSong")
 @Composable
 fun NothingPlayingSongComponent() {
     Box(
@@ -282,5 +274,61 @@ fun NothingPlayingSongComponent() {
             textAlign = TextAlign.Center
 
         )
+    }
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Preview(group = PLAYING_GROUP, name = "NothingPlayingSong")
+@Composable
+fun Preview_NothingPlayingSongComponent() {
+    SumireTheme {
+        Scaffold {
+            NothingPlayingSongComponent()
+        }
+    }
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Preview(group = PLAYING_GROUP, name = "PlayingSong")
+@Composable
+fun Preview_PlayingSongComponent() {
+    SumireTheme {
+        Scaffold {
+            PlayingSongComponent(
+                artwork = null,
+                title = "title6",
+                album = "album",
+                artist = "artist",
+                app = MusicApp.APPLE_MUSIC
+            )
+        }
+    }
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Preview(group = PLAYING_GROUP, name = "PlayingCompactScreen")
+@Composable
+fun Preview_PlayingCompactScreen() {
+    SumireTheme {
+        Scaffold {
+            PlayingCompactScreen(
+                currentSong = MockData.currentSongMock.collectAsStateWithLifecycle(),
+                recentHistories = MockData.recentHistories.collectAsStateWithLifecycle(),
+            )
+        }
+    }
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Preview(group = PLAYING_GROUP, name = "PlayingSplit2Screen", device = "spec:width=1280dp,height=800dp,dpi=240")
+@Composable
+fun Preview_PlayingSplit2Screen() {
+    SumireTheme {
+        Scaffold {
+            PlayingSplit2Screen(
+                currentSong = MockData.currentSongMock.collectAsStateWithLifecycle(),
+                recentHistories = MockData.recentHistories.collectAsStateWithLifecycle(),
+            )
+        }
     }
 }

@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.koin.compose)
     implementation(libs.coroutine.core)
 
+    implementation(libs.kotlinx.datetime)
+
     implementation(libs.showkase.annotation)
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)
