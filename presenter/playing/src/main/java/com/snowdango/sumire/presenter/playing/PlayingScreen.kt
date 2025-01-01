@@ -26,6 +26,7 @@ import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -108,7 +109,7 @@ fun PlayingCompactScreen(
         }
         item {
             Text(
-                text = "Recent",
+                text = stringResource(R.string.recent),
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
@@ -162,7 +163,7 @@ fun PlayingSplit2Screen(
             ) {
                 item {
                     Text(
-                        text = "Recent",
+                        text = stringResource(R.string.recent),
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier
                             .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
@@ -235,7 +236,7 @@ fun PlayingSongComponent(
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "from",
+                text = stringResource(R.string.playing_song_from_app),
                 style = MaterialTheme.typography.labelSmall
             )
             MusicAppImage(
@@ -260,7 +261,7 @@ fun NothingPlayingSongComponent() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Music is not playing \nin all apps.",
+            text = stringResource(R.string.nothing_playing_song),
             style = TextStyle(
                 fontStyle = FontStyle.Normal,
                 fontWeight = FontWeight.Normal,
