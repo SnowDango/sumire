@@ -1,0 +1,5 @@
+<resources>
+    <string name="recent">Recent</string>
+    <string name="playing_song_from_app">from</string>
+    <string name="nothing_playing_song">Music is not playing\nin all apps.</string>
+</resources>
