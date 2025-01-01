@@ -3,6 +3,7 @@ package com.snowdango.sumire.presenter.playing
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -293,7 +294,7 @@ fun Preview_NothingPlayingSongComponent() {
 @Composable
 fun Preview_PlayingSongComponent() {
     SumireTheme {
-        Scaffold {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background))  {
             PlayingSongComponent(
                 artwork = null,
                 title = "title6",
