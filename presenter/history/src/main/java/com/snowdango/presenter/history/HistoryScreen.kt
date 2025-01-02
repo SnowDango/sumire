@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,6 +30,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.snowdango.presenter.history.mock.MockData
 import com.snowdango.sumire.ui.component.ListSongCard
+import com.snowdango.sumire.ui.component.SearchText
 import com.snowdango.sumire.ui.theme.SumireTheme
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import org.koin.androidx.compose.koinViewModel
@@ -43,14 +45,18 @@ fun HistoryScreen(
     val isLandScape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val onSearch: (String) -> Unit = {
+        // TODO: search fn
+    }
+
     if (!isLandScape) {
         when (windowSize.widthSizeClass) {
-            WindowWidthSizeClass.Compact -> HistoryCompatScreen(histories)
-            WindowWidthSizeClass.Medium -> HistorySplit2Screen(histories)
-            WindowWidthSizeClass.Expanded -> HistorySplit2Screen(histories)
+            WindowWidthSizeClass.Compact -> HistoryCompatScreen(histories, onSearch)
+            WindowWidthSizeClass.Medium -> HistorySplit2Screen(histories, onSearch)
+            WindowWidthSizeClass.Expanded -> HistorySplit2Screen(histories, onSearch)
         }
     } else {
-        HistorySplit2Screen(histories)
+        HistorySplit2Screen(histories, onSearch)
     }
 }
 
@@ -58,7 +64,8 @@ fun HistoryScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HistoryCompatScreen(
-    histories: LazyPagingItems<SongCardViewData>
+    histories: LazyPagingItems<SongCardViewData>,
+    onSearch: (searchText: String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -66,6 +73,12 @@ fun HistoryCompatScreen(
             .padding(top = 16.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        item {
+            SearchText(
+                modifier = Modifier.fillMaxWidth(),
+                onSearch = onSearch,
+            )
+        }
         var headerDay = ""
         for (index in 0 until histories.itemCount) {
             val nextViewData = histories.peek(index)
@@ -93,7 +106,8 @@ fun HistoryCompatScreen(
 
 @Composable
 fun HistorySplit2Screen(
-    histories: LazyPagingItems<SongCardViewData>
+    histories: LazyPagingItems<SongCardViewData>,
+    onSearch: (searchText: String) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -101,6 +115,13 @@ fun HistorySplit2Screen(
             .fillMaxSize()
             .padding(top = 16.dp, start = 24.dp, end = 24.dp)
     ) {
+        item(span = { GridItemSpan(2) }) {
+            SearchText(
+                modifier = Modifier.fillMaxWidth()
+                    .wrapContentHeight(),
+                onSearch = onSearch,
+            )
+        }
         var headerDay = ""
         for (index in 0 until histories.itemCount) {
             val nextViewData = histories.peek(index)
@@ -150,7 +171,7 @@ fun DateHeader(date: String) {
 @Composable
 fun Preview_DateHeader() {
     SumireTheme {
-        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background))  {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
             DateHeader(date = MockData.mockDate)
         }
     }
@@ -162,7 +183,7 @@ fun Preview_DateHeader() {
 fun Preview_HistoryCompatScreen() {
     SumireTheme {
         Scaffold {
-            HistoryCompatScreen(MockData.mockPagingFlow.collectAsLazyPagingItems())
+            HistoryCompatScreen(MockData.mockPagingFlow.collectAsLazyPagingItems()) {}
         }
     }
 }
@@ -177,7 +198,7 @@ fun Preview_HistoryCompatScreen() {
 fun Preview_HistorySplit2Screen() {
     SumireTheme {
         Scaffold {
-            HistorySplit2Screen(MockData.mockPagingFlow.collectAsLazyPagingItems())
+            HistorySplit2Screen(MockData.mockPagingFlow.collectAsLazyPagingItems()) {}
         }
     }
 }
