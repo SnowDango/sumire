@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windiow)
+    implementation(libs.androidx.livedata)
     implementation(libs.androidX.lifecycleCompose)
     implementation(libs.koin)
     implementation(libs.koin.compose)

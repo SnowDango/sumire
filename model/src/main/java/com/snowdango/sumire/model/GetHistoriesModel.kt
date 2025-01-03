@@ -30,6 +30,10 @@ class GetHistoriesModel : KoinComponent {
         return historiesUseCase.getPagingHistorySongs()
     }
 
+    fun getPagingSearchHistorySongs(text: String): PagingSource<Int, HistorySong> {
+        return historiesUseCase.getPagingSearchHistoriesSongs(text)
+    }
+
     fun convertHistorySongToSongCardViewData(
         historySong: HistorySong,
         type: LocalDateTimeFormatType,

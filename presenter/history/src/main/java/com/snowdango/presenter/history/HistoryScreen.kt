@@ -2,6 +2,7 @@ package com.snowdango.presenter.history
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,14 +22,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.snowdango.presenter.history.mock.MockData
+import com.snowdango.sumire.ui.component.CircleLoading
 import com.snowdango.sumire.ui.component.ListSongCard
 import com.snowdango.sumire.ui.component.SearchText
 import com.snowdango.sumire.ui.theme.SumireTheme
@@ -40,13 +45,26 @@ fun HistoryScreen(
     windowSize: WindowSizeClass
 ) {
     val viewModel: HistoryViewModel = koinViewModel()
-    val histories = viewModel.getHistories.collectAsLazyPagingItems()
+    val historiesPaging = viewModel.getHistories.collectAsLazyPagingItems()
+    val searchTextLiveData = viewModel.searchTextLiveData.observeAsState()
+    val searchHistoriesPaging = viewModel.searchHistories.collectAsLazyPagingItems()
 
     val isLandScape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val onSearch: (String) -> Unit = {
-        // TODO: search fn
+        viewModel.setSearchText(it)
+    }
+
+    LaunchedEffect(searchTextLiveData.value) {
+        Log.d("SearchText", "OnChange")
+        searchHistoriesPaging.refresh()
+    }
+
+    val histories = if (searchTextLiveData.value.isNullOrBlank()) {
+        historiesPaging
+    } else {
+        searchHistoriesPaging
     }
 
     if (!isLandScape) {
@@ -79,25 +97,28 @@ fun HistoryCompatScreen(
                 onSearch = onSearch,
             )
         }
-        var headerDay = ""
-        for (index in 0 until histories.itemCount) {
-            val nextViewData = histories.peek(index)
-            nextViewData?.let {
-                if (it.headerDay != headerDay) {
-                    headerDay = it.headerDay
-                    stickyHeader {
-                        DateHeader(it.headerDay)
-                    }
-                }
+        if (histories.loadState.refresh == LoadState.Loading) {
+            item {
+                CircleLoading()
             }
-            val viewData = histories[index]
-            viewData?.let {
-                item {
-                    ListSongCard(
-                        songCardViewData = it,
-                        modifier = Modifier
-                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
-                    )
+        } else {
+            var headerDay = ""
+            for (index in 0 until histories.itemCount) {
+                val viewData = histories.peek(index)
+                viewData?.let {
+                    if (it.headerDay != headerDay) {
+                        headerDay = it.headerDay
+                        stickyHeader {
+                            DateHeader(it.headerDay)
+                        }
+                    }
+                    item {
+                        ListSongCard(
+                            songCardViewData = it,
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
+                        )
+                    }
                 }
             }
         }
@@ -117,30 +138,34 @@ fun HistorySplit2Screen(
     ) {
         item(span = { GridItemSpan(2) }) {
             SearchText(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .wrapContentHeight(),
                 onSearch = onSearch,
             )
         }
-        var headerDay = ""
-        for (index in 0 until histories.itemCount) {
-            val nextViewData = histories.peek(index)
-            nextViewData?.let {
-                if (it.headerDay != headerDay) {
-                    headerDay = it.headerDay
-                    item(span = { GridItemSpan(2) }) {
-                        DateHeader(it.headerDay)
-                    }
-                }
+        if (histories.loadState.refresh == LoadState.Loading) {
+            item(span = { GridItemSpan(2) }) {
+                CircleLoading()
             }
-            val viewData = histories[index]
-            viewData?.let {
-                item {
-                    ListSongCard(
-                        songCardViewData = it,
-                        modifier = Modifier
-                            .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
-                    )
+        } else {
+            var headerDay = ""
+            for (index in 0 until histories.itemCount) {
+                val viewData = histories.peek(index)
+                viewData?.let {
+                    if (it.headerDay != headerDay) {
+                        headerDay = it.headerDay
+                        item(span = { GridItemSpan(2) }) {
+                            DateHeader(it.headerDay)
+                        }
+                    }
+                    item {
+                        ListSongCard(
+                            songCardViewData = it,
+                            modifier = Modifier
+                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
+                        )
+                    }
                 }
             }
         }
