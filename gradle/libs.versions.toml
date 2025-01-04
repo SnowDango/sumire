@@ -65,6 +65,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material3-windiow = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

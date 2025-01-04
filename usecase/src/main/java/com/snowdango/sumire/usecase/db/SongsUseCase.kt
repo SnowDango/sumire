@@ -23,7 +23,10 @@ class SongsUseCase : KoinComponent {
             url = url,
         )
         return songsDatabase.songsDao.insert(songs)
+    }
 
+    suspend fun getSearchSongsList(searchText: String): List<Songs> {
+        return songsDatabase.songsDao.getSearchTitle(searchText)
     }
 
 }

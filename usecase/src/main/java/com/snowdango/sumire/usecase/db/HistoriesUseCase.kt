@@ -32,5 +32,9 @@ class HistoriesUseCase : KoinComponent {
         return songsDatabase.historiesDao.getPagingHistorySongs()
     }
 
+    fun getPagingSearchHistoriesSongs(text: String): PagingSource<Int, HistorySong> {
+        return songsDatabase.historiesDao.getPagingSearchHistorySong(text)
+    }
+
 
 }
