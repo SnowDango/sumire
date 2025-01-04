@@ -8,4 +8,5 @@ val modelModule = module {
     factory<GetHistoriesModel> { GetHistoriesModel() }
     factory<ShareSongModel> { ShareSongModel() }
     factory<SettingsModel> { SettingsModel() }
+    factory<GetSongsModel> { GetSongsModel() }
 }

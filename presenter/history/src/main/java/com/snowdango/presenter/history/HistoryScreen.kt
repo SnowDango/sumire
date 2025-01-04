@@ -2,7 +2,6 @@ package com.snowdango.presenter.history
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,13 +21,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -46,22 +48,24 @@ fun HistoryScreen(
 ) {
     val viewModel: HistoryViewModel = koinViewModel()
     val historiesPaging = viewModel.getHistories.collectAsLazyPagingItems()
-    val searchTextLiveData = viewModel.searchTextLiveData.observeAsState()
+    var currentSearchText: String by remember { mutableStateOf("") }
     val searchHistoriesPaging = viewModel.searchHistories.collectAsLazyPagingItems()
+    val searchSuggestTitleList = viewModel.suggestSearchTitleListFlow.collectAsStateWithLifecycle()
 
     val isLandScape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val onSearch: (String) -> Unit = {
         viewModel.setSearchText(it)
-    }
-
-    LaunchedEffect(searchTextLiveData.value) {
-        Log.d("SearchText", "OnChange")
         searchHistoriesPaging.refresh()
+        currentSearchText = it
     }
 
-    val histories = if (searchTextLiveData.value.isNullOrBlank()) {
+    val onSearchTextChange: (searchText: String) -> Unit = {
+        viewModel.getSuggestSearchTitle(it)
+    }
+
+    val histories = if (currentSearchText.isBlank()) {
         historiesPaging
     } else {
         searchHistoriesPaging
@@ -69,12 +73,29 @@ fun HistoryScreen(
 
     if (!isLandScape) {
         when (windowSize.widthSizeClass) {
-            WindowWidthSizeClass.Compact -> HistoryCompatScreen(histories, onSearch)
-            WindowWidthSizeClass.Medium -> HistorySplit2Screen(histories, onSearch)
-            WindowWidthSizeClass.Expanded -> HistorySplit2Screen(histories, onSearch)
+            WindowWidthSizeClass.Compact -> HistoryCompatScreen(
+                histories,
+                searchSuggestTitleList.value,
+                onSearchTextChange,
+                onSearch
+            )
+
+            WindowWidthSizeClass.Medium -> HistorySplit2Screen(
+                histories,
+                searchSuggestTitleList.value,
+                onSearchTextChange,
+                onSearch
+            )
+
+            WindowWidthSizeClass.Expanded -> HistorySplit2Screen(
+                histories,
+                searchSuggestTitleList.value,
+                onSearchTextChange,
+                onSearch
+            )
         }
     } else {
-        HistorySplit2Screen(histories, onSearch)
+        HistorySplit2Screen(histories, searchSuggestTitleList.value, onSearchTextChange, onSearch)
     }
 }
 
@@ -83,6 +104,8 @@ fun HistoryScreen(
 @Composable
 fun HistoryCompatScreen(
     histories: LazyPagingItems<SongCardViewData>,
+    suggestSearchTitle: List<String>,
+    onSearchTextChange: (searchText: String) -> Unit,
     onSearch: (searchText: String) -> Unit,
 ) {
     LazyColumn(
@@ -94,6 +117,8 @@ fun HistoryCompatScreen(
         item {
             SearchText(
                 modifier = Modifier.fillMaxWidth(),
+                searchSuggestList = suggestSearchTitle,
+                onSearchTextChange = onSearchTextChange,
                 onSearch = onSearch,
             )
         }
@@ -128,6 +153,8 @@ fun HistoryCompatScreen(
 @Composable
 fun HistorySplit2Screen(
     histories: LazyPagingItems<SongCardViewData>,
+    suggestSearchTitle: List<String>,
+    onSearchTextChange: (searchText: String) -> Unit,
     onSearch: (searchText: String) -> Unit,
 ) {
     LazyVerticalGrid(
@@ -141,6 +168,8 @@ fun HistorySplit2Screen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight(),
+                searchSuggestList = suggestSearchTitle,
+                onSearchTextChange = onSearchTextChange,
                 onSearch = onSearch,
             )
         }
@@ -208,7 +237,12 @@ fun Preview_DateHeader() {
 fun Preview_HistoryCompatScreen() {
     SumireTheme {
         Scaffold {
-            HistoryCompatScreen(MockData.mockPagingFlow.collectAsLazyPagingItems()) {}
+            HistoryCompatScreen(
+                histories = MockData.mockPagingFlow.collectAsLazyPagingItems(),
+                suggestSearchTitle = listOf(),
+                onSearchTextChange = {},
+                onSearch = {}
+            )
         }
     }
 }
@@ -223,7 +257,12 @@ fun Preview_HistoryCompatScreen() {
 fun Preview_HistorySplit2Screen() {
     SumireTheme {
         Scaffold {
-            HistorySplit2Screen(MockData.mockPagingFlow.collectAsLazyPagingItems()) {}
+            HistorySplit2Screen(
+                histories = MockData.mockPagingFlow.collectAsLazyPagingItems(),
+                suggestSearchTitle = listOf(),
+                onSearchTextChange = {},
+                onSearch = {}
+            )
         }
     }
 }
