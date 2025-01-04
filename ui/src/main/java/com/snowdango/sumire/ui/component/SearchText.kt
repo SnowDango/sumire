@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.snowdango.sumire.ui.theme.SumireTheme
 
 
@@ -67,7 +69,13 @@ fun SearchText(
                             imageVector = Icons.Default.Close,
                             contentDescription = null,
                             modifier = Modifier
-                                .clickable { searchText = "" },
+                                .clickable {
+                                    searchText = ""
+                                    if (!expanded) {
+                                        onSearchTextChange.invoke(searchText)
+                                        onSearch.invoke(searchText)
+                                    }
+                                },
                         )
                     }
                 },
@@ -85,7 +93,22 @@ fun SearchText(
             modifier = Modifier.wrapContentHeight()
         ) {
             items(searchSuggestList) {
-                Text(it)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            searchText = it
+                            focusManager.clearFocus()
+                            onSearch.invoke(searchText)
+                        }
+                ) {
+                    Text(
+                        text = it,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp, horizontal = 8.dp)
+                    )
+                }
             }
         }
     }

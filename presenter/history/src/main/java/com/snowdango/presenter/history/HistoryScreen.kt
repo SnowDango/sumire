@@ -129,7 +129,7 @@ fun HistoryCompatScreen(
         } else {
             var headerDay = ""
             for (index in 0 until histories.itemCount) {
-                val viewData = histories.peek(index)
+                val viewData = histories[index]
                 viewData?.let {
                     if (it.headerDay != headerDay) {
                         headerDay = it.headerDay
@@ -180,7 +180,7 @@ fun HistorySplit2Screen(
         } else {
             var headerDay = ""
             for (index in 0 until histories.itemCount) {
-                val viewData = histories.peek(index)
+                val viewData = histories[index]
                 viewData?.let {
                     if (it.headerDay != headerDay) {
                         headerDay = it.headerDay
