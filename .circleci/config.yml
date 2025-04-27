@@ -128,6 +128,7 @@ jobs:
           name: build
           command: |
             ./gradlew assembleDebug
+          no_output_timeout: 20m
       - android/save-gradle-cache
       - android/save-build-cache
   unittest:
@@ -170,6 +171,7 @@ jobs:
           name: take screenshot
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
+          no_output_timeout: 20m
       - store_artifacts:
           path: app/build/outputs/roborazzi
   screen-shot:
@@ -200,6 +202,7 @@ jobs:
           name: take screenshot
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
+          no_output_timeout: 20m
       - persist_to_workspace:
           root: ./app/build/outputs/roborazzi
           paths:
