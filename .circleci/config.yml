@@ -116,6 +116,7 @@ jobs:
     steps:
       - checkout
       - android/restore-gradle-cache
+      - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
@@ -129,6 +130,7 @@ jobs:
             ./gradlew assembleDebug --stacktrace
           no_output_timeout: 20m
       - android/save-gradle-cache
+      - android/save-build-cache
   unittest:
     executor:
       name: android/android-machine
@@ -201,6 +203,8 @@ jobs:
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
           no_output_timeout: 20m
+      - android/save-gradle-cache
+      - android/save-build-cache
       - persist_to_workspace:
           root: ./app/build/outputs/roborazzi
           paths:
@@ -231,7 +235,7 @@ jobs:
           name: compare screenshot
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
-          no_output_timeout: 20m
+          no_output_timeout: 1h
       - android/save-gradle-cache
       - android/save-build-cache
       - run:
