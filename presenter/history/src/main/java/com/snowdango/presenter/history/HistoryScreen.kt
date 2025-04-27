@@ -130,16 +130,16 @@ fun HistoryCompatScreen(
             var headerDay = ""
             for (index in 0 until histories.itemCount) {
                 val viewData = histories[index]
-                viewData?.let {
-                    if (it.headerDay != headerDay) {
-                        headerDay = it.headerDay
+                viewData?.let { data ->
+                    if (data.headerDay != headerDay) {
+                        headerDay = data.headerDay
                         stickyHeader {
-                            DateHeader(it.headerDay)
+                            DateHeader(data.headerDay)
                         }
                     }
                     item {
                         ListSongCard(
-                            songCardViewData = it,
+                            songCardViewData = data,
                             modifier = Modifier
                                 .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
                         )
