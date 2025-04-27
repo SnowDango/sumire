@@ -212,7 +212,6 @@ fun DateHeader(date: String) {
     ) {
         Text(
             text = date,
-            color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier
                 .wrapContentSize()
         )
