@@ -14,6 +14,4 @@ class SongLinkApiUseCase : KoinComponent {
         val appString = app.platform
         return api.getSongData(id, appString)
     }
-
-
 }

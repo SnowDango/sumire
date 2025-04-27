@@ -15,7 +15,7 @@ data class Songs(
     @ColumnInfo(COLUMN_ALBUM_ID)
     val albumId: Long,
     @ColumnInfo(COLUMN_URL)
-    val url: String?
+    val url: String?,
 ) {
     companion object {
         const val TABLE_NAME = "songs"

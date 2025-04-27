@@ -29,7 +29,8 @@ serialization = "1.8.1"
 ktor = "3.0.3"
 slf4j = "1.7.36"
 coil = "2.7.0"
-settings = "2.6.0"
+settings = "2.10.0"
+kolor = "2.0.2"
 showkase = "1.0.3"
 roborazzi = "1.43.1"
 detekt = "1.23.7"
@@ -101,6 +102,9 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 
 settings = { group = "com.github.alorma.compose-settings", name = "ui-tiles", version.ref = "settings" }
 settings-extended = { group = "com.github.alorma.compose-settings", name = "ui-tiles-extended", version.ref = "settings" }
+
+# material kolor
+material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "kolor" }
 
 showkase = { group = "com.airbnb.android", name = "showkase", version.ref = "showkase" }
 showkase-annotation = { group = "com.airbnb.android", name = "showkase-annotation", version.ref = "showkase" }

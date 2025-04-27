@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.glance.color.ColorProvider
 import androidx.glance.color.colorProviders
 
-
 val glanceColors = colorProviders(
     primary = ColorProvider(Color(188, 175, 219), Color(159, 202, 252)),
     onPrimary = ColorProvider(Color.White, Color(0, 50, 86)),

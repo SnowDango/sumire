@@ -17,7 +17,7 @@ import com.snowdango.sumire.ui.theme.SumireTheme
 @Composable
 fun MusicAppImage(
     app: MusicApp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val musicAppIcon = when (app) {
         MusicApp.APPLE_MUSIC -> R.drawable.apple_music
@@ -35,20 +35,18 @@ fun MusicAppImage(
         painter = painterResource(id = musicAppIcon),
         contentDescription = null,
         modifier = modifier
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(4.dp)),
     )
 }
-
 
 @Preview(group = UTIL_GROUP, name = "MusicAppImage")
 @Composable
 fun PreviewMusicAppImage(
-    @PreviewParameter(MusicAppPramProvider::class) data: MusicApp
+    @PreviewParameter(MusicAppPramProvider::class) data: MusicApp,
 ) {
     SumireTheme {
         MusicAppImage(
-            app = data
+            app = data,
         )
     }
-
 }

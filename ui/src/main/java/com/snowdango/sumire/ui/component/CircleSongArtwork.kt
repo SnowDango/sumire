@@ -26,9 +26,9 @@ fun CircleSongArtwork(
 ) {
     Box(
         modifier = modifier
-            .clip(CircleShape)
+            .clip(CircleShape),
     ) {
-        if(bitmap != null) {
+        if (bitmap != null) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,

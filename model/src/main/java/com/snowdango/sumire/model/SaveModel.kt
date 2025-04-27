@@ -31,7 +31,8 @@ class SaveModel : KoinComponent {
 
     suspend fun saveSong(playingSongData: PlayingSongData) {
         val response = songLinkApiUseCase.getSongLinkData(
-            playingSongData.songData.mediaId, playingSongData.songData.app
+            playingSongData.songData.mediaId,
+            playingSongData.songData.app,
         )
         val mediaId: String = playingSongData.songData.mediaId
         val app: MusicApp = playingSongData.songData.app
@@ -46,19 +47,19 @@ class SaveModel : KoinComponent {
     private suspend fun saveWithApi(
         songId: Long,
         songLinkData: SongLinkData,
-        playingSongData: PlayingSongData
+        playingSongData: PlayingSongData,
     ) {
         val keyMap: Map<MusicApp, String> = songLinkData.entities.filter {
             MusicApp.entries.find { app -> app.apiProvider == it.value.provider } != null
         }.map {
             MusicApp.entries.first { app -> app.apiProvider == it.value.provider } to
-                    it.value.id
+                it.value.id
         }.toMap()
         val urlMap: Map<MusicApp, String> = songLinkData.links.filter {
             MusicApp.entries.find { app -> app.platform == it.key } != null
         }.map {
             MusicApp.entries.first { app -> app.platform == it.key } to
-                    it.value.url
+                it.value.url
         }.toMap()
 
         withContext(Dispatchers.IO) {
@@ -78,7 +79,7 @@ class SaveModel : KoinComponent {
                     mapUrl = urlMap,
                     status = SongLinkResponse.Status.OK,
                     mediaId = playingSongData.songData.mediaId,
-                    app = playingSongData.songData.app
+                    app = playingSongData.songData.app,
                 )
             }
         }
@@ -87,7 +88,7 @@ class SaveModel : KoinComponent {
     private suspend fun saveNoApi(
         songId: Long,
         playingSongData: PlayingSongData,
-        status: SongLinkResponse.Status
+        status: SongLinkResponse.Status,
     ) {
         val keyMap: Map<MusicApp, String> =
             mapOf(playingSongData.songData.app to playingSongData.songData.mediaId)
@@ -143,7 +144,6 @@ class SaveModel : KoinComponent {
         if (status == SongLinkResponse.Status.Error) {
             saveTasks(songId, mediaId)
         }
-
     }
 
     private suspend fun saveArtist(artist: String): Long {
@@ -159,7 +159,7 @@ class SaveModel : KoinComponent {
         artistId: Long,
         albumName: String,
         thumbnail: String?,
-        isThumbUrl: Boolean
+        isThumbUrl: Boolean,
     ): Long {
         val albumId = albumsUseCase.getIdByNameAndArtistId(albumName, artistId)
         return if (albumId != -1L) {
@@ -180,13 +180,13 @@ class SaveModel : KoinComponent {
     private suspend fun checkAppSongKey(
         songId: Long,
         keyMap: Map<MusicApp, String>,
-        urlMap: Map<MusicApp, String?>
+        urlMap: Map<MusicApp, String?>,
     ) {
         val result = appSongKeyUseCase.getBySongId(songId)
         val addKeyMap = keyMap.filter {
             result.find { appSongKey: AppSongKey ->
                 it.key == appSongKey.app &&
-                        it.value == appSongKey.mediaKey
+                    it.value == appSongKey.mediaKey
             } == null
         }
         if (addKeyMap.isNotEmpty()) {

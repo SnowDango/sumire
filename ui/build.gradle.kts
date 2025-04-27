@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 
+    implementation(libs.material.kolor)
+
     implementation(libs.showkase.annotation)
     debugImplementation(libs.showkase)
     kspDebug(libs.showkase.prosessor)

@@ -24,7 +24,7 @@ object MockData {
             ),
             isActive = true,
             playTime = Instant.fromEpochMilliseconds(1L).toLocalDateTime(TimeZone.currentSystemDefault()),
-        )
+        ),
     )
     private val mockRecentHistories: List<SongCardViewData> = listOf(
         SongCardViewData(
@@ -90,5 +90,4 @@ object MockData {
     )
 
     val recentHistories: StateFlow<List<SongCardViewData>> = MutableStateFlow(mockRecentHistories)
-
 }

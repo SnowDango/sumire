@@ -3,7 +3,6 @@ package com.snowdango.sumire.settings.component
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -13,8 +12,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.alorma.compose.settings.ui.SettingsRadioButton
+import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
 import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
-
 
 @Composable
 fun UrlPriorityPlatformDialog(
@@ -31,7 +30,7 @@ fun UrlPriorityPlatformDialog(
                 onClick = {
                     onSelect.invoke(selectPlatform)
                     onDismissRequest.invoke()
-                }
+                },
             ) {
                 Text("Select")
             }
@@ -51,14 +50,20 @@ fun UrlPriorityPlatformDialog(
                 items(UrlPriorityPlatform.entries) {
                     SettingsRadioButton(
                         state = it.platform == selectPlatform,
-                        title = { Text(it.platform) },
-                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                        title = {
+                            Text(
+                                text = it.platform,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        },
+                        colors = SettingsTileDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ),
                     ) {
                         selectPlatform = it.platform
                     }
                 }
             }
-        }
+        },
     )
-
 }

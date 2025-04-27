@@ -22,5 +22,5 @@ data class EntityByUniqueId(
     @SerialName("apiProvider")
     val provider: String,
     @SerialName("platforms")
-    val platforms: List<String>
+    val platforms: List<String>,
 )

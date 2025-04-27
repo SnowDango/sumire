@@ -30,7 +30,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,
-        parameters: ActionParameters
+        parameters: ActionParameters,
     ) {
         val title = parameters[titleKey]
         val artist = parameters[artistKey]
@@ -44,7 +44,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
             }
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
-                params = mapOf(LogEvent.Param.PARAM_ERROR to "url isNullOrBlank")
+                params = mapOf(LogEvent.Param.PARAM_ERROR to "url isNullOrBlank"),
             )
         } else {
             val type = settingsModel.getWidgetActionType()
@@ -59,7 +59,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
                         params = mapOf(
                             LogEvent.Param.PARAM_SHARE_TYPE to "copy",
                             LogEvent.Param.PARAM_URL to url,
-                        )
+                        ),
                     )
                 }
 
@@ -78,7 +78,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
                                 LogEvent.Param.PARAM_TITLE to title,
                                 LogEvent.Param.PARAM_ARTIST to artist,
                                 LogEvent.Param.PARAM_URL to url,
-                            )
+                            ),
                         )
                         actionStartActivity(intent)
                     } else {
@@ -86,7 +86,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
                             Toast.makeText(
                                 context,
                                 "metadataの取得に失敗しました",
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                         }
                         logEvent.sendEvent(
@@ -94,7 +94,7 @@ class ShareSongAction : ActionCallback, KoinComponent {
                             params = mapOf(
                                 LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
                                 LogEvent.Param.PARAM_ERROR to "not found metadata",
-                            )
+                            ),
                         )
                     }
                 }

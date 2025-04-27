@@ -11,7 +11,6 @@ import com.snowdango.sumire.data.entity.db.Songs
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
 import kotlinx.coroutines.flow.Flow
 
-
 @Dao
 interface HistoriesDao {
 
@@ -32,5 +31,4 @@ interface HistoriesDao {
     @Transaction
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc limit :size")
     fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>>
-
 }

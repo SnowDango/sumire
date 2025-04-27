@@ -44,7 +44,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HistoryScreen(
-    windowSize: WindowSizeClass
+    windowSize: WindowSizeClass,
 ) {
     val viewModel: HistoryViewModel = koinViewModel()
     val historiesPaging = viewModel.getHistories.collectAsLazyPagingItems()
@@ -77,28 +77,27 @@ fun HistoryScreen(
                 histories,
                 searchSuggestTitleList.value,
                 onSearchTextChange,
-                onSearch
+                onSearch,
             )
 
             WindowWidthSizeClass.Medium -> HistorySplit2Screen(
                 histories,
                 searchSuggestTitleList.value,
                 onSearchTextChange,
-                onSearch
+                onSearch,
             )
 
             WindowWidthSizeClass.Expanded -> HistorySplit2Screen(
                 histories,
                 searchSuggestTitleList.value,
                 onSearchTextChange,
-                onSearch
+                onSearch,
             )
         }
     } else {
         HistorySplit2Screen(histories, searchSuggestTitleList.value, onSearchTextChange, onSearch)
     }
 }
-
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -112,7 +111,7 @@ fun HistoryCompatScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = 16.dp, start = 24.dp, end = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         item {
             SearchText(
@@ -141,7 +140,7 @@ fun HistoryCompatScreen(
                         ListSongCard(
                             songCardViewData = data,
                             modifier = Modifier
-                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
+                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
                         )
                     }
                 }
@@ -161,7 +160,7 @@ fun HistorySplit2Screen(
         columns = GridCells.Fixed(2),
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 16.dp, start = 24.dp, end = 24.dp)
+            .padding(top = 16.dp, start = 24.dp, end = 24.dp),
     ) {
         item(span = { GridItemSpan(2) }) {
             SearchText(
@@ -192,7 +191,7 @@ fun HistorySplit2Screen(
                         ListSongCard(
                             songCardViewData = it,
                             modifier = Modifier
-                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
+                                .padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
                         )
                     }
                 }
@@ -208,17 +207,15 @@ fun DateHeader(date: String) {
             .fillMaxWidth()
             .height(54.dp)
             .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = date,
-            color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier
-                .wrapContentSize()
+                .wrapContentSize(),
         )
     }
 }
-
 
 @Preview(group = HISTORY_GROUP, name = "DateHeader")
 @Composable
@@ -240,7 +237,7 @@ fun Preview_HistoryCompatScreen() {
                 histories = MockData.mockPagingFlow.collectAsLazyPagingItems(),
                 suggestSearchTitle = listOf(),
                 onSearchTextChange = {},
-                onSearch = {}
+                onSearch = {},
             )
         }
     }
@@ -250,7 +247,7 @@ fun Preview_HistoryCompatScreen() {
 @Preview(
     group = HISTORY_GROUP,
     name = "HistorySplit2Screen",
-    device = "spec:width=1280dp,height=800dp,dpi=240"
+    device = "spec:width=1280dp,height=800dp,dpi=240",
 )
 @Composable
 fun Preview_HistorySplit2Screen() {
@@ -260,7 +257,7 @@ fun Preview_HistorySplit2Screen() {
                 histories = MockData.mockPagingFlow.collectAsLazyPagingItems(),
                 suggestSearchTitle = listOf(),
                 onSearchTextChange = {},
-                onSearch = {}
+                onSearch = {},
             )
         }
     }

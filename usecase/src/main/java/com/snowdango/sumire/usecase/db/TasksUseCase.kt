@@ -12,9 +12,8 @@ class TasksUseCase : KoinComponent {
     suspend fun saveTasks(mediaId: String, songId: Long) {
         val task = Tasks(
             mediaId = mediaId,
-            songId = songId
+            songId = songId,
         )
         songsDatabase.tasksDao.insert(task)
     }
-
 }
