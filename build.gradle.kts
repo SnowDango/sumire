@@ -49,7 +49,7 @@ subprojects {
     detekt {
         autoCorrect = true
         parallel = true
-        config.setFrom("$rootDir/config/detekt/detekt.yml")
+        config = files("${rootProject.projectDir}/config/detekt/detekt.yml")
         buildUponDefaultConfig = true
         ignoreFailures = true
         basePath = file("$rootDir/../").absolutePath
