@@ -49,8 +49,15 @@ fun WidgetActionTypeDialog(
                 WidgetActionType.entries.forEach {
                     SettingsRadioButton(
                         state = selectType == it,
-                        title = { Text(it.description) },
-                        colors = SettingsTileDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                        title = {
+                            Text(
+                                text = it.description,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        },
+                        colors = SettingsTileDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
                     ) {
                         selectType = it
                     }

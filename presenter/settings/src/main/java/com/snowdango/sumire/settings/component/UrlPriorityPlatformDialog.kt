@@ -51,8 +51,15 @@ fun UrlPriorityPlatformDialog(
                 items(UrlPriorityPlatform.entries) {
                     SettingsRadioButton(
                         state = it.platform == selectPlatform,
-                        title = { Text(it.platform) },
-                        colors = SettingsTileDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+                        title = {
+                            Text(
+                                text = it.platform,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        },
+                        colors = SettingsTileDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ),
                     ) {
                         selectPlatform = it.platform
                     }
