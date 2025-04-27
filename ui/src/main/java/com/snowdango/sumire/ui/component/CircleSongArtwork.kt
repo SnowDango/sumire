@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
 import com.snowdango.sumire.ui.R
 import com.snowdango.sumire.ui.UTIL_GROUP
@@ -28,7 +29,7 @@ fun CircleSongArtwork(
         modifier = modifier
             .clip(CircleShape)
     ) {
-        if(bitmap != null) {
+        if (bitmap != null) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
@@ -52,7 +53,8 @@ fun PreviewCircleSongArtwork() {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f),
-            bitmap = LocalContext.current.resources.getDrawable(R.drawable.apple_music).toBitmap(),
+            bitmap = ContextCompat.getDrawable(LocalContext.current, R.drawable.apple_music)
+                ?.toBitmap(),
         )
     }
 }
