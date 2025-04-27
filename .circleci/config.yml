@@ -229,9 +229,9 @@ jobs:
       - setup-debug-google-services
       - run:
           name: compare screenshot
-          no_output_timeout: 30m
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
+          no_output_timeout: 20m
       - android/save-gradle-cache
       - android/save-build-cache
       - run:
