@@ -65,6 +65,7 @@ subprojects {
 
     dependencies {
         detektPlugins(rootProject.libs.detekt.formatting)
+        detektPlugins(rootProject.libs.detekt.compose)
     }
 
 }
