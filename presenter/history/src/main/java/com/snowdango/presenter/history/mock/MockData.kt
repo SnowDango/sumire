@@ -1,7 +1,5 @@
 package com.snowdango.presenter.history.mock
 
-import androidx.paging.LoadState
-import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
@@ -76,11 +74,6 @@ object MockData {
     val mockPagingFlow = flowOf(
         PagingData.from(
             mockHistories,
-            sourceLoadStates = LoadStates(
-                refresh = LoadState.NotLoading(false),
-                append = LoadState.NotLoading(false),
-                prepend = LoadState.NotLoading(false),
-            )
         ),
     )
 
