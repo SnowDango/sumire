@@ -908,7 +908,7 @@ Compose:
     # -- Possible values are: `suffix`, `prefix`, `anywhere`. By default, it will be `suffix`.
     # previewNamingStrategy: suffix
   PreviewPublic:
-    active: true
+    active: false
   RememberMissing:
     active: true
   RememberContentMissing:

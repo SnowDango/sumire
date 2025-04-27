@@ -25,11 +25,13 @@ import androidx.glance.text.TextStyle
 import com.snowdango.sumire.data.util.toBitmap
 import com.snowdango.sumire.widget.getRoundedCornerBitmap
 
+@Suppress("MagicNumber")
 @Composable
 fun SmallArtworkContent(
     title: String,
     artwork: String,
     onClick: Action,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val size = LocalSize.current
     val minSize = if (size.width - size.height < (-1).dp) {
@@ -39,7 +41,7 @@ fun SmallArtworkContent(
     }
     val artworkBitmap = artwork.toBitmap()
     Box(
-        modifier = GlanceModifier
+        modifier = modifier
             .fillMaxSize()
             .cornerRadius(12.dp)
             .clickable(onClick),

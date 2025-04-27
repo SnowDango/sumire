@@ -74,28 +74,33 @@ fun HistoryScreen(
     if (!isLandScape) {
         when (windowSize.widthSizeClass) {
             WindowWidthSizeClass.Compact -> HistoryCompatScreen(
-                histories,
-                searchSuggestTitleList.value,
-                onSearchTextChange,
-                onSearch,
+                histories = histories,
+                suggestSearchTitle = searchSuggestTitleList.value,
+                onSearchTextChange = onSearchTextChange,
+                onSearch = onSearch,
             )
 
             WindowWidthSizeClass.Medium -> HistorySplit2Screen(
-                histories,
-                searchSuggestTitleList.value,
-                onSearchTextChange,
-                onSearch,
+                histories = histories,
+                suggestSearchTitle = searchSuggestTitleList.value,
+                onSearchTextChange = onSearchTextChange,
+                onSearch = onSearch,
             )
 
             WindowWidthSizeClass.Expanded -> HistorySplit2Screen(
-                histories,
-                searchSuggestTitleList.value,
-                onSearchTextChange,
-                onSearch,
+                histories = histories,
+                suggestSearchTitle = searchSuggestTitleList.value,
+                onSearchTextChange = onSearchTextChange,
+                onSearch = onSearch,
             )
         }
     } else {
-        HistorySplit2Screen(histories, searchSuggestTitleList.value, onSearchTextChange, onSearch)
+        HistorySplit2Screen(
+            histories = histories,
+            suggestSearchTitle = searchSuggestTitleList.value,
+            onSearchTextChange = onSearchTextChange,
+            onSearch = onSearch,
+        )
     }
 }
 
@@ -106,9 +111,10 @@ fun HistoryCompatScreen(
     suggestSearchTitle: List<String>,
     onSearchTextChange: (searchText: String) -> Unit,
     onSearch: (searchText: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(top = 16.dp, start = 24.dp, end = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -133,7 +139,7 @@ fun HistoryCompatScreen(
                     if (data.headerDay != headerDay) {
                         headerDay = data.headerDay
                         stickyHeader {
-                            DateHeader(data.headerDay)
+                            DateHeader(date = data.headerDay)
                         }
                     }
                     item {
@@ -155,10 +161,11 @@ fun HistorySplit2Screen(
     suggestSearchTitle: List<String>,
     onSearchTextChange: (searchText: String) -> Unit,
     onSearch: (searchText: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(top = 16.dp, start = 24.dp, end = 24.dp),
     ) {
@@ -184,7 +191,7 @@ fun HistorySplit2Screen(
                     if (it.headerDay != headerDay) {
                         headerDay = it.headerDay
                         item(span = { GridItemSpan(2) }) {
-                            DateHeader(it.headerDay)
+                            DateHeader(date = it.headerDay)
                         }
                     }
                     item {
@@ -201,9 +208,12 @@ fun HistorySplit2Screen(
 }
 
 @Composable
-fun DateHeader(date: String) {
+fun DateHeader(
+    date: String,
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
             .background(MaterialTheme.colorScheme.background),

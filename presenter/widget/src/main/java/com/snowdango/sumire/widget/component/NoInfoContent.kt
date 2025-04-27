@@ -14,7 +14,9 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.size
 
 @Composable
-fun NoInfoContent() {
+fun NoInfoContent(
+    modifier: GlanceModifier = GlanceModifier
+) {
     val size = LocalSize.current
     val minSize = if (size.width - size.height < (-1).dp) {
         size.width
@@ -22,7 +24,7 @@ fun NoInfoContent() {
         size.height
     }
     Box(
-        modifier = GlanceModifier
+        modifier = modifier
             .fillMaxSize()
             .cornerRadius(12.dp),
         contentAlignment = Alignment.Center,

@@ -51,54 +51,70 @@ class ShareSongAction : ActionCallback, KoinComponent {
             Log.d("ShareSongAction", type.name)
             when (type) {
                 WidgetActionType.COPY -> {
-                    val clipboardManager: ClipboardManager =
-                        context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                    clipboardManager.setPrimaryClip(ClipData.newPlainText("", url))
-                    logEvent.sendEvent(
-                        LogEvent.Event.SHARE_EVENT,
-                        params = mapOf(
-                            LogEvent.Param.PARAM_SHARE_TYPE to "copy",
-                            LogEvent.Param.PARAM_URL to url,
-                        ),
-                    )
+                    onActionCopy(context, url)
                 }
 
                 WidgetActionType.TWITTER -> {
-                    if (title != null && artist != null) {
-                        val message = "$title - $artist\n#NowPlaying\n$url"
-                        val uri = "twitter://post?message=${URLEncoder.encode(message, "utf-8")}"
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            data = Uri.parse(uri)
-                        }
-                        logEvent.sendEvent(
-                            LogEvent.Event.SHARE_EVENT,
-                            params = mapOf(
-                                LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
-                                LogEvent.Param.PARAM_TITLE to title,
-                                LogEvent.Param.PARAM_ARTIST to artist,
-                                LogEvent.Param.PARAM_URL to url,
-                            ),
-                        )
-                        actionStartActivity(intent)
-                    } else {
-                        Handler(context.mainLooper).post {
-                            Toast.makeText(
-                                context,
-                                "metadataの取得に失敗しました",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                        logEvent.sendEvent(
-                            LogEvent.Event.SHARE_EVENT,
-                            params = mapOf(
-                                LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
-                                LogEvent.Param.PARAM_ERROR to "not found metadata",
-                            ),
-                        )
-                    }
+                    onActionTwitter(context, title, artist, url)
                 }
             }
+        }
+    }
+
+    private fun onActionCopy(
+        context: Context,
+        url: String,
+    ) {
+        val clipboardManager: ClipboardManager =
+            context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        clipboardManager.setPrimaryClip(ClipData.newPlainText("", url))
+        logEvent.sendEvent(
+            LogEvent.Event.SHARE_EVENT,
+            params = mapOf(
+                LogEvent.Param.PARAM_SHARE_TYPE to "copy",
+                LogEvent.Param.PARAM_URL to url,
+            ),
+        )
+    }
+
+    private fun onActionTwitter(
+        context: Context,
+        title: String?,
+        artist: String?,
+        url: String,
+    ) {
+        if (title != null && artist != null) {
+            val message = "$title - $artist\n#NowPlaying\n$url"
+            val uri = "twitter://post?message=${URLEncoder.encode(message, "utf-8")}"
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                data = Uri.parse(uri)
+            }
+            logEvent.sendEvent(
+                LogEvent.Event.SHARE_EVENT,
+                params = mapOf(
+                    LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
+                    LogEvent.Param.PARAM_TITLE to title,
+                    LogEvent.Param.PARAM_ARTIST to artist,
+                    LogEvent.Param.PARAM_URL to url,
+                ),
+            )
+            actionStartActivity(intent)
+        } else {
+            Handler(context.mainLooper).post {
+                Toast.makeText(
+                    context,
+                    "metadataの取得に失敗しました",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+            logEvent.sendEvent(
+                LogEvent.Event.SHARE_EVENT,
+                params = mapOf(
+                    LogEvent.Param.PARAM_SHARE_TYPE to "twitter",
+                    LogEvent.Param.PARAM_ERROR to "not found metadata",
+                ),
+            )
         }
     }
 
