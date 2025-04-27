@@ -30,14 +30,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.snowdango.sumire.ui.theme.SumireTheme
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchText(
     modifier: Modifier,
     searchSuggestList: List<String>,
     onSearchTextChange: (searchText: String) -> Unit,
-    onSearch: (searchText: String) -> Unit
+    onSearch: (searchText: String) -> Unit,
 ) {
     var searchText by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
@@ -60,7 +59,7 @@ fun SearchText(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 },
                 trailingIcon = {
@@ -90,7 +89,7 @@ fun SearchText(
         },
     ) {
         LazyColumn(
-            modifier = Modifier.wrapContentHeight()
+            modifier = Modifier.wrapContentHeight(),
         ) {
             items(searchSuggestList) {
                 Box(
@@ -100,13 +99,13 @@ fun SearchText(
                             searchText = it
                             focusManager.clearFocus()
                             onSearch.invoke(searchText)
-                        }
+                        },
                 ) {
                     Text(
                         text = it,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp, horizontal = 8.dp)
+                            .padding(vertical = 8.dp, horizontal = 8.dp),
                     )
                 }
             }
@@ -119,13 +118,13 @@ fun SearchText(
 fun Preview_SearchText() {
     SumireTheme {
         Box(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         ) {
             SearchText(
                 modifier = Modifier.fillMaxWidth(),
                 searchSuggestList = listOf(),
                 onSearchTextChange = {},
-                onSearch = { }
+                onSearch = { },
             )
         }
     }

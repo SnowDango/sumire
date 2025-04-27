@@ -6,7 +6,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.snowdango.sumire.data.entity.db.Artists
 
-
 @Dao
 interface ArtistsDao {
 
@@ -15,5 +14,4 @@ interface ArtistsDao {
 
     @Query("select ${Artists.COLUMN_ID} from ${Artists.TABLE_NAME} where ${Artists.COLUMN_NAME} = :artist limit 1")
     suspend fun getArtist(artist: String): Long?
-
 }

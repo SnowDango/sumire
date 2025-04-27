@@ -46,8 +46,8 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
                             ShareSongAction.artistKey to artist,
                             ShareSongAction.mediaIdKey to mediaId,
                             ShareSongAction.appPlatformKey to platform,
-                        )
-                    )
+                        ),
+                    ),
                 )
             }
         }

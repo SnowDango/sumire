@@ -30,7 +30,7 @@ class SongLinkApi {
                 HttpStatusCode.BadRequest -> SongLinkResponse.Status.NOT_FOUND
                 else -> SongLinkResponse.Status.Error
             },
-            songData = response.body<SongLinkData>()
+            songData = response.body<SongLinkData>(),
         )
     }
 }

@@ -13,5 +13,4 @@ class GetSongsModel : KoinComponent {
             it.title
         }
     }
-
 }

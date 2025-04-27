@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,7 +40,7 @@ fun ListSongCard(
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             modifier = Modifier
@@ -52,26 +51,25 @@ fun ListSongCard(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .size(60.dp)
-                    .background(Color.White),
+                    .size(60.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 if (songCardViewData.thumbnail != null) {
                     if (songCardViewData.isThumbUrl) {
                         AsyncImage(
                             model = songCardViewData.thumbnail,
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     } else {
                         Image(
                             bitmap = songCardViewData.thumbnail.toBitmap()!!.asImageBitmap(),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 } else {
                     Image(
                         painter = painterResource(id = R.drawable.noimage),
-                        contentDescription = null
+                        contentDescription = null,
                     )
                 }
             }
@@ -88,7 +86,7 @@ fun ListSongCard(
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 4.dp)
+                        .padding(bottom = 4.dp),
                 )
                 Text(
                     text = songCardViewData.albumName,
@@ -96,41 +94,41 @@ fun ListSongCard(
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 4.dp)
+                        .padding(bottom = 4.dp),
                 )
                 Text(
                     text = songCardViewData.artistName,
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Box(
                 modifier = Modifier
                     .padding(start = 12.dp)
                     .fillMaxHeight(),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = Alignment.CenterEnd,
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(),
-                    contentAlignment = Alignment.CenterEnd
+                    contentAlignment = Alignment.CenterEnd,
                 ) {
                     MusicAppImage(
                         app = songCardViewData.app,
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(24.dp),
                     )
                 }
                 Box(
                     modifier = Modifier
                         .fillMaxHeight(),
-                    contentAlignment = Alignment.BottomEnd
+                    contentAlignment = Alignment.BottomEnd,
                 ) {
                     Text(
                         text = songCardViewData.playTimeText,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.secondary,
                     )
                 }
             }
@@ -151,8 +149,8 @@ fun PreviewListSongCard() {
                 isThumbUrl = false,
                 playTimeText = "01:51:22",
                 headerDay = "2024/10/13",
-                app = MusicApp.APPLE_MUSIC
-            )
+                app = MusicApp.APPLE_MUSIC,
+            ),
         )
     }
 }

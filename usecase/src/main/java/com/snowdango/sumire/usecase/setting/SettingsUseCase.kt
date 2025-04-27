@@ -59,5 +59,4 @@ class SettingsUseCase(private val dataStore: DataStore<Preferences>) {
     suspend fun getIsFirstTime(): Boolean {
         return dataStore.data.first()[isFirstTimeKey] ?: true
     }
-
 }

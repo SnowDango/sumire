@@ -6,7 +6,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.logEvent
 
 class LogEvent(
-    private val context: Context
+    private val context: Context,
 ) {
 
     private val analytics = FirebaseAnalytics.getInstance(context)
@@ -18,9 +18,10 @@ class LogEvent(
             }
         }
         Log.d(
-            "LogEvent", "event: ${event.eventName} \n" +
-                    params.map { param -> "${param.key.paramName}: ${param.value}" }
-                        .joinToString(separator = "\n")
+            "LogEvent",
+            "event: ${event.eventName} \n" +
+                params.map { param -> "${param.key.paramName}: ${param.value}" }
+                    .joinToString(separator = "\n"),
         )
     }
 
@@ -55,5 +56,4 @@ class LogEvent(
         SAVE_HISTORY_EVENT(LogEvent.SAVE_HISTORY_EVENT),
         FAILED_EVENT(LogEvent.FAILED_EVENT),
     }
-
 }

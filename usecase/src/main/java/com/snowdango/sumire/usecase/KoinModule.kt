@@ -10,7 +10,6 @@ import com.snowdango.sumire.usecase.db.TasksUseCase
 import com.snowdango.sumire.usecase.setting.SettingsUseCase
 import org.koin.dsl.module
 
-
 val useCaseModule = module {
     factory<SongLinkApiUseCase> { SongLinkApiUseCase() }
     factory<AppSongKeyUseCase> { AppSongKeyUseCase() }

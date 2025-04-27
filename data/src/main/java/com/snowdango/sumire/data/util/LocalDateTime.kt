@@ -12,14 +12,14 @@ fun LocalDateTime.toFormatString(
     return this.format(
         format = LocalDateTime.Format {
             byUnicodePattern(type.pattern)
-        }
+        },
     )
 }
 
 enum class LocalDateTimeFormatType(
-    val pattern: String
+    val pattern: String,
 ) {
     ONLY_DATE("yyyy/MM/dd"),
     FULL_DATE_TIME("yyyy/MM/dd-HH:mm:ss"),
-    ONLY_TIME("HH:mm:ss")
+    ONLY_TIME("HH:mm:ss"),
 }

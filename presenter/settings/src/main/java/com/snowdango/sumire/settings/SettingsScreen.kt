@@ -44,7 +44,7 @@ fun SettingsScreen(
             },
             onSelect = {
                 it?.let { type -> viewModel.setWidgetActionType(type) }
-            }
+            },
         )
     }
     if (isUrlPriorityPlatformDialogShow) {
@@ -54,13 +54,13 @@ fun SettingsScreen(
             },
             onSelect = {
                 it?.let { platform -> viewModel.setUrlPlatform(platform) }
-            }
+            },
         )
     }
 
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         item {
             MainSettings(
@@ -72,7 +72,7 @@ fun SettingsScreen(
                 },
                 urlPrimaryServiceClick = {
                     isUrlPriorityPlatformDialogShow = true
-                }
+                },
             )
         }
         if (BuildConfig.DEBUG) {
@@ -80,7 +80,7 @@ fun SettingsScreen(
                 DebugSettings(
                     showkaseClick = {
                         onShowkaseIntent.invoke()
-                    }
+                    },
                 )
             }
         }
@@ -96,7 +96,7 @@ fun MainSettings(
 ) {
     SettingsGroup(
         modifier = Modifier.padding(top = 32.dp),
-        title = { Text(text = stringResource(R.string.main_settings_title)) }
+        title = { Text(text = stringResource(R.string.main_settings_title)) },
     ) {
         SettingsMenuLink(
             title = { Text(stringResource(R.string.widget_type_setting_title)) },
@@ -119,10 +119,10 @@ fun MainSettings(
 
 @Composable
 fun DebugSettings(
-    showkaseClick: () -> Unit
+    showkaseClick: () -> Unit,
 ) {
     SettingsGroup(
-        title = { Text(text = stringResource(R.string.debug_settings_title)) }
+        title = { Text(text = stringResource(R.string.debug_settings_title)) },
     ) {
         SettingsMenuLink(
             title = { Text(text = stringResource(R.string.showkase_show_setting_title)) },
@@ -156,7 +156,7 @@ fun Preview_SettingsMenuLink() {
 fun Preview_SettingGroup() {
     SumireTheme {
         SettingsGroup(
-            title = { Text(text = "SettingGroup") }
+            title = { Text(text = "SettingGroup") },
         ) { }
     }
 }

@@ -7,6 +7,6 @@ data class SongLinkResponse(
     enum class Status {
         Error,
         NOT_FOUND,
-        OK
+        OK,
     }
 }

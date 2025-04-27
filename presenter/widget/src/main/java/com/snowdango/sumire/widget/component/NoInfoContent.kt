@@ -1,6 +1,5 @@
 package com.snowdango.sumire.widget.component
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
@@ -33,7 +32,7 @@ fun NoInfoContent() {
             contentScale = ContentScale.Fit,
             contentDescription = null,
             modifier = GlanceModifier
-                .size(minSize)
+                .size(minSize),
         )
     }
 }

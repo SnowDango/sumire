@@ -14,7 +14,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.DefaultJson
 import io.ktor.serialization.kotlinx.json.json
 
-
 object KtorClient {
     fun getClient(): HttpClient {
         return HttpClient(Android) {

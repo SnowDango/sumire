@@ -49,7 +49,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun PlayingScreen(
-    windowSize: WindowSizeClass
+    windowSize: WindowSizeClass,
 ) {
     val viewModel: PlayingViewModel = koinViewModel()
     val currentSong = viewModel.currentPlayingSong.collectAsStateWithLifecycle()
@@ -58,11 +58,11 @@ fun PlayingScreen(
     if (isNowPlaying) {
         val isLandScape =
             LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-        if (!isLandScape)
+        if (!isLandScape) {
             when (windowSize.widthSizeClass) {
                 WindowWidthSizeClass.Compact -> PlayingCompactScreen(
                     currentSong = currentSong,
-                    recentHistories = recentHistories
+                    recentHistories = recentHistories,
                 )
 
                 WindowWidthSizeClass.Medium -> PlayingSplit2Screen(
@@ -74,7 +74,8 @@ fun PlayingScreen(
                     currentSong = currentSong,
                     recentHistories = recentHistories,
                 )
-            } else {
+            }
+        } else {
             PlayingSplit2Screen(
                 currentSong = currentSong,
                 recentHistories = recentHistories,
@@ -89,12 +90,12 @@ fun PlayingScreen(
 @Composable
 fun PlayingCompactScreen(
     currentSong: State<PlayingSongData?>,
-    recentHistories: State<List<SongCardViewData>>
+    recentHistories: State<List<SongCardViewData>>,
 ) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         currentSong.value?.let {
             item {
@@ -113,14 +114,14 @@ fun PlayingCompactScreen(
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier
                     .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             )
         }
         items(recentHistories.value) {
             ListSongCard(
                 songCardViewData = it,
                 modifier = Modifier
-                    .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
+                    .padding(start = 32.dp, end = 32.dp, bottom = 4.dp),
             )
         }
     }
@@ -130,17 +131,17 @@ fun PlayingCompactScreen(
 @Composable
 fun PlayingSplit2Screen(
     currentSong: State<PlayingSongData?>,
-    recentHistories: State<List<SongCardViewData>>
+    recentHistories: State<List<SongCardViewData>>,
 ) {
     Row(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .fillMaxHeight(),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             currentSong.value?.let {
                 PlayingSongComponent(
@@ -156,10 +157,10 @@ fun PlayingSplit2Screen(
             modifier = Modifier
                 .fillMaxSize()
                 .fillMaxHeight(),
-            contentAlignment = Alignment.TopCenter
+            contentAlignment = Alignment.TopCenter,
         ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 item {
                     Text(
@@ -167,14 +168,14 @@ fun PlayingSplit2Screen(
                         style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier
                             .padding(start = 32.dp, top = 32.dp, end = 32.dp, bottom = 16.dp)
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
                     )
                 }
                 items(recentHistories.value) {
                     ListSongCard(
                         songCardViewData = it,
                         modifier = Modifier
-                            .padding(start = 32.dp, end = 32.dp, bottom = 4.dp)
+                            .padding(start = 32.dp, end = 32.dp, bottom = 4.dp),
                     )
                 }
             }
@@ -192,14 +193,14 @@ fun PlayingSongComponent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         CircleSongArtwork(
             modifier = Modifier
                 .padding(top = 32.dp)
                 .fillMaxWidth(0.5f)
                 .aspectRatio(1f),
-            bitmap = artwork
+            bitmap = artwork,
         )
         Text(
             text = title,
@@ -237,13 +238,13 @@ fun PlayingSongComponent(
         ) {
             Text(
                 text = stringResource(R.string.playing_song_from_app),
-                style = MaterialTheme.typography.labelSmall
+                style = MaterialTheme.typography.labelSmall,
             )
             MusicAppImage(
                 app = app,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .size(16.dp)
+                    .size(16.dp),
             )
             MusicAppText(
                 app = app,
@@ -258,7 +259,7 @@ fun NothingPlayingSongComponent() {
     Box(
         modifier = Modifier
             .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = stringResource(R.string.nothing_playing_song),
@@ -269,7 +270,7 @@ fun NothingPlayingSongComponent() {
                 lineHeight = 32.sp,
             ),
             color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
 
         )
     }
@@ -297,7 +298,7 @@ fun Preview_PlayingSongComponent() {
                 title = "title6",
                 album = "album",
                 artist = "artist",
-                app = MusicApp.APPLE_MUSIC
+                app = MusicApp.APPLE_MUSIC,
             )
         }
     }
@@ -321,7 +322,7 @@ fun Preview_PlayingCompactScreen() {
 @Preview(
     group = PLAYING_GROUP,
     name = "PlayingSplit2Screen",
-    device = "spec:width=1280dp,height=800dp,dpi=240"
+    device = "spec:width=1280dp,height=800dp,dpi=240",
 )
 @Composable
 fun Preview_PlayingSplit2Screen() {

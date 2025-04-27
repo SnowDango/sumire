@@ -80,8 +80,7 @@ object MockData {
                 refresh = LoadState.NotLoading(false),
                 append = LoadState.NotLoading(false),
                 prepend = LoadState.NotLoading(false),
-            )
+            ),
         ),
     )
-
 }
