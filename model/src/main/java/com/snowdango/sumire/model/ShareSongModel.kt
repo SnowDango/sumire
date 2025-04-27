@@ -41,5 +41,4 @@ class ShareSongModel : KoinComponent {
         }
         return urlMap
     }
-
 }

@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.util.Base64
 import java.io.ByteArrayOutputStream
 
-
 fun Bitmap?.toBase64(): String? {
     return this?.let {
         val byteArrayOutputStream = ByteArrayOutputStream()

@@ -14,7 +14,6 @@ import com.alorma.compose.settings.ui.SettingsRadioButton
 import com.alorma.compose.settings.ui.base.internal.SettingsTileDefaults
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
 
-
 @Composable
 fun WidgetActionTypeDialog(
     onDismissRequest: () -> Unit,
@@ -29,7 +28,7 @@ fun WidgetActionTypeDialog(
                 onClick = {
                     onSelect.invoke(selectType)
                     onDismissRequest.invoke()
-                }
+                },
             ) {
                 Text("Select")
             }
@@ -56,13 +55,13 @@ fun WidgetActionTypeDialog(
                             )
                         },
                         colors = SettingsTileDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ),
                     ) {
                         selectType = it
                     }
                 }
             }
-        }
+        },
     )
 }

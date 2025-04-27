@@ -1,6 +1,5 @@
 package com.snowdango.sumire.usecase.db
 
-
 import com.snowdango.sumire.data.entity.db.Songs
 import com.snowdango.sumire.repository.SongsDatabase
 import org.koin.core.component.KoinComponent
@@ -28,5 +27,4 @@ class SongsUseCase : KoinComponent {
     suspend fun getSearchSongsList(searchText: String): List<Songs> {
         return songsDatabase.songsDao.getSearchTitle(searchText)
     }
-
 }

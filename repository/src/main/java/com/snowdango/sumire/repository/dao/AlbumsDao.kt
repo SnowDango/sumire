@@ -14,5 +14,4 @@ interface AlbumsDao {
 
     @Query("select ${Albums.COLUMN_ID} from ${Albums.TABLE_NAME} where ${Albums.COLUMN_NAME} = :name and ${Albums.COLUMN_ARTIST_ID} = :artistId limit 1")
     suspend fun getIdByNameAndArtistId(name: String, artistId: Long): Long?
-
 }

@@ -1,6 +1,5 @@
 package com.snowdango.sumire.ui.theme
 
-
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -13,13 +12,13 @@ import com.snowdango.sumire.ui.R
 fun SumireTheme(
     seedColor: Color = colorResource(R.color.seed),
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme =
         rememberDynamicColorScheme(seedColor = seedColor, isDark = darkTheme, isAmoled = false)
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content
+        content = content,
     )
 }

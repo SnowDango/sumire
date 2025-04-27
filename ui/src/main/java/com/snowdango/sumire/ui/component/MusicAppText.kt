@@ -40,12 +40,12 @@ fun MusicAppText(
 @Preview(group = UTIL_GROUP, name = "MusicAppText")
 @Composable
 fun PreviewMusicAppText(
-    @PreviewParameter(provider = MusicAppPramProvider::class) data: MusicApp
+    @PreviewParameter(provider = MusicAppPramProvider::class) data: MusicApp,
 ) {
     SumireTheme {
         MusicAppText(
             app = data,
-            style = MaterialTheme.typography.labelSmall
+            style = MaterialTheme.typography.labelSmall,
         )
     }
 }
@@ -53,5 +53,4 @@ fun PreviewMusicAppText(
 class MusicAppPramProvider : PreviewParameterProvider<MusicApp> {
     override val values: Sequence<MusicApp>
         get() = MusicApp.entries.asSequence()
-
 }

@@ -20,7 +20,7 @@ class GetHistoriesModel : KoinComponent {
             it.map { data ->
                 convertHistorySongToSongCardViewData(
                     data,
-                    LocalDateTimeFormatType.FULL_DATE_TIME
+                    LocalDateTimeFormatType.FULL_DATE_TIME,
                 )
             }
         }
@@ -49,5 +49,4 @@ class GetHistoriesModel : KoinComponent {
             app = historySong.history.app,
         )
     }
-
 }

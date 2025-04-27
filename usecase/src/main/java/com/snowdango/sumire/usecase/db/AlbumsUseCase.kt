@@ -17,15 +17,14 @@ class AlbumsUseCase : KoinComponent {
         name: String,
         artistId: Long,
         thumbnail: String?,
-        isThumbUrl: Boolean
+        isThumbUrl: Boolean,
     ): Long {
         val album = Albums(
             name = name,
             artistId = artistId,
             thumbnail = thumbnail,
-            isThumbUrl = isThumbUrl
+            isThumbUrl = isThumbUrl,
         )
         return songsDatabase.albumsDao.insert(album)
     }
-
 }

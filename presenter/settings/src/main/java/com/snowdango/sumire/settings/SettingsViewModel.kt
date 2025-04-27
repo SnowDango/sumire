@@ -31,5 +31,4 @@ class SettingsViewModel : ViewModel(), KoinComponent {
             settingModel.setUrlPlatform(urlPlatform)
         }
     }
-
 }

@@ -27,14 +27,14 @@ class HistoryViewModel : ViewModel(), KoinComponent {
         config = PagingConfig(
             pageSize = 20,
             prefetchDistance = 50,
-        )
+        ),
     ) {
         getHistoriesModel.getPagingHistorySongs()
     }.flow.map { pagingData ->
         pagingData.map {
             getHistoriesModel.convertHistorySongToSongCardViewData(
                 it,
-                LocalDateTimeFormatType.ONLY_TIME
+                LocalDateTimeFormatType.ONLY_TIME,
             )
         }
     }.cachedIn(viewModelScope)
@@ -44,7 +44,7 @@ class HistoryViewModel : ViewModel(), KoinComponent {
         config = PagingConfig(
             pageSize = 20,
             prefetchDistance = 50,
-        )
+        ),
     ) {
         getHistoriesModel.getPagingSearchHistorySongs(getSearchText())
     }.flow.map { pagingData ->
@@ -68,14 +68,12 @@ class HistoryViewModel : ViewModel(), KoinComponent {
     val suggestSearchTitleListFlow: StateFlow<List<String>> = _suggestSearchTitleListFlow.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        initialValue = listOf()
+        initialValue = listOf(),
     )
 
     fun getSuggestSearchTitle(currentSearchText: String) = viewModelScope.launch {
         _suggestSearchTitleListFlow.emit(
-            getSongsModel.getSearchTitleList(currentSearchText)
+            getSongsModel.getSearchTitleList(currentSearchText),
         )
     }
-
-
 }

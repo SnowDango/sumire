@@ -35,5 +35,4 @@ class SettingsModel : KoinComponent {
     suspend fun getIsFirstTime(): Boolean {
         return settingsUseCase.getIsFirstTime()
     }
-
 }
