@@ -116,7 +116,6 @@ jobs:
     steps:
       - checkout
       - android/restore-gradle-cache
-      - android/restore-build-cache
       - run:
           name: chmod gradlew
           command: |
@@ -130,7 +129,6 @@ jobs:
             ./gradlew assembleDebug
           no_output_timeout: 20m
       - android/save-gradle-cache
-      - android/save-build-cache
   unittest:
     executor:
       name: android/android-machine
