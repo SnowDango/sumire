@@ -126,7 +126,7 @@ jobs:
       - run:
           name: build
           command: |
-            ./gradlew assembleDebug
+            ./gradlew assembleDebug --stacktrace
           no_output_timeout: 20m
       - android/save-gradle-cache
   unittest:
