@@ -1,11 +1,9 @@
 package com.snowdango.presenter.history.mock
 
-import androidx.paging.LoadState
-import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
 
 object MockData {
     const val mockDate = "2023/7/20"
@@ -73,14 +71,9 @@ object MockData {
         ),
     )
 
-    val mockPagingFlow = flowOf(
+    val mockPagingFlow = MutableStateFlow(
         PagingData.from(
             mockHistories,
-            sourceLoadStates = LoadStates(
-                refresh = LoadState.NotLoading(false),
-                append = LoadState.NotLoading(false),
-                prepend = LoadState.NotLoading(false),
-            ),
         ),
     )
 }

@@ -227,7 +227,6 @@ fun DateHeader(
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Preview(group = HISTORY_GROUP, name = "DateHeader")
 @Composable
 fun Preview_DateHeader() {
