@@ -24,7 +24,7 @@ class GetHistoriesModel : KoinComponent {
         val currentDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         return historiesUseCase.getHistoriesSongRecent(size).map {
             it.map { data ->
-                convertHistorySongToSongCardViewData(
+                convertRecentSongToSongCardViewData(
                     data,
                     currentDateTime,
                 )
@@ -40,7 +40,7 @@ class GetHistoriesModel : KoinComponent {
         return historiesUseCase.getPagingSearchHistoriesSongs(text)
     }
 
-    fun convertHistorySongToSongCardViewData(
+    fun convertRecentSongToSongCardViewData(
         historySong: HistorySong,
         currentDateTime: LocalDateTime,
     ): SongCardViewData {
@@ -51,6 +51,22 @@ class GetHistoriesModel : KoinComponent {
             thumbnail = historySong.song.albums.thumbnail,
             isThumbUrl = historySong.song.albums.isThumbUrl,
             playTimeText = historySong.history.playTime.toLastDateTimeString(currentDateTime),
+            headerDay = historySong.history.playTime.toFormatString(LocalDateTimeFormatType.ONLY_DATE),
+            app = historySong.history.app,
+        )
+    }
+
+    fun convertRecentSongToSongCardViewData(
+        historySong: HistorySong,
+        type: LocalDateTimeFormatType,
+    ): SongCardViewData {
+        return SongCardViewData(
+            title = historySong.song.songs.title,
+            artistName = historySong.song.artists.name,
+            albumName = historySong.song.albums.name,
+            thumbnail = historySong.song.albums.thumbnail,
+            isThumbUrl = historySong.song.albums.isThumbUrl,
+            playTimeText = historySong.history.playTime.toFormatString(type),
             headerDay = historySong.history.playTime.toFormatString(LocalDateTimeFormatType.ONLY_DATE),
             app = historySong.history.app,
         )

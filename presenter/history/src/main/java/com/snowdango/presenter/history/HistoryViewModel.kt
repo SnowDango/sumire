@@ -32,7 +32,7 @@ class HistoryViewModel : ViewModel(), KoinComponent {
         getHistoriesModel.getPagingHistorySongs()
     }.flow.map { pagingData ->
         pagingData.map {
-            getHistoriesModel.convertHistorySongToSongCardViewData(
+            getHistoriesModel.convertRecentSongToSongCardViewData(
                 it,
                 LocalDateTimeFormatType.ONLY_TIME,
             )
@@ -49,7 +49,7 @@ class HistoryViewModel : ViewModel(), KoinComponent {
         getHistoriesModel.getPagingSearchHistorySongs(getSearchText())
     }.flow.map { pagingData ->
         pagingData.map {
-            getHistoriesModel.convertHistorySongToSongCardViewData(
+            getHistoriesModel.convertRecentSongToSongCardViewData(
                 it,
                 LocalDateTimeFormatType.ONLY_TIME,
             )
