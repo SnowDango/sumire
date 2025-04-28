@@ -2,7 +2,6 @@ package com.snowdango.sumire.widget.worker
 
 import android.content.Context
 import android.util.Log
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -21,8 +20,7 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
 ) : CoroutineWorker(
     context,
     workerParameters,
-),
-    KoinComponent {
+), KoinComponent {
 
     abstract val widget: T
 
@@ -41,19 +39,15 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
             .getGlanceIds(SmallArtworkWidget::class.java)
             .forEach { glanceId ->
                 updateAppWidgetState(context, glanceId) { preferences ->
-                    preferences[artworkKey] = playingSong?.songData?.artwork?.toBase64() ?: ""
-                    preferences[titleKey] = playingSong?.songData?.title ?: ""
-                    preferences[mediaId] = playingSong?.songData?.mediaId ?: ""
-                    preferences[platform] = playingSong?.songData?.app?.platform ?: ""
+                    preferences[SmallArtworkWidget.artworkKey] =
+                        playingSong?.songData?.artwork?.toBase64() ?: ""
+                    preferences[SmallArtworkWidget.titleKey] = playingSong?.songData?.title ?: ""
+                    preferences[SmallArtworkWidget.mediaId] = playingSong?.songData?.mediaId ?: ""
+                    preferences[SmallArtworkWidget.platform] =
+                        playingSong?.songData?.app?.platform ?: ""
+                    preferences[SmallArtworkWidget.isSharedFailureKey] = false
                 }
                 widget.update(context, glanceId)
             }
-    }
-
-    companion object {
-        val artworkKey = stringPreferencesKey("artwork")
-        val titleKey = stringPreferencesKey("title")
-        val mediaId = stringPreferencesKey("mediaId")
-        val platform = stringPreferencesKey("platform")
     }
 }
