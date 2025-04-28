@@ -59,7 +59,10 @@ class PlayingSongSharedFlow : KoinComponent {
                             null
                         }
                         type = PlayingSongChangeType.CHANGE_ACTIVE
-                    } else if (playingSong?.second?.songData?.artwork == null && playingSongData.songData.artwork != null) {
+                    } else if (
+                        playingSong?.second?.songData?.artwork == null
+                        && playingSongData.songData.artwork != null
+                    ) {
                         // update artwork
                         playingSong = if (queueId != null) {
                             Pair(
@@ -119,7 +122,7 @@ class PlayingSongSharedFlow : KoinComponent {
         if (queueId == null) return
         var isComplete = false
         withContext(Dispatchers.Default) {
-            delay(10000)
+            delay(10_000)
             val curernt = playingSong
             withContext(Dispatchers.IO) {
                 isWaitingMutex.withLock(isWaitingTime) {
