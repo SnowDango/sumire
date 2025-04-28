@@ -22,7 +22,7 @@ fun LocalDateTime.toLastDateTimeString(
     currentDateTime: LocalDateTime
 ): String {
     val duration = currentDateTime.toInstant(TimeZone.currentSystemDefault()) -
-            this.toInstant(TimeZone.currentSystemDefault())
+        this.toInstant(TimeZone.currentSystemDefault())
     return if (duration.inWholeDays > 0) {
         return "${duration.inWholeDays}h ago"
     } else if (duration.inWholeHours > 0) {
