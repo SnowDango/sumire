@@ -1,6 +1,5 @@
 package com.snowdango.sumire.usecase.db
 
-
 import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.Histories
@@ -19,7 +18,7 @@ class HistoriesUseCase : KoinComponent {
         val history = Histories(
             songId = songId,
             playTime = playTime,
-            app = app
+            app = app,
         )
         songsDatabase.historiesDao.insert(history)
     }
@@ -32,5 +31,7 @@ class HistoriesUseCase : KoinComponent {
         return songsDatabase.historiesDao.getPagingHistorySongs()
     }
 
-
+    fun getPagingSearchHistoriesSongs(text: String): PagingSource<Int, HistorySong> {
+        return songsDatabase.historiesDao.getPagingSearchHistorySong(text)
+    }
 }

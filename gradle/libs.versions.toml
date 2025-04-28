@@ -1,45 +1,47 @@
 [versions]
 minsdk = "33"
-compileSdk = "34"
+compileSdk = "35"
 versionCode = "1"
-versionName = "0.0.1"
+versionName = "0.0.2"
 
-agp = "8.7.1"
-ksp = "2.0.21-1.0.25"
-kotlin = "2.0.21"
-coreKtx = "1.13.1"
+agp = "8.9.2"
+ksp = "2.1.20-2.0.0"
+kotlin = "2.1.0"
+coreKtx = "1.15.0"
 splashscreen = "1.0.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycle = "2.8.6"
-activityCompose = "1.9.2"
-composeBom = "2024.09.03"
+lifecycle = "2.8.7"
+activityCompose = "1.10.1"
+composeBom = "2025.04.01"
 appcompat = "1.7.0"
 material = "1.12.0"
-material3Android = "1.3.0"
-navigation = "2.8.2"
-coroutine = "1.9.0"
-paging = "3.3.2"
-koin = "4.0.0"
-uiTooling = "1.7.3"
-datetime = "0.6.1"
-room = "2.6.1"
-serialization = "1.7.3"
-ktor = "3.0.0"
+material3Android = "1.3.1"
+navigation = "2.8.9"
+coroutine = "1.10.2"
+paging = "3.3.6"
+koin = "4.0.4"
+uiTooling = "1.8.0"
+datetime = "0.6.2"
+room = "2.7.1"
+serialization = "1.8.1"
+ktor = "3.1.2"
 slf4j = "1.7.36"
 coil = "2.7.0"
-settings = "2.6.0"
+settings = "2.10.0"
+kolor = "2.1.1"
 showkase = "1.0.3"
-roborazzi = "1.29.0"
-detekt = "1.23.7"
-glance = "1.1.0"
-workmanager = "2.9.1"
-datastore = "1.1.1"
-deploygate = "2.8.0"
+roborazzi = "1.43.1"
+detekt = "1.23.8"
+detekt-compose = "0.4.22"
+glance = "1.1.1"
+workmanager = "2.10.0"
+datastore = "1.1.4"
+deploygate = "2.9.0"
 google-services = "4.4.2"
-firebase = "33.4.0"
-crashlytics-plugin = "3.0.2"
+firebase = "33.12.0"
+crashlytics-plugin = "3.0.3"
 
 [libraries]
 android-gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
@@ -65,6 +67,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 androidx-material3-windiow = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 androidx-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
@@ -101,16 +104,20 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 settings = { group = "com.github.alorma.compose-settings", name = "ui-tiles", version.ref = "settings" }
 settings-extended = { group = "com.github.alorma.compose-settings", name = "ui-tiles-extended", version.ref = "settings" }
 
+# material kolor
+material-kolor = { group = "com.materialkolor", name = "material-kolor", version.ref = "kolor" }
+
 showkase = { group = "com.airbnb.android", name = "showkase", version.ref = "showkase" }
 showkase-annotation = { group = "com.airbnb.android", name = "showkase-annotation", version.ref = "showkase" }
 showkase-prosessor = { group = "com.airbnb.android", name = "showkase-processor", version.ref = "showkase" }
 
-robolectric = { group = "org.robolectric", name = "robolectric", version = "4.13" }
+robolectric = { group = "org.robolectric", name = "robolectric", version = "4.14.1" }
 roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
 roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
 roborazzi-rule = { group = "io.github.takahirom.roborazzi", name = "roborazzi-junit-rule", version.ref = "roborazzi" }
 
 detekt-formatting = { group = "io.gitlab.arturbosch.detekt", name = "detekt-formatting", version.ref = "detekt" }
+detekt-compose = { group = "io.nlopez.compose.rules", name = "detekt", version.ref = "detekt-compose" }
 
 glance-widget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }

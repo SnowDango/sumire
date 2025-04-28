@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -34,7 +33,7 @@ class PlayingViewModel(
     val recentHistories: StateFlow<List<SongCardViewData>> = _recentHistory.stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5000),
-        initialValue = listOf()
+        initialValue = listOf(),
     )
 
     init {
@@ -51,9 +50,8 @@ class PlayingViewModel(
     private fun refreshCurrentPlayingSong() {
         viewModelScope.launch {
             _currentPlayingSong.emit(
-                playingSongSharedFlow.getCurrentPlayingSong()
+                playingSongSharedFlow.getCurrentPlayingSong(),
             )
         }
     }
-
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.graphics.drawable.toBitmap
 import com.snowdango.sumire.ui.R
@@ -25,13 +26,19 @@ fun CircleSongArtwork(
 ) {
     Box(
         modifier = modifier
-            .clip(CircleShape)
+            .clip(CircleShape),
     ) {
-        bitmap?.let {
+        if (bitmap != null) {
             Image(
-                bitmap = it.asImageBitmap(),
+                bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Image(
+                painter = painterResource(R.drawable.noimage),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }

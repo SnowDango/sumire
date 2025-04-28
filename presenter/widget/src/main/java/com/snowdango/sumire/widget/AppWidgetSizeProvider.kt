@@ -4,10 +4,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.glance.GlanceId
 
 class AppWidgetSizeProvider(
-    private val context: Context
+    private val context: Context,
 ) {
 
     private val appWidgetManager = AppWidgetManager.getInstance(context)

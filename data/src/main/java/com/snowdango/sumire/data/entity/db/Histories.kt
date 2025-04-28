@@ -15,7 +15,7 @@ data class Histories(
     @ColumnInfo(COLUMN_PLAY_TIME)
     val playTime: LocalDateTime,
     @ColumnInfo(COLUMN_APP)
-    val app: MusicApp
+    val app: MusicApp,
 ) {
     companion object {
         const val TABLE_NAME = "histories"

@@ -12,7 +12,7 @@ data class HistorySong(
     @Relation(
         parentColumn = Histories.COLUMN_SONG_ID,
         entityColumn = Songs.COLUMN_ID,
-        entity = Songs::class
+        entity = Songs::class,
     )
-    val song: SongMetadata
+    val song: SongMetadata,
 )

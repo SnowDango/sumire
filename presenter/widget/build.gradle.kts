@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.sumire.widget"
-    compileSdk = 34
+    namespace = "com.snowdango.sumire.presenter.widget"
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 33
+        minSdk = libs.versions.minsdk.get().toInt()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")

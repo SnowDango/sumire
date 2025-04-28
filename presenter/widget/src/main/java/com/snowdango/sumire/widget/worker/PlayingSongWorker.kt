@@ -17,11 +17,12 @@ import org.koin.core.component.inject
 
 abstract class PlayingSongWorker<T : GlanceAppWidget>(
     private val context: Context,
-    workerParameters: WorkerParameters
+    workerParameters: WorkerParameters,
 ) : CoroutineWorker(
     context,
-    workerParameters
-), KoinComponent {
+    workerParameters,
+),
+    KoinComponent {
 
     abstract val widget: T
 
@@ -55,5 +56,4 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
         val mediaId = stringPreferencesKey("mediaId")
         val platform = stringPreferencesKey("platform")
     }
-
 }

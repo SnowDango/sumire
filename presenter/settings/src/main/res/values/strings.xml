@@ -1,0 +1,11 @@
+<resources>
+    <string name="main_settings_title">Settings</string>
+    <string name="widget_type_setting_title">ウィジェットのタップ時の動作</string>
+    <string name="url_primary_service_setting_title">URL取得時に優先されるサービス</string>
+    <string name="version_title">Version</string>
+    <string name="debug_settings_title">Dev</string>
+    <string name="showkase_show_setting_title">Showkaseの表示</string>
+    <string name="showkase_show_setting_subtitle">UiCatalogの表示をします。</string>
+    <string name="crashlytics_crash_setting_title">Crashlytics</string>
+    <string name="crashlytics_crash_setting_subtitle">crashさせる</string>
+</resources>

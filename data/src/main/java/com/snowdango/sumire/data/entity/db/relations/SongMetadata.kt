@@ -21,5 +21,5 @@ data class SongMetadata(
         entityColumn = Albums.COLUMN_ID,
         entity = Albums::class,
     )
-    val albums: Albums
+    val albums: Albums,
 )

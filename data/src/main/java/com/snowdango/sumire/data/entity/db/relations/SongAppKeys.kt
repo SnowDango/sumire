@@ -13,7 +13,11 @@ data class SongAppKeys(
         entityColumn = Songs.COLUMN_ID,
         entity = Songs::class,
     )
-    val song: Songs,
+    val songKeys: SongKeys,
+)
+
+data class SongKeys(
+    @Embedded val song: Songs,
 
     @Relation(
         parentColumn = Songs.COLUMN_ID,
@@ -21,6 +25,4 @@ data class SongAppKeys(
         entity = AppSongKey::class,
     )
     val appSongKeys: List<AppSongKey>?
-
-
 )

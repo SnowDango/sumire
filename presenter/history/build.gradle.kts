@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.snowdango.presenter.history"
+    namespace = "com.snowdango.sumire.presenter.history"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material3.windiow)
+    implementation(libs.androidx.livedata)
     implementation(libs.androidX.lifecycleCompose)
     implementation(libs.koin)
     implementation(libs.koin.compose)

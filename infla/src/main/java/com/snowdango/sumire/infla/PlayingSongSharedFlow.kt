@@ -49,22 +49,25 @@ class PlayingSongSharedFlow : KoinComponent {
                     }
                 } else if (playingSong != null && playingSongData != null) {
                     if (playingSong?.second?.isActive != playingSongData.isActive) {
-                        //　update isActive
+                        // 　update isActive
                         playingSong = if (queueId != null) {
                             Pair(
                                 queueId,
-                                playingSongData.copy(playTime = playingSong!!.second.playTime)
+                                playingSongData.copy(playTime = playingSong!!.second.playTime),
                             )
                         } else {
                             null
                         }
                         type = PlayingSongChangeType.CHANGE_ACTIVE
-                    } else if (playingSong?.second?.songData?.artwork == null && playingSongData.songData.artwork != null) {
+                    } else if (
+                        playingSong?.second?.songData?.artwork == null &&
+                        playingSongData.songData.artwork != null
+                    ) {
                         // update artwork
                         playingSong = if (queueId != null) {
                             Pair(
                                 queueId,
-                                playingSongData.copy(playTime = playingSong!!.second.playTime)
+                                playingSongData.copy(playTime = playingSong!!.second.playTime),
                             )
                         } else {
                             null
@@ -76,7 +79,7 @@ class PlayingSongSharedFlow : KoinComponent {
             if (type != PlayingSongChangeType.NONE) {
                 changedPlayingSong(
                     type,
-                    queueId
+                    queueId,
                 )
             }
         }
@@ -87,7 +90,7 @@ class PlayingSongSharedFlow : KoinComponent {
         queueId: Long?,
     ) {
         eventSharedFlow.postEvent(
-            EventSharedFlow.SharedEvent.ChangeCurrentSong
+            EventSharedFlow.SharedEvent.ChangeCurrentSong,
         )
         val current = playingSong
         if (type != PlayingSongChangeType.CHANGE_ACTIVE && type != PlayingSongChangeType.NONE) {
@@ -119,7 +122,7 @@ class PlayingSongSharedFlow : KoinComponent {
         if (queueId == null) return
         var isComplete = false
         withContext(Dispatchers.Default) {
-            delay(10000)
+            delay(10_000)
             val curernt = playingSong
             withContext(Dispatchers.IO) {
                 isWaitingMutex.withLock(isWaitingTime) {
@@ -145,7 +148,7 @@ class PlayingSongSharedFlow : KoinComponent {
         withContext(Dispatchers.Default) {
             Log.d(
                 "CurrentPlayingSong",
-                "DataComplete \nhasArtwork = ${playingSong?.second?.songData?.artwork != null}"
+                "DataComplete \nhasArtwork = ${playingSong?.second?.songData?.artwork != null}",
             )
             saveModel.saveSong(playingSongData)
         }
@@ -154,7 +157,6 @@ class PlayingSongSharedFlow : KoinComponent {
     fun getCurrentPlayingSong(): PlayingSongData? {
         return playingSong?.second
     }
-
 
     enum class PlayingSongChangeType {
         DATA_COMPLETE,
@@ -166,11 +168,10 @@ class PlayingSongSharedFlow : KoinComponent {
     enum class AfterCheckType {
         COMPLETE,
         WAIT,
-        NONE
+        NONE,
     }
 
     interface ChangeListener {
         fun onChanged()
     }
-
 }

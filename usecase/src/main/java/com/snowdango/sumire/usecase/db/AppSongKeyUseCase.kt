@@ -30,7 +30,7 @@ class AppSongKeyUseCase : KoinComponent {
     suspend fun insertAll(
         songId: Long,
         keyMap: Map<MusicApp, String>,
-        urlMap: Map<MusicApp, String?>
+        urlMap: Map<MusicApp, String?>,
     ): List<Long> {
         val appSongKeys = keyMap.map {
             AppSongKey(
@@ -42,5 +42,4 @@ class AppSongKeyUseCase : KoinComponent {
         }
         return songsDatabase.appSongKeyDao.insert(appSongKeys)
     }
-
 }

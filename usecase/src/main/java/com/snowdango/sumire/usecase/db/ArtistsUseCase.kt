@@ -1,6 +1,5 @@
 package com.snowdango.sumire.usecase.db
 
-
 import com.snowdango.sumire.data.entity.db.Artists
 import com.snowdango.sumire.repository.SongsDatabase
 import org.koin.core.component.KoinComponent
@@ -12,7 +11,7 @@ class ArtistsUseCase : KoinComponent {
 
     suspend fun saveArtist(artistName: String): Long {
         val artists = Artists(
-            name = artistName
+            name = artistName,
         )
         return songsDatabase.artistsDao.insert(artists)
     }
@@ -20,6 +19,4 @@ class ArtistsUseCase : KoinComponent {
     suspend fun getIdByName(artistName: String): Long {
         return songsDatabase.artistsDao.getArtist(artistName) ?: -1
     }
-
-
 }
