@@ -42,6 +42,7 @@ import com.snowdango.sumire.settings.SettingsScreen
 @SuppressLint("RestrictedApi")
 @Composable
 fun MainScreen(
+    modifier: Modifier = Modifier,
     windowSize: WindowSizeClass,
     logEvent: LogEvent,
 ) {

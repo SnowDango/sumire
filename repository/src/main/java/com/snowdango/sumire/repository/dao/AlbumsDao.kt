@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.snowdango.sumire.data.entity.db.Albums
 
+@Suppress("MaximumLineLength", "MaxLineLength")
 @Dao
 interface AlbumsDao {
 

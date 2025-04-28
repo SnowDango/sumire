@@ -22,7 +22,11 @@ class PreviewTest(
     fun previewScreenshot() {
         val componentName = showkaseBrowserComponent.componentName.replace(" ", "")
         val filePath =
-            DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH + "/" + showkaseBrowserComponent.group + "_" + componentName + "_" + showkaseBrowserComponent.componentKey + ".png"
+            DEFAULT_ROBORAZZI_OUTPUT_DIR_PATH +
+                "/" + showkaseBrowserComponent.group +
+                "_" + componentName +
+                "_" + showkaseBrowserComponent.componentKey +
+                ".png"
         captureRoboImage(filePath) {
             showkaseBrowserComponent.component()
         }

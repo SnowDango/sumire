@@ -20,7 +20,8 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
 ) : CoroutineWorker(
     context,
     workerParameters,
-), KoinComponent {
+),
+    KoinComponent {
 
     abstract val widget: T
 

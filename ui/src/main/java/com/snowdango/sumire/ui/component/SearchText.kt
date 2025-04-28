@@ -33,7 +33,7 @@ import com.snowdango.sumire.ui.theme.SumireTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchText(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     searchSuggestList: List<String>,
     onSearchTextChange: (searchText: String) -> Unit,
     onSearch: (searchText: String) -> Unit,

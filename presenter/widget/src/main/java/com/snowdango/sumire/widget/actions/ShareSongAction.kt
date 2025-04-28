@@ -5,9 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
-import android.os.Handler
 import android.util.Log
-import android.widget.Toast
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
@@ -106,13 +104,8 @@ class ShareSongAction : ActionCallback, KoinComponent {
             )
             context.startActivity(intent)
         } else {
-            Handler(context.mainLooper).post {
-                Toast.makeText(
-                    context,
-                    "metadataの取得に失敗しました",
-                    Toast.LENGTH_SHORT,
-                ).show()
-            }
+            WorkManager.getInstance(context)
+                .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
                 params = mapOf(

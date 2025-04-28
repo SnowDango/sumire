@@ -18,7 +18,8 @@ class ShareSongFailureWorker(
 ) : CoroutineWorker(
     context,
     workerParameters,
-), KoinComponent {
+),
+    KoinComponent {
 
     val widget: SmallArtworkWidget by inject { parametersOf(context) }
 

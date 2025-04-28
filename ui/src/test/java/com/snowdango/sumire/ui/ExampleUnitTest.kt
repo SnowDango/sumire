@@ -1,6 +1,6 @@
 package com.snowdango.sumire.ui
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

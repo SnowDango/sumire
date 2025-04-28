@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -27,9 +26,9 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(
+    modifier: Modifier = Modifier,
     onShowkaseIntent: () -> Unit,
 ) {
-    val context = LocalContext.current
     val viewModel: SettingsViewModel = koinViewModel()
 
     val datastore = viewModel.settingsFlow.collectAsStateWithLifecycle(null)
@@ -59,7 +58,7 @@ fun SettingsScreen(
     }
 
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize(),
     ) {
         item {
@@ -92,10 +91,11 @@ fun MainSettings(
     widgetStateText: String,
     urlPrimaryServiceText: String,
     widgetOnClick: () -> Unit,
+    modifier: Modifier = Modifier,
     urlPrimaryServiceClick: () -> Unit,
 ) {
     SettingsGroup(
-        modifier = Modifier.padding(top = 32.dp),
+        modifier = modifier.padding(top = 32.dp),
         title = { Text(text = stringResource(R.string.main_settings_title)) },
     ) {
         SettingsMenuLink(
@@ -117,11 +117,14 @@ fun MainSettings(
     }
 }
 
+@Suppress("TooGenericExceptionThrown")
 @Composable
 fun DebugSettings(
+    modifier: Modifier = Modifier,
     showkaseClick: () -> Unit,
 ) {
     SettingsGroup(
+        modifier = modifier,
         title = { Text(text = stringResource(R.string.debug_settings_title)) },
     ) {
         SettingsMenuLink(
