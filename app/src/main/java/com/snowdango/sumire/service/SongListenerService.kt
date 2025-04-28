@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
@@ -22,7 +21,7 @@ import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.playing.SongData
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.logging.Logging
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -32,6 +31,7 @@ import org.koin.android.ext.android.inject
 class SongListenerService : NotificationListenerService() {
 
     private val songSharedFlow: PlayingSongSharedFlow by inject()
+    private val appScope: CoroutineScope by inject()
 
     private val channelId = "sumire_song_listener"
     private val channelName = "SumireSongListener"
@@ -56,7 +56,7 @@ class SongListenerService : NotificationListenerService() {
         ).also {
             it.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
         }
-        (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).also {
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).also {
             it.createNotificationChannel(channel)
         }
         val notification = NotificationCompat.Builder(this, channelId)
@@ -97,7 +97,7 @@ class SongListenerService : NotificationListenerService() {
         getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
             val componentName =
                 ComponentName(this@SongListenerService, SongListenerService::class.java)
-            MainScope().launch {
+            appScope.launch {
                 mediaSessionManager.getActiveSessions(componentName)
                     .find { it.packageName == packageName }?.let {
                         try {
@@ -112,7 +112,7 @@ class SongListenerService : NotificationListenerService() {
                                 },
                             )
                             loggingMediaController(metadata, it)
-                        } catch (e: NullPointerException) {
+                        } catch (_: Exception) {
                             Log.e("GetMetadata", "failed get metadata")
                         }
                     }
