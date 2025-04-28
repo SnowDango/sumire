@@ -20,8 +20,8 @@ class LogEvent(
         Log.d(
             "LogEvent",
             "event: ${event.eventName} \n" +
-                    params.map { param -> "${param.key.paramName}: ${param.value}" }
-                        .joinToString(separator = "\n"),
+                params.map { param -> "${param.key.paramName}: ${param.value}" }
+                    .joinToString(separator = "\n"),
         )
     }
 

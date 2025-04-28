@@ -60,8 +60,8 @@ class PlayingSongSharedFlow : KoinComponent {
                         }
                         type = PlayingSongChangeType.CHANGE_ACTIVE
                     } else if (
-                        playingSong?.second?.songData?.artwork == null
-                        && playingSongData.songData.artwork != null
+                        playingSong?.second?.songData?.artwork == null &&
+                        playingSongData.songData.artwork != null
                     ) {
                         // update artwork
                         playingSong = if (queueId != null) {
