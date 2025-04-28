@@ -62,6 +62,7 @@ class SumireApp : Application() {
         single<EventSharedFlow> { EventSharedFlow() }
         single<PlayingSongSharedFlow> { PlayingSongSharedFlow() }
         single<DataStore<Preferences>> { dataStore }
+        single<CoroutineScope> { CoroutineScope(Dispatchers.Default) }
         factory<LogEvent> { LogEvent(get()) }
     }
 
