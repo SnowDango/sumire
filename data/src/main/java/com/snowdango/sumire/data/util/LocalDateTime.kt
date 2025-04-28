@@ -1,9 +1,11 @@
 package com.snowdango.sumire.data.util
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toInstant
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun LocalDateTime.toFormatString(
@@ -14,6 +16,24 @@ fun LocalDateTime.toFormatString(
             byUnicodePattern(type.pattern)
         },
     )
+}
+
+fun LocalDateTime.toLastDateTimeString(
+    currentDateTime: LocalDateTime
+): String {
+    val duration = currentDateTime.toInstant(TimeZone.currentSystemDefault()) -
+            this.toInstant(TimeZone.currentSystemDefault())
+    return if (duration.inWholeDays > 0) {
+        return "${duration.inWholeDays}h ago"
+    } else if (duration.inWholeHours > 0) {
+        return "${duration.inWholeHours}h ago"
+    } else if (duration.inWholeMinutes > 0) {
+        return "${duration.inWholeMinutes}m ago"
+    } else if (duration.inWholeSeconds > 0) {
+        return "${duration.inWholeSeconds}s ago"
+    } else {
+        return "now"
+    }
 }
 
 enum class LocalDateTimeFormatType(
