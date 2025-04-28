@@ -8,13 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.snowdango.sumire.dialog.NotificationListenerDialog
@@ -65,8 +61,8 @@ class MainActivity : ComponentActivity() {
                 )
 
                 MainScreen(
-                    calculateWindowSizeClass(activity = this),
-                    logEvent,
+                    windowSize = calculateWindowSizeClass(activity = this),
+                    logEvent = logEvent,
                 )
             }
         }
@@ -81,21 +77,5 @@ class MainActivity : ComponentActivity() {
             val intent = Intent(this, SongListenerService::class.java)
             startForegroundService(intent)
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SumireTheme {
-        Greeting("Android")
     }
 }
