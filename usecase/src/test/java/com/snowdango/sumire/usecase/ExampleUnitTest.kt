@@ -1,6 +1,6 @@
 package com.snowdango.sumire.usecase
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

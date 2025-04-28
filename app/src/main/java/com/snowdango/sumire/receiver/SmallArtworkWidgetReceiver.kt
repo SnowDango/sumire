@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
 
     private val widget: SmallArtworkWidget by inject()
-    private val WORKER_TAG = this::class.java.name
+    private val workerTag = this::class.java.name
 
     override val glanceAppWidget: GlanceAppWidget
         get() = widget
@@ -48,9 +48,10 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
         WorkManager.getInstance(context)
-            .cancelAllWorkByTag(WORKER_TAG)
+            .cancelAllWorkByTag(workerTag)
     }
 
+    @Suppress("MagicNumber")
     @SuppressLint("InvalidPeriodicWorkRequestInterval")
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
@@ -59,7 +60,7 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
             30,
             TimeUnit.SECONDS,
         ).addTag(
-            WORKER_TAG,
+            workerTag,
         ).build()
         WorkManager.getInstance(context)
             .enqueue(request)

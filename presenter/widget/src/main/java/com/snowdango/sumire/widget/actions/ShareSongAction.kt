@@ -5,16 +5,17 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Intent
-import android.os.Handler
 import android.util.Log
-import android.widget.Toast
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.snowdango.sumire.data.entity.preference.WidgetActionType
 import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.model.SettingsModel
 import com.snowdango.sumire.model.ShareSongModel
+import com.snowdango.sumire.widget.worker.ShareSongFailureWorker
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -36,9 +37,6 @@ class ShareSongAction : ActionCallback, KoinComponent {
         val url = shareSongModel.getUrl(mediaId, appPlatform)
         Log.d("ShareSongAction", url.toString())
         if (url.isNullOrBlank()) {
-            Handler(context.mainLooper).post {
-                Toast.makeText(context, "URLの取得に失敗しました。", Toast.LENGTH_SHORT).show()
-            }
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
                 params = mapOf(
@@ -49,6 +47,8 @@ class ShareSongAction : ActionCallback, KoinComponent {
                     LogEvent.Param.PARAM_MEDIA_ID to mediaId.orEmpty()
                 ),
             )
+            WorkManager.getInstance(context)
+                .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
         } else {
             val type = settingsModel.getWidgetActionType()
             Log.d("ShareSongAction", type.name)
@@ -104,13 +104,8 @@ class ShareSongAction : ActionCallback, KoinComponent {
             )
             context.startActivity(intent)
         } else {
-            Handler(context.mainLooper).post {
-                Toast.makeText(
-                    context,
-                    "metadataの取得に失敗しました",
-                    Toast.LENGTH_SHORT,
-                ).show()
-            }
+            WorkManager.getInstance(context)
+                .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
                 params = mapOf(

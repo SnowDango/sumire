@@ -26,6 +26,7 @@ class PlayingSongSharedFlow : KoinComponent {
     private val playingSongMutex = Mutex()
     private val isWaitingMutex = Mutex()
 
+    @Suppress("CyclomaticComplexMethod")
     suspend fun changeSong(queueId: Long?, playingSongData: PlayingSongData?) {
         withContext(Dispatchers.IO) {
             var type: PlayingSongChangeType = PlayingSongChangeType.NONE
@@ -118,6 +119,7 @@ class PlayingSongSharedFlow : KoinComponent {
         }
     }
 
+    @Suppress("MagicNumber")
     private suspend fun waitMetadata(queueId: Long?) {
         if (queueId == null) return
         var isComplete = false

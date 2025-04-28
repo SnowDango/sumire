@@ -86,10 +86,8 @@ class SongListenerService : NotificationListenerService() {
             val componentName =
                 ComponentName(this@SongListenerService, SongListenerService::class.java)
             mediaSessionManager.getActiveSessions(componentName).forEach { mediaController ->
-                mediaController.playbackState?.isActive?.let {
-                    if (it) {
-                        syncMediaMetadata(mediaController.packageName)
-                    }
+                if (mediaController.playbackState?.isActive == true) {
+                    syncMediaMetadata(mediaController.packageName)
                 }
             }
         }
@@ -102,9 +100,9 @@ class SongListenerService : NotificationListenerService() {
             MainScope().launch {
                 mediaSessionManager.getActiveSessions(componentName)
                     .find { it.packageName == packageName }?.let {
-                        val metadata = it.metadata
-                        val currentQueueId = it.queue?.first()?.queueId
                         try {
+                            val metadata = it.metadata
+                            val currentQueueId = it.queue?.first()?.queueId
                             songSharedFlow.changeSong(
                                 queueId = currentQueueId,
                                 playingSongData = if (metadata != null) {

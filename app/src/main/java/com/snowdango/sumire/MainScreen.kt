@@ -44,6 +44,7 @@ import com.snowdango.sumire.settings.SettingsScreen
 fun MainScreen(
     windowSize: WindowSizeClass,
     logEvent: LogEvent,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -62,7 +63,7 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
                 tonalElevation = 4.dp,
