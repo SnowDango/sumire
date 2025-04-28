@@ -41,7 +41,13 @@ class ShareSongAction : ActionCallback, KoinComponent {
             }
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
-                params = mapOf(LogEvent.Param.PARAM_ERROR to "url isNullOrBlank"),
+                params = mapOf(
+                    LogEvent.Param.PARAM_ERROR to "url isNullOrBlank",
+                    LogEvent.Param.PARAM_TITLE to title.orEmpty(),
+                    LogEvent.Param.PARAM_ARTIST to artist.orEmpty(),
+                    LogEvent.Param.PARAM_APP_NAME to appPlatform.orEmpty(),
+                    LogEvent.Param.PARAM_MEDIA_ID to mediaId.orEmpty()
+                ),
             )
         } else {
             val type = settingsModel.getWidgetActionType()

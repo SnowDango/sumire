@@ -1,5 +1,6 @@
 package com.snowdango.sumire.model
 
+import android.util.Log
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.usecase.db.AppSongKeyUseCase
 import com.snowdango.sumire.usecase.setting.SettingsUseCase
@@ -17,6 +18,7 @@ class ShareSongModel : KoinComponent {
         }
         val app = MusicApp.entries.firstOrNull { it.platform == appPlatform } ?: return null
         val urlMap = getUrlMap(mediaId, app) ?: return null
+        Log.d("ShareSongModel", "getUrlMap: $urlMap")
         val priorityPlatform = settingsUseCase.getUrlPlatform()
         return urlMap[priorityPlatform.platform] ?: urlMap[app.platform]
     }
@@ -24,13 +26,14 @@ class ShareSongModel : KoinComponent {
     private suspend fun getUrlMap(mediaId: String?, app: MusicApp): Map<String, String>? {
         if (mediaId == null) return null
         val keys = appSongKeyUseCase.getAppSongKeys(mediaId, app)
+        Log.d("ShareSongModel", "getUrlMap: $keys")
         val urlMap: MutableMap<String, String> = mutableMapOf()
-        keys?.appSongKeys?.forEach { key ->
+        keys?.songKeys?.appSongKeys?.forEach { key ->
             key.url?.let {
                 urlMap[key.app.platform] = it
             }
         }
-        keys?.song?.url?.let {
+        keys?.songKeys?.song?.url?.let {
             urlMap["songlink"] = it
         }
         return urlMap
