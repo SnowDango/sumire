@@ -20,7 +20,7 @@ class ShareSongModel : KoinComponent {
         val urlMap = getUrlMap(mediaId, app) ?: return null
         Log.d("ShareSongModel", "getUrlMap: $urlMap")
         val priorityPlatform = settingsUseCase.getUrlPlatform()
-        return urlMap[priorityPlatform.platform] ?: urlMap[app.platform]
+        return urlMap[priorityPlatform.platform]
     }
 
     private suspend fun getUrlMap(mediaId: String?, app: MusicApp): Map<String, String>? {
