@@ -102,9 +102,9 @@ class SongListenerService : NotificationListenerService() {
             MainScope().launch {
                 mediaSessionManager.getActiveSessions(componentName)
                     .find { it.packageName == packageName }?.let {
-                        val metadata = it.metadata
-                        val currentQueueId = it.queue?.first()?.queueId
                         try {
+                            val metadata = it.metadata
+                            val currentQueueId = it.queue?.first()?.queueId
                             songSharedFlow.changeSong(
                                 queueId = currentQueueId,
                                 playingSongData = if (metadata != null) {
