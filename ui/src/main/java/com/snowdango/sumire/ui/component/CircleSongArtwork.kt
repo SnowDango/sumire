@@ -21,8 +21,8 @@ import com.snowdango.sumire.ui.theme.SumireTheme
 
 @Composable
 fun CircleSongArtwork(
-    modifier: Modifier = Modifier,
     bitmap: Bitmap?,
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier

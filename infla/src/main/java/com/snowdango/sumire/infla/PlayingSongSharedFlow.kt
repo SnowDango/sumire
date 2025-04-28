@@ -26,7 +26,7 @@ class PlayingSongSharedFlow : KoinComponent {
     private val playingSongMutex = Mutex()
     private val isWaitingMutex = Mutex()
 
-    @Suppress("CyclomaticComplexityMethod")
+    @Suppress("CyclomaticComplexMethod")
     suspend fun changeSong(queueId: Long?, playingSongData: PlayingSongData?) {
         withContext(Dispatchers.IO) {
             var type: PlayingSongChangeType = PlayingSongChangeType.NONE
