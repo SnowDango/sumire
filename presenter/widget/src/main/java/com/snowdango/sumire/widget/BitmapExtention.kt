@@ -9,9 +9,10 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.compose.ui.unit.Dp
+import androidx.core.graphics.createBitmap
 
 fun Bitmap.getRoundedCornerBitmap(context: Context, dp: Dp): Bitmap {
-    val output = Bitmap.createBitmap(this.width, this.height, Bitmap.Config.ARGB_8888)
+    val output = createBitmap(this.width, this.height)
     val canvas = Canvas(output)
 
     val color = -0xbdbdbe

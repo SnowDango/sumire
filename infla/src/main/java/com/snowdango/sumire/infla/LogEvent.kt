@@ -48,6 +48,7 @@ class LogEvent(
         PARAM_ARTIST("artist"),
         PARAM_URL("url"),
         PARAM_APP_NAME("app_name"),
+        PARAM_MEDIA_ID("media_id"),
     }
 
     enum class Event(val eventName: String) {
