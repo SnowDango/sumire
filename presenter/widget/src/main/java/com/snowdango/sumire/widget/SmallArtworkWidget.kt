@@ -3,6 +3,8 @@ package com.snowdango.sumire.widget
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.action.Action
 import androidx.glance.action.actionParametersOf
@@ -36,11 +38,13 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
             val artwork = current[WidgetViewModel.artworkKey] ?: ""
             val mediaId = current[WidgetViewModel.mediaId] ?: ""
             val platform = current[WidgetViewModel.platform] ?: ""
+            val isSharedFailure = current[isSharedFailureKey] ?: false
             SumireGlanceTheme {
                 Content(
-                    title,
-                    artwork,
-                    actionRunCallback<ShareSongAction>(
+                    title = title,
+                    artwork = artwork,
+                    isSharedFailure = isSharedFailure,
+                    onClick = actionRunCallback<ShareSongAction>(
                         parameters = actionParametersOf(
                             ShareSongAction.titleKey to title,
                             ShareSongAction.artistKey to artist,
@@ -57,10 +61,24 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
     fun Content(
         title: String,
         artwork: String,
+        isSharedFailure: Boolean,
         onClick: Action,
     ) = if (title.isNotBlank()) {
-        SmallArtworkContent(title, artwork, onClick)
+        SmallArtworkContent(
+            title = title,
+            artwork = artwork,
+            isSharedFailure = isSharedFailure,
+            onClick = onClick
+        )
     } else {
         NoInfoContent()
+    }
+
+    companion object {
+        val artworkKey = stringPreferencesKey("artwork")
+        val titleKey = stringPreferencesKey("title")
+        val mediaId = stringPreferencesKey("mediaId")
+        val platform = stringPreferencesKey("platform")
+        val isSharedFailureKey = booleanPreferencesKey("isSharedFailure")
     }
 }

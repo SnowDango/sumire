@@ -33,7 +33,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.airbnb.android.showkase.models.Showkase
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.presenter.playing.PlayingScreen
@@ -44,6 +43,7 @@ import com.snowdango.sumire.settings.SettingsScreen
 fun MainScreen(
     windowSize: WindowSizeClass,
     logEvent: LogEvent,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -62,7 +62,7 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         bottomBar = {
             NavigationBar(
                 tonalElevation = 4.dp,
@@ -139,8 +139,7 @@ fun MainScreen(
             ) {
                 SettingsScreen(
                     onShowkaseIntent = {
-                        val intent = Showkase.getBrowserIntent(context)
-                        context.startActivity(intent)
+                        startShowkase(context)
                     },
                 )
             }

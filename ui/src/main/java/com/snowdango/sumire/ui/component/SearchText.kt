@@ -33,9 +33,9 @@ import com.snowdango.sumire.ui.theme.SumireTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchText(
-    modifier: Modifier,
     searchSuggestList: List<String>,
     onSearchTextChange: (searchText: String) -> Unit,
+    modifier: Modifier = Modifier,
     onSearch: (searchText: String) -> Unit,
 ) {
     var searchText by remember { mutableStateOf("") }

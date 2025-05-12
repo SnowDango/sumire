@@ -9,6 +9,7 @@ import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.AppSongKey
 import com.snowdango.sumire.data.entity.db.relations.SongAppKeys
 
+@Suppress("MaximumLineLength", "MaxLineLength")
 @Dao
 interface AppSongKeyDao {
 

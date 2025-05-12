@@ -11,6 +11,7 @@ import com.snowdango.sumire.data.entity.db.Songs
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
 import kotlinx.coroutines.flow.Flow
 
+@Suppress("MaxLineLength")
 @Dao
 interface HistoriesDao {
 

@@ -89,9 +89,9 @@ fun PlayingScreen(
 // 縦画面用
 @Composable
 fun PlayingCompactScreen(
-    modifier: Modifier = Modifier,
     currentSong: State<PlayingSongData?>,
     recentHistories: State<List<SongCardViewData>>,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = modifier
@@ -131,9 +131,9 @@ fun PlayingCompactScreen(
 // 横画面とFold用
 @Composable
 fun PlayingSplit2Screen(
-    modifier: Modifier = Modifier,
     currentSong: State<PlayingSongData?>,
     recentHistories: State<List<SongCardViewData>>,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -187,12 +187,12 @@ fun PlayingSplit2Screen(
 
 @Composable
 fun PlayingSongComponent(
-    modifier: Modifier = Modifier,
     artwork: Bitmap?,
     title: String,
     album: String,
     artist: String,
     app: MusicApp,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

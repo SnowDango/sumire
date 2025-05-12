@@ -74,9 +74,6 @@ android {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
     ksp {
         arg("skipPrivatePreviews", "true")
     }
@@ -139,8 +136,8 @@ dependencies {
 
     implementation(libs.workmanager.ktx)
 
-    implementation(libs.showkase)
-    ksp(libs.showkase.prosessor)
+    debugImplementation(libs.showkase)
+    kspDebug(libs.showkase.prosessor)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
