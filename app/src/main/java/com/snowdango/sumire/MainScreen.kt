@@ -138,12 +138,8 @@ fun MainScreen(
                 popEnterTransition = null,
             ) {
                 SettingsScreen(
-                    onShowkaseIntent = if (BuildConfig.DEBUG) {
-                        {
-                            startShowkase(context)
-                        }
-                    } else {
-                        null
+                    onShowkaseIntent = {
+                        startShowkase(context)
                     },
                 )
             }
