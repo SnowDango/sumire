@@ -27,7 +27,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    onShowkaseIntent: () -> Unit,
+    onShowkaseIntent: (() -> Unit)?,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
 
@@ -78,7 +78,7 @@ fun SettingsScreen(
             item {
                 DebugSettings(
                     showkaseClick = {
-                        onShowkaseIntent.invoke()
+                        onShowkaseIntent?.invoke()
                     },
                 )
             }

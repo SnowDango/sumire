@@ -33,7 +33,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.airbnb.android.showkase.models.Showkase
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.presenter.playing.PlayingScreen
@@ -139,9 +138,12 @@ fun MainScreen(
                 popEnterTransition = null,
             ) {
                 SettingsScreen(
-                    onShowkaseIntent = {
-                        val intent = Showkase.getBrowserIntent(context)
-                        context.startActivity(intent)
+                    onShowkaseIntent = if (BuildConfig.DEBUG) {
+                        {
+                            startShowkase(context)
+                        }
+                    } else {
+                        null
                     },
                 )
             }
