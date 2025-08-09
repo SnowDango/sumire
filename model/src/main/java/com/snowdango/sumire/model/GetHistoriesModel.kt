@@ -9,17 +9,19 @@ import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import com.snowdango.sumire.usecase.db.HistoriesUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class GetHistoriesModel : KoinComponent {
 
     private val historiesUseCase: HistoriesUseCase by inject()
 
+    @OptIn(ExperimentalTime::class)
     fun getRecentHistoriesSongFlow(size: Long): Flow<List<SongCardViewData>> {
         val currentDateTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         return historiesUseCase.getHistoriesSongRecent(size).map {

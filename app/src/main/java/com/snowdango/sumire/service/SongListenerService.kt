@@ -23,10 +23,11 @@ import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.logging.Logging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.koin.android.ext.android.inject
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class SongListenerService : NotificationListenerService() {
 
@@ -120,6 +121,7 @@ class SongListenerService : NotificationListenerService() {
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun createPlayingSongData(
         metadata: MediaMetadata,
         mediaController: MediaController,
