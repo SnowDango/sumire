@@ -6,6 +6,7 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toInstant
+import kotlin.time.ExperimentalTime
 
 @OptIn(FormatStringsInDatetimeFormats::class)
 fun LocalDateTime.toFormatString(
@@ -18,11 +19,12 @@ fun LocalDateTime.toFormatString(
     )
 }
 
+@OptIn(ExperimentalTime::class)
 fun LocalDateTime.toLastDateTimeString(
     currentDateTime: LocalDateTime
 ): String {
     val duration = currentDateTime.toInstant(TimeZone.currentSystemDefault()) -
-        this.toInstant(TimeZone.currentSystemDefault())
+            this.toInstant(TimeZone.currentSystemDefault())
     return if (duration.inWholeDays > 0) {
         return "${duration.inWholeDays}d ago"
     } else if (duration.inWholeHours > 0) {

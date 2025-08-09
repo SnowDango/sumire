@@ -70,6 +70,6 @@ subprojects {
 
 }
 
-task("clean", Delete::class) {
+tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

@@ -6,12 +6,14 @@ import com.snowdango.sumire.data.entity.playing.SongData
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 object MockData {
 
+    @OptIn(ExperimentalTime::class)
     val currentSongMock: StateFlow<PlayingSongData?> = MutableStateFlow(
         PlayingSongData(
             songData = SongData(
