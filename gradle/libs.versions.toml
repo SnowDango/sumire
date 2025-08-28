@@ -40,7 +40,7 @@ workmanager = "2.10.3"
 datastore = "1.1.7"
 deploygate = "2.9.0"
 google-services = "4.4.3"
-firebase = "33.16.0"
+firebase = "34.1.0"
 crashlytics-plugin = "3.0.6"
 
 
