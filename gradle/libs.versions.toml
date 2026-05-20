@@ -1,6 +1,6 @@
 [versions]
 minsdk = "33"
-compileSdk = "35"
+compileSdk = "36"
 versionCode = "3"
 versionName = "0.0.3"
 
