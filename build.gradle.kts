@@ -1,11 +1,10 @@
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.LibraryExtension
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.report.ReportMergeTask
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.jetbrains.kotlin.android) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ksp) apply false
@@ -36,12 +35,12 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     plugins.withId("com.android.library") {
-        extensions.configure<BaseExtension> {
-            lintOptions {
+        extensions.configure<LibraryExtension> {
+            lint {
                 textReport = true
-                textOutput("stdout")
-                isAbortOnError = true
-                isCheckDependencies = true
+                textOutput = File("stdout")
+                abortOnError = true
+                checkDependencies = true
             }
         }
     }
@@ -49,7 +48,7 @@ subprojects {
     detekt {
         autoCorrect = true
         parallel = true
-        config = files("${rootProject.projectDir}/config/detekt/detekt.yml")
+        config.setFrom(files("${rootProject.projectDir}/config/detekt/detekt.yml"))
         buildUponDefaultConfig = true
         ignoreFailures = true
         basePath = file("$rootDir/../").absolutePath
