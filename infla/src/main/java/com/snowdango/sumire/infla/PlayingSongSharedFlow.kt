@@ -16,11 +16,10 @@ class PlayingSongSharedFlow : KoinComponent {
     private val eventSharedFlow: EventSharedFlow by inject()
     private val saveModel: SaveModel by inject()
 
+    @Volatile
     private var playingSong: Pair<Long, PlayingSongData>? = null
-        set(value) {
-            field = value
-            listener?.invoke(value?.second)
-        }
+
+    @Volatile
     var listener: ((playingSong: PlayingSongData?) -> Unit)? = null
     private var isWaitingTime: Boolean = false
     private val playingSongMutex = Mutex()
@@ -30,7 +29,9 @@ class PlayingSongSharedFlow : KoinComponent {
     suspend fun changeSong(queueId: Long?, playingSongData: PlayingSongData?) {
         withContext(Dispatchers.IO) {
             var type: PlayingSongChangeType = PlayingSongChangeType.NONE
-            playingSongMutex.withLock(playingSongData) {
+            var notifyListener = false
+            var listenerValue: PlayingSongData? = null
+            playingSongMutex.withLock {
                 val currentQueueId = playingSong?.first
                 if (currentQueueId != queueId) {
                     // change playingSong
@@ -39,6 +40,8 @@ class PlayingSongSharedFlow : KoinComponent {
                     } else {
                         null
                     }
+                    notifyListener = true
+                    listenerValue = playingSong?.second
                     type = if (queueId != null && playingSongData != null) {
                         if (playingSong?.second?.songData?.artwork == null) {
                             PlayingSongChangeType.CHANGE
@@ -59,6 +62,8 @@ class PlayingSongSharedFlow : KoinComponent {
                         } else {
                             null
                         }
+                        notifyListener = true
+                        listenerValue = playingSong?.second
                         type = PlayingSongChangeType.CHANGE_ACTIVE
                     } else if (
                         playingSong?.second?.songData?.artwork == null &&
@@ -73,9 +78,14 @@ class PlayingSongSharedFlow : KoinComponent {
                         } else {
                             null
                         }
+                        notifyListener = true
+                        listenerValue = playingSong?.second
                         type = PlayingSongChangeType.DATA_COMPLETE
                     }
                 }
+            }
+            if (notifyListener) {
+                listener?.invoke(listenerValue)
             }
             if (type != PlayingSongChangeType.NONE) {
                 changedPlayingSong(
@@ -96,7 +106,7 @@ class PlayingSongSharedFlow : KoinComponent {
         val current = playingSong
         if (type != PlayingSongChangeType.CHANGE_ACTIVE && type != PlayingSongChangeType.NONE) {
             var afterCheckType = AfterCheckType.NONE
-            isWaitingMutex.withLock(isWaitingTime) {
+            isWaitingMutex.withLock {
                 when (type) {
                     PlayingSongChangeType.CHANGE -> {
                         isWaitingTime = true
@@ -127,7 +137,7 @@ class PlayingSongSharedFlow : KoinComponent {
             delay(10_000)
             val curernt = playingSong
             withContext(Dispatchers.IO) {
-                isWaitingMutex.withLock(isWaitingTime) {
+                isWaitingMutex.withLock {
                     if (isWaitingTime) {
                         curernt?.let {
                             if (it.first == queueId) {
