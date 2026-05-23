@@ -18,6 +18,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.snowdango.sumire.ui.R
 import com.snowdango.sumire.ui.UTIL_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
+import androidx.compose.ui.platform.LocalResources
 
 @Composable
 fun CircleSongArtwork(
@@ -52,7 +53,7 @@ fun PreviewCircleSongArtwork() {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f),
-            bitmap = LocalContext.current.resources.getDrawable(R.drawable.apple_music).toBitmap(),
+            bitmap = LocalResources.current.getDrawable(R.drawable.apple_music).toBitmap(),
         )
     }
 }
