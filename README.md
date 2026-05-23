@@ -5,9 +5,9 @@
 </div>
 
 <div align="center">
-
+  
 [English](README.md) | [日本語](README.ja.md)
-
+  
 </div>
 
 ## About
@@ -53,3 +53,16 @@ After installation, launch the app and grant the permissions it requests when pr
 
 - **Notification access** — Used to detect the currently playing song. The app cannot function without this permission.
 - **Notification display** — Optional. Without it, widget error notifications will not be shown.
+=======
+## このアプリについて
+このアプリは、音楽サービスで再生した曲を取得し履歴として保存します。
+現在再生している曲や過去に再生した曲を履歴としてみることができます。
+また、ウィジェット機能も使用でき、現在再生している曲の表示、urlのコピー、Xへのシェアを簡単にすることができます。
+
+## 使用方法
+Releaseから最新のapkを取得してインストールしてください。
+インストール後にアプリを起動したら、権限の要求がされるので表示に従って権限を付与してください。
+
+### 必要権限
+- 通知の取得（現在再生している曲の取得に使用しています。この権限がない場合、アプリを使用できません。
+- 通知の表示（必須ではありません。しかし、権限がない場合ウィジェットでのエラー表示が表示されなくなります。
