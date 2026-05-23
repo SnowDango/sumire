@@ -10,3 +10,6 @@ local.properties
 siging.properties
 app/src/debug/google-services.json
 app/src/release/google-services.json
+check_elf_alignment.sh
+debug.jks
+release.jks
