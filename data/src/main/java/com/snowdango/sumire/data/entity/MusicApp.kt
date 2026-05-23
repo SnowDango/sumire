@@ -2,7 +2,7 @@ package com.snowdango.sumire.data.entity
 
 enum class MusicApp(val apiProvider: String, val packageName: String, val platform: String) {
     APPLE_MUSIC("itunes", "com.apple.android.music", "appleMusic"),
-    SPOTIFY("spotify", "", "spotify"),
+    SPOTIFY("spotify", "com.spotify.music", "spotify"),
     YOUTUBE("youtube", "", "youtubeMusic"),
     GOOGLE("google", "", "google"),
     PANDORA("pandora", "", "pandora"),

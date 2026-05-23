@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
 import android.media.session.MediaController
@@ -16,6 +17,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.playing.SongData
@@ -76,7 +78,10 @@ class SongListenerService : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         sbn?.let {
-            if (it.packageName == MusicApp.APPLE_MUSIC.packageName) {
+            if (
+                it.packageName == MusicApp.APPLE_MUSIC.packageName
+                || it.packageName == MusicApp.SPOTIFY.packageName
+            ) {
                 syncMediaMetadata(it.packageName)
             }
         }
@@ -107,12 +112,16 @@ class SongListenerService : NotificationListenerService() {
                             songSharedFlow.changeSong(
                                 queueId = currentQueueId,
                                 playingSongData = if (metadata != null) {
-                                    createPlayingSongData(metadata, it)
+                                    createPlayingSongData(
+                                        metadata,
+                                        it,
+                                        MusicApp.entries.first { app -> app.packageName == packageName }
+                                    )
                                 } else {
                                     null
                                 },
                             )
-                            loggingMediaController(metadata, it)
+                            loggingMediaController(packageName, metadata, it)
                         } catch (_: Exception) {
                             Log.e("GetMetadata", "failed get metadata")
                         }
@@ -125,13 +134,14 @@ class SongListenerService : NotificationListenerService() {
     private fun createPlayingSongData(
         metadata: MediaMetadata,
         mediaController: MediaController,
+        musicApp: MusicApp,
     ): PlayingSongData {
         return PlayingSongData(
             SongData(
                 title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE),
                 artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST),
                 album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM),
-                app = MusicApp.APPLE_MUSIC,
+                app = musicApp,
                 artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
                     ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
                 mediaId = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID),
@@ -141,7 +151,23 @@ class SongListenerService : NotificationListenerService() {
         )
     }
 
+    private fun loggingMediaNotification(
+        packageName: String,
+    ) {
+        getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
+            val componentName =
+                ComponentName(this@SongListenerService, SongListenerService::class.java)
+            appScope.launch {
+                mediaSessionManager.getActiveSessions(componentName)
+                    .find { it.packageName == packageName }?.let {
+                        loggingMediaController(packageName, it.metadata,it)
+                    }
+            }
+        }
+    }
+
     private fun loggingMediaController(
+        packageName: String,
         metadata: MediaMetadata?,
         mediaController: MediaController?,
     ) {
