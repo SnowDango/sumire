@@ -27,6 +27,7 @@ A widget is also available, allowing you to view the currently playing song, cop
 Music apps whose playback can be captured from notifications:
 
 - Apple Music
+- Spotify
 
 ### URL Retrieval & Sharing
 
