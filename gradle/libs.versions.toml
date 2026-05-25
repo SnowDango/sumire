@@ -41,7 +41,7 @@ datastore = "1.2.0"
 deploygate = "2.9.0"
 google-services = "4.4.4"
 firebase = "34.13.0"
-crashlytics-plugin = "3.0.6"
+crashlytics-plugin = "3.0.7"
 
 
 [libraries]
