@@ -4,7 +4,7 @@ compileSdk = "36"
 versionCode = "4"
 versionName = "0.0.4"
 
-agp = "9.0.0"
+agp = "9.2.1"
 ksp = "2.3.4"
 kotlin = "2.3.20"
 coreKtx = "1.18.0"
