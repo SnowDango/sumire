@@ -5,7 +5,7 @@ versionCode = "4"
 versionName = "0.0.4"
 
 agp = "9.0.0"
-ksp = "2.3.4"
+ksp = "2.3.8"
 kotlin = "2.3.20"
 coreKtx = "1.18.0"
 splashscreen = "1.2.0"
