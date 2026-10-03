@@ -33,11 +33,11 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val current = currentState<Preferences>()
-            val title = current[WidgetViewModel.titleKey] ?: ""
-            val artist = current[WidgetViewModel.artist] ?: ""
-            val artwork = current[WidgetViewModel.artworkKey] ?: ""
-            val mediaId = current[WidgetViewModel.mediaId] ?: ""
-            val platform = current[WidgetViewModel.platform] ?: ""
+            val title = current[titleKey] ?: ""
+            val artist = current[artistKey] ?: ""
+            val artwork = current[artworkKey] ?: ""
+            val mediaId = current[mediaIdKey] ?: ""
+            val platform = current[platformKey] ?: ""
             val isSharedFailure = current[isSharedFailureKey] ?: false
             SumireGlanceTheme {
                 Content(
@@ -77,8 +77,9 @@ class SmallArtworkWidget : GlanceAppWidget(), KoinComponent {
     companion object {
         val artworkKey = stringPreferencesKey("artwork")
         val titleKey = stringPreferencesKey("title")
-        val mediaId = stringPreferencesKey("mediaId")
-        val platform = stringPreferencesKey("platform")
+        val artistKey = stringPreferencesKey("artist")
+        val mediaIdKey = stringPreferencesKey("mediaId")
+        val platformKey = stringPreferencesKey("platform")
         val isSharedFailureKey = booleanPreferencesKey("isSharedFailure")
     }
 }

@@ -27,4 +27,8 @@ class SongsUseCase : KoinComponent {
     suspend fun getSearchSongsList(searchText: String): List<Songs> {
         return songsDatabase.songsDao.getSearchTitle(searchText)
     }
+
+    suspend fun updateUrl(songId: Long, url: String) {
+        songsDatabase.songsDao.updateUrl(songId, url)
+    }
 }

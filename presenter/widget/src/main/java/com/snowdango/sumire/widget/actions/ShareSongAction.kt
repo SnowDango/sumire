@@ -1,5 +1,6 @@
 package com.snowdango.sumire.widget.actions
 
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -35,7 +36,6 @@ class ShareSongAction : ActionCallback, KoinComponent {
         val mediaId = parameters[mediaIdKey]
         val appPlatform = parameters[appPlatformKey]
         val url = shareSongModel.getUrl(mediaId, appPlatform)
-        Log.d("ShareSongAction", url.toString())
         if (url.isNullOrBlank()) {
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
@@ -47,11 +47,9 @@ class ShareSongAction : ActionCallback, KoinComponent {
                     LogEvent.Param.PARAM_MEDIA_ID to mediaId.orEmpty()
                 ),
             )
-            WorkManager.getInstance(context)
-                .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
+            enqueueFailureWorker(context)
         } else {
             val type = settingsModel.getWidgetActionType()
-            Log.d("ShareSongAction", type.name)
             when (type) {
                 WidgetActionType.COPY -> {
                     onActionCopy(context, url)
@@ -102,10 +100,18 @@ class ShareSongAction : ActionCallback, KoinComponent {
                     LogEvent.Param.PARAM_URL to url,
                 ),
             )
-            context.startActivity(intent)
+            try {
+                context.startActivity(intent)
+            } catch (e: ActivityNotFoundException) {
+                // X がインストールされていない端末では共有先の選択に切り替える
+                Log.w(LOG_TAG, "twitter app not found, fallback to chooser", e)
+                val chooser = Intent.createChooser(intent.setPackage(null), null)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                runCatching { context.startActivity(chooser) }
+                    .onFailure { enqueueFailureWorker(context) }
+            }
         } else {
-            WorkManager.getInstance(context)
-                .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
+            enqueueFailureWorker(context)
             logEvent.sendEvent(
                 LogEvent.Event.SHARE_EVENT,
                 params = mapOf(
@@ -116,7 +122,13 @@ class ShareSongAction : ActionCallback, KoinComponent {
         }
     }
 
+    private fun enqueueFailureWorker(context: Context) {
+        WorkManager.getInstance(context)
+            .enqueue(OneTimeWorkRequestBuilder<ShareSongFailureWorker>().build())
+    }
+
     companion object {
+        private const val LOG_TAG = "ShareSongAction"
         val titleKey = ActionParameters.Key<String>("title")
         val artistKey = ActionParameters.Key<String>("artist")
         val mediaIdKey = ActionParameters.Key<String>("mediaId")

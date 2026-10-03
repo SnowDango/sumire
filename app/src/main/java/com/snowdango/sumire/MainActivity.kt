@@ -66,14 +66,14 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-        viewModel.setIsShowPermissionDialog(
-            getEnabledListenerPackages(this).contains(packageName).not(),
-        )
     }
 
     override fun onStart() {
         super.onStart()
-        if (getEnabledListenerPackages(this).contains(packageName)) {
+        val isListenerEnabled = getEnabledListenerPackages(this).contains(packageName)
+        // 設定画面から戻ってきたときにも権限の状態を見直す
+        viewModel.setIsShowPermissionDialog(isListenerEnabled.not())
+        if (isListenerEnabled) {
             val intent = Intent(this, SongListenerService::class.java)
             startForegroundService(intent)
         }

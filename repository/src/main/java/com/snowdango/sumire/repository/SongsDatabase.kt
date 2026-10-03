@@ -29,7 +29,8 @@ import com.snowdango.sumire.repository.typeconverter.LocalDataTimeConverter
         Tasks::class,
     ],
     version = 3,
-    exportSchema = false,
+    // スキーマ変更時に migration を書けるよう、スキーマを repository/schemas に出力する
+    exportSchema = true,
 )
 @TypeConverters(
     LocalDataTimeConverter::class,
@@ -55,8 +56,7 @@ abstract class SongsDatabase : RoomDatabase() {
                     context.applicationContext,
                     SongsDatabase::class.java,
                     DATABASE_NAME,
-                ).apply {
-                }.build().also {
+                ).build().also {
                     INSTANCE = it
                 }
             }

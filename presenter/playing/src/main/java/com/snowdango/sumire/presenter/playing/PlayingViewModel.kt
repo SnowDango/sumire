@@ -10,6 +10,7 @@ import com.snowdango.sumire.ui.viewdata.SongCardViewData
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -23,11 +24,7 @@ class PlayingViewModel(
     private val getHistoriesModel: GetHistoriesModel by inject()
 
     private val _currentPlayingSong = MutableStateFlow<PlayingSongData?>(value = null)
-    val currentPlayingSong: StateFlow<PlayingSongData?> = _currentPlayingSong.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(5000),
-        initialValue = null,
-    )
+    val currentPlayingSong: StateFlow<PlayingSongData?> = _currentPlayingSong.asStateFlow()
 
     private val _recentHistory = getHistoriesModel.getRecentHistoriesSongFlow(size = 10)
     val recentHistories: StateFlow<List<SongCardViewData>> = _recentHistory.stateIn(
