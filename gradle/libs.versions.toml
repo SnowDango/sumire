@@ -154,4 +154,3 @@ deploygate = { id = "deploygate" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 firebase-clashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics-plugin" }
 
-

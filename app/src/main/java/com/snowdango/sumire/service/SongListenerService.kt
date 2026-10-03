@@ -201,6 +201,21 @@ class SongListenerService : NotificationListenerService() {
         )
     }
 
+    private fun loggingMediaNotification(
+        packageName: String,
+    ) {
+        getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
+            val componentName =
+                ComponentName(this@SongListenerService, SongListenerService::class.java)
+            appScope.launch {
+                mediaSessionManager.getActiveSessions(componentName)
+                    .find { it.packageName == packageName }?.let {
+                        loggingMediaController(it.metadata, it)
+                    }
+            }
+        }
+    }
+
     private fun loggingMediaController(
         metadata: MediaMetadata?,
         mediaController: MediaController?,
