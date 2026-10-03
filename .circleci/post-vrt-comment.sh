@@ -25,10 +25,11 @@ UPLOAD_BASE="${GITHUB_UPLOAD_BASE:-https://uploads.github.com}"
 MAX_ATTACHMENTS=50
 COMMENT_FILE="${RESULT_DIR}/comment.txt"
 
-# PR の URL から owner/repo を取る(https://github.com/<owner>/<repo>/pull/<n>)
+# PR の URL から owner/repo と番号を取る(https://github.com/<owner>/<repo>/pull/<n>)
 OWNER_REPO=$(printf '%s' "${PR_URL}" | sed -E 's#^https?://[^/]+/([^/]+/[^/]+)/pull/.*$#\1#')
-if [ "${OWNER_REPO}" = "${PR_URL}" ] || [ -z "${OWNER_REPO}" ]; then
-  echo "cannot parse owner/repo from ${PR_URL}" >&2
+PR_NUMBER=$(printf '%s' "${PR_URL}" | sed -E 's#^.*/pull/([0-9]+).*$#\1#')
+if [ "${OWNER_REPO}" = "${PR_URL}" ] || [ -z "${OWNER_REPO}" ] || [ "${PR_NUMBER}" = "${PR_URL}" ]; then
+  echo "cannot parse owner/repo/number from ${PR_URL}" >&2
   exit 1
 fi
 
@@ -178,15 +179,31 @@ build_image_body() {
 }
 
 # ---- 投稿する -----------------------------------------------------------------
-has_own_comment() {
-  "${GH}" pr view "${PR_URL}" --comments --json comments \
-    | jq -r --arg login "${AUTHOR_LOGIN}" '[.comments[].author.login] | any(. == $login)'
+# 自分(投稿者)の最後のコメントの ID を REST で探す。
+# gh pr view --json comments / --edit-last は App トークンだと自分のコメントを
+# 見つけられず新規コメントが増えてしまうため、REST の user.login で判定する。
+# Bot の login は REST では "<name>[bot]" になるので両方を見る
+find_own_comment_id() {
+  "${GH}" api "repos/${OWNER_REPO}/issues/${PR_NUMBER}/comments?per_page=100" \
+    | jq -r --arg login "${AUTHOR_LOGIN}" \
+        '[.[] | select(.user.login == $login or .user.login == ($login + "[bot]"))] | last | .id // empty'
 }
 
-# 既に自分のコメントがあれば --edit-last で上書きし、無ければ新規に付ける
-post_comment() {
+# REST で投稿する(添付なし)。既に自分のコメントがあれば上書き、無ければ新規
+post_comment_rest() {
+  local id
+  id=$(find_own_comment_id)
+  if [ -n "${id}" ]; then
+    "${GH}" api -X PATCH "repos/${OWNER_REPO}/issues/comments/${id}" -F "body=@${COMMENT_FILE}" --jq .html_url
+  else
+    "${GH}" api -X POST "repos/${OWNER_REPO}/issues/${PR_NUMBER}/comments" -F "body=@${COMMENT_FILE}" --jq .html_url
+  fi
+}
+
+# gh pr comment で投稿する(--attach 用)。既に自分のコメントがあれば --edit-last
+post_comment_gh() {
   local edit_flag=()
-  if [ "$(has_own_comment)" = "true" ]; then
+  if [ -n "$(find_own_comment_id)" ]; then
     edit_flag=(--edit-last)
   fi
   "${GH}" pr comment "${PR_URL}" -F "${COMMENT_FILE}" ${edit_flag[@]+"${edit_flag[@]}"} "$@"
@@ -205,7 +222,7 @@ if [ "${#IMAGES[@]}" -gt 0 ]; then
         attach_args+=(--attach "${img}#$(display_name "${img}")")
       done
       build_image_body > "${COMMENT_FILE}"
-      if post_comment "${attach_args[@]}"; then
+      if post_comment_gh "${attach_args[@]}"; then
         echo "posted VRT result with $(( ${#attach_args[@]} / 2 )) inline image(s) via gh --attach"
         exit 0
       fi
@@ -214,7 +231,7 @@ if [ "${#IMAGES[@]}" -gt 0 ]; then
     bot)
       if upload_images_with_app_token; then
         build_image_body > "${COMMENT_FILE}"
-        if post_comment; then
+        if post_comment_rest; then
           echo "posted VRT result with ${#IMAGE_URL[@]} inline image(s) uploaded by the app token"
           exit 0
         fi
@@ -227,5 +244,5 @@ if [ "${#IMAGES[@]}" -gt 0 ]; then
 fi
 
 build_link_body > "${COMMENT_FILE}"
-post_comment
+post_comment_rest
 echo "posted VRT result with artifact links"
