@@ -24,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.navigation.NavController
@@ -46,7 +45,6 @@ fun MainScreen(
     logEvent: LogEvent,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val navController = rememberNavController()
     val destinationListener = NavController.OnDestinationChangedListener { _, destination, _ ->
         logEvent.sendEvent(
@@ -143,11 +141,7 @@ fun MainScreen(
                 popExitTransition = null,
                 popEnterTransition = null,
             ) {
-                SettingsScreen(
-                    onShowkaseIntent = {
-                        startShowkase(context)
-                    },
-                )
+                SettingsScreen()
             }
         }
     }

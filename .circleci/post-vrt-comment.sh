@@ -2,7 +2,9 @@
 # VRT の結果を PR にコメントする。
 #
 # 使い方: post-vrt-comment.sh <result-dir>
-#   <result-dir>/images/*_compare.png : 差分があった画面の比較画像(Roborazzi の _compare.png)
+#   <result-dir>/images/*_compare.png : 差分・追加・削除があった画面の比較画像
+#                                       (CompareScreenshots.java の出力。左から base / diff / PR)
+#   <result-dir>/summary.tsv          : 画面ごとの status(changed / added / deleted)と差分の大きさ
 #   <result-dir>/artifact.json        : vrt ジョブの CircleCI artifact 一覧(API のレスポンス)
 #
 # 画像の埋め込み方法は 3 段構え。上から順に試して、失敗したら次へ落ちる。
@@ -62,12 +64,39 @@ if [ -s "${RESULT_DIR}/artifact.json" ]; then
   done < <(jq -r '.items[]? | [(.path | split("/") | last), .url] | @tsv' "${RESULT_DIR}/artifact.json")
 fi
 
+# CompareScreenshots.java が書く summary.tsv(status \t name \t detail)。name は display_name と同じ
+declare -A STATUS=()
+declare -A DETAIL=()
+if [ -s "${RESULT_DIR}/summary.tsv" ]; then
+  while IFS=$'\t' read -r status name detail; do
+    [ -n "${name}" ] || continue
+    STATUS["${name}"]="${status}"
+    DETAIL["${name}"]="${detail}"
+  done < "${RESULT_DIR}/summary.tsv"
+fi
+
 # 画像ごとの埋め込み先。attach モードではローカルパス(gh が書き換える)、
 # bot モードでは CircleCI artifact の URL が入る
 declare -A IMAGE_URL=()
 
 display_name() {
   basename "$1" _compare.png
+}
+
+# summary.tsv にあれば "changed, 120 px (0.52%)" のような補足を返す
+status_text() {
+  local name status detail
+  name=$(display_name "$1")
+  status="${STATUS[${name}]:-}"
+  detail="${DETAIL[${name}]:-}"
+  if [ -z "${status}" ]; then
+    return
+  fi
+  if [ -n "${detail}" ]; then
+    printf '%s, %s' "${status}" "${detail}"
+  else
+    printf '%s' "${status}"
+  fi
 }
 
 # alt text として安全な形にする(gh の escapeAlt と同じ文字を潰す)
@@ -96,11 +125,11 @@ build_link_body() {
     echo "not changed screen"
     return
   fi
-  echo "| changed |"
-  echo "|-------|"
+  echo "| changed | status |"
+  echo "|-------|-------|"
   local img
   for img in "${IMAGES[@]}"; do
-    printf '| %s |\n' "$(artifact_link "${img}")"
+    printf '| %s | %s |\n' "$(artifact_link "${img}")" "$(status_text "${img}")"
   done
 }
 
@@ -108,13 +137,18 @@ build_link_body() {
 build_image_body() {
   echo "## VRT Result"
   echo
-  printf '%d screen(s) changed.\n' "${#IMAGES[@]}"
-  local img name
+  printf '%d screen(s) changed. Each image shows before (base) / diff / after (PR).\n' "${#IMAGES[@]}"
+  local img name status
   for img in "${IMAGES[@]}"; do
     name=$(display_name "${img}")
+    status=$(status_text "${img}")
     echo
     printf '### %s\n' "${name}"
     echo
+    if [ -n "${status}" ]; then
+      printf '%s\n' "${status}"
+      echo
+    fi
     if [ -n "${IMAGE_URL[${img}]:-}" ]; then
       printf '![%s](%s)\n' "$(escape_alt "${name}")" "${IMAGE_URL[${img}]}"
     else
