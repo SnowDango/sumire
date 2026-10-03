@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   android: circleci/android@2.5.0
-  gh: circleci/github-cli@2.3.0
   github-app-token: ostk0069/github-app-token@0.0.1
 
 parameters:
@@ -319,15 +318,20 @@ jobs:
             find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
       - store_artifacts:
           path: app/build/outputs/roborazzi
+      # result-comment ジョブに渡す結果一式。比較画像(PR コメントに直接添付する)と、
+      # 添付できないときのリンク用に CircleCI artifact の一覧を入れる
       - run:
-          name: create result json file
+          name: collect vrt result
           command: |
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
-            cat artifact.json
+            mkdir -p vrt-result/images
+            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 -name '*_compare.png' -exec cp {} vrt-result/images/ \;
+            ls -la vrt-result/images
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output vrt-result/artifact.json
+            cat vrt-result/artifact.json
       - persist_to_workspace:
           root: ./
           paths:
-            - artifact.json
+            - vrt-result
   result-comment:
     # gh と curl を動かすだけなので android machine は不要。小さい docker で起動を速くする
     docker:
@@ -335,28 +339,28 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - gh/install
+      # 画像を直接アップロードする --attach は gh 2.99.0 で入ったので、バージョンを固定して入れる
+      - run:
+          name: install gh cli
+          environment:
+            GH_CLI_VERSION: "2.99.0"
+          command: |
+            curl -sSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" -o /tmp/gh.tgz
+            sudo tar -xzf /tmp/gh.tgz -C /usr/local --strip-components=1
+            gh --version
       - attach_workspace:
           at: ./
-      - run:
-          name: create comment
-          command: |
-            sh create-comment.sh
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
           installation_id: 54651436
+      # VRT_COMMENT_TOKEN(ユーザーの PAT)があれば比較画像をコメントに直接埋め込み、
+      # 無ければ GitHub App のトークンで従来どおり artifact へのリンク表を貼る
       - run:
           name: pull request comment
           command: |
-            echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
-            comments=$(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '[.comments[].author.login]|any(.=="sumire-apps")')
-            echo $comments
-            if [ ${comments} = "true" ]; then
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
-            else
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
-            fi
+            chmod +x .circleci/post-vrt-comment.sh
+            .circleci/post-vrt-comment.sh vrt-result
 workflows:
   # GitHub Actions から API 経由で起動される VRT 用パイプライン(target-branch 付き)では
   # VRT 以外のワークフローを動かさない。従来は build-test がここでも走り、
