@@ -1,13 +1,13 @@
 package com.snowdango.sumire.receiver
 
-import android.annotation.SuppressLint
 import android.appwidget.AppWidgetManager
 import android.content.Context
-import android.content.Intent
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
+import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.snowdango.sumire.widget.SmallArtworkWidget
 import com.snowdango.sumire.widget.worker.SmallArtworkWidgetWorker
@@ -22,12 +22,6 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
 
     override val glanceAppWidget: GlanceAppWidget
         get() = widget
-
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        WorkManager.getInstance(context)
-            .enqueue(OneTimeWorkRequestBuilder<SmallArtworkWidgetWorker>().build())
-    }
 
     override fun onUpdate(
         context: Context,
@@ -47,22 +41,23 @@ class SmallArtworkWidgetReceiver : GlanceAppWidgetReceiver(), KoinComponent {
 
     override fun onDisabled(context: Context) {
         super.onDisabled(context)
-        WorkManager.getInstance(context)
-            .cancelAllWorkByTag(workerTag)
+        WorkManager.getInstance(context).also {
+            it.cancelUniqueWork(workerTag)
+            it.cancelAllWorkByTag(workerTag)
+        }
     }
 
-    @Suppress("MagicNumber")
-    @SuppressLint("InvalidPeriodicWorkRequestInterval")
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        val request = PeriodicWorkRequest.Builder(
-            SmallArtworkWidgetWorker::class.java,
-            30,
-            TimeUnit.SECONDS,
+        // WorkManager の周期は 15 分未満にできない(指定しても 15 分に丸められる)。
+        // 重複登録しないように unique work として登録する。
+        val request = PeriodicWorkRequestBuilder<SmallArtworkWidgetWorker>(
+            PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS,
+            TimeUnit.MILLISECONDS,
         ).addTag(
             workerTag,
         ).build()
         WorkManager.getInstance(context)
-            .enqueue(request)
+            .enqueueUniquePeriodicWork(workerTag, ExistingPeriodicWorkPolicy.KEEP, request)
     }
 }

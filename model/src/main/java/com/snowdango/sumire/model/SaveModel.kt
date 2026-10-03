@@ -1,7 +1,9 @@
 package com.snowdango.sumire.model
 
+import android.util.Log
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.AppSongKey
+import com.snowdango.sumire.data.entity.db.relations.SongAppKeys
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.songlink.SongLinkData
 import com.snowdango.sumire.data.entity.songlink.SongLinkResponse
@@ -13,6 +15,7 @@ import com.snowdango.sumire.usecase.db.ArtistsUseCase
 import com.snowdango.sumire.usecase.db.HistoriesUseCase
 import com.snowdango.sumire.usecase.db.SongsUseCase
 import com.snowdango.sumire.usecase.db.TasksUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -30,91 +33,130 @@ class SaveModel : KoinComponent {
     private val tasksUseCase: TasksUseCase by inject()
 
     suspend fun saveSong(playingSongData: PlayingSongData) {
-        val response = songLinkApiUseCase.getSongLinkData(
-            playingSongData.songData.mediaId,
-            playingSongData.songData.app,
-        )
-        val mediaId: String = playingSongData.songData.mediaId
-        val app: MusicApp = playingSongData.songData.app
-        val songId: Long = appSongKeyUseCase.getSongIdByKey(mediaId, app)
-        if (response.status == SongLinkResponse.Status.OK) {
-            saveWithApi(songId, response.songData, playingSongData)
+        val mediaId = playingSongData.songData.mediaId
+        val app = playingSongData.songData.app
+        // 先にローカル DB を確認し、既知の曲なら API を叩かずに履歴だけ追加する
+        val known = appSongKeyUseCase.getAppSongKeys(mediaId, app)
+        if (known != null) {
+            saveKnownSong(known, playingSongData)
         } else {
-            saveNoApi(songId, playingSongData, response.status)
+            saveNewSong(playingSongData)
         }
     }
 
-    private suspend fun saveWithApi(
-        songId: Long,
-        songLinkData: SongLinkData,
-        playingSongData: PlayingSongData,
-    ) {
-        val keyMap: Map<MusicApp, String> = songLinkData.entities.filter {
-            MusicApp.entries.find { app -> app.apiProvider == it.value.provider } != null
-        }.map {
-            MusicApp.entries.first { app -> app.apiProvider == it.value.provider } to
-                it.value.id
-        }.toMap()
-        val urlMap: Map<MusicApp, String> = songLinkData.links.filter {
-            MusicApp.entries.find { app -> app.platform == it.key } != null
-        }.map {
-            MusicApp.entries.first { app -> app.platform == it.key } to
-                it.value.url
-        }.toMap()
-
+    private suspend fun saveKnownSong(known: SongAppKeys, playingSongData: PlayingSongData) {
+        val songId = known.targetKey.songId
         withContext(Dispatchers.IO) {
-            if (songId != -1L) {
-                saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
-                checkAppSongKey(songId, keyMap, urlMap)
-            } else {
-                saveData(
-                    artist = playingSongData.songData.artist,
-                    albumName = playingSongData.songData.album,
-                    thumbnail = songLinkData.entities.values.first().thumbnailUrl,
-                    isThumbUrl = true,
-                    title = playingSongData.songData.title,
-                    url = songLinkData.pageUrl,
-                    playTime = playingSongData.playTime,
-                    mapKey = keyMap,
-                    mapUrl = urlMap,
-                    status = SongLinkResponse.Status.OK,
-                    mediaId = playingSongData.songData.mediaId,
-                    app = playingSongData.songData.app,
-                )
+            saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
+        }
+        // オフライン時などに API 情報なしで保存された曲は、URL をあとから補完する
+        if (known.songKeys.song.url == null) {
+            backfillSongLink(songId, playingSongData)
+        }
+    }
+
+    private suspend fun backfillSongLink(songId: Long, playingSongData: PlayingSongData) {
+        val response = fetchSongLink(playingSongData) ?: return
+        if (response.status != SongLinkResponse.Status.OK) return
+        val (keyMap, urlMap) = extractKeyAndUrlMap(response.songData)
+        withContext(Dispatchers.IO) {
+            checkAppSongKey(songId, keyMap, urlMap)
+            response.songData.pageUrl.takeIf { it.isNotBlank() }?.let { pageUrl ->
+                songsUseCase.updateUrl(songId, pageUrl)
             }
         }
     }
 
+    private suspend fun saveNewSong(playingSongData: PlayingSongData) {
+        val response = fetchSongLink(playingSongData)
+        if (response != null && response.status == SongLinkResponse.Status.OK) {
+            saveWithApi(response.songData, playingSongData)
+        } else {
+            saveNoApi(playingSongData, response?.status ?: SongLinkResponse.Status.Error)
+        }
+    }
+
+    /**
+     * song.link API を呼ぶ。通信に失敗したら null を返し、呼び出し側はローカル情報だけで保存する。
+     */
+    private suspend fun fetchSongLink(playingSongData: PlayingSongData): SongLinkResponse? {
+        return try {
+            songLinkApiUseCase.getSongLinkData(
+                playingSongData.songData.mediaId,
+                playingSongData.songData.app,
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(LOG_TAG, "song.link request failed, saving without api data", e)
+            null
+        }
+    }
+
+    private fun extractKeyAndUrlMap(
+        songLinkData: SongLinkData,
+    ): Pair<Map<MusicApp, String>, Map<MusicApp, String?>> {
+        val keyMap: Map<MusicApp, String> = songLinkData.entities.values.mapNotNull { entity ->
+            MusicApp.entries.firstOrNull { app -> app.apiProvider == entity.provider }
+                ?.let { app -> app to entity.id }
+        }.toMap()
+        val urlMap: Map<MusicApp, String?> = songLinkData.links.mapNotNull { (platform, link) ->
+            MusicApp.entries.firstOrNull { app -> app.platform == platform }
+                ?.let { app -> app to link.url }
+        }.toMap()
+        return keyMap to urlMap
+    }
+
+    private suspend fun saveWithApi(
+        songLinkData: SongLinkData,
+        playingSongData: PlayingSongData,
+    ) {
+        val (keyMap, urlMap) = extractKeyAndUrlMap(songLinkData)
+        // 問い合わせたエンティティのサムネイルを優先し、無ければ他のエンティティ、
+        // それも無ければ再生中のアートワークを使う
+        val thumbnailUrl = (
+            songLinkData.entities[songLinkData.entityUniqueId]
+                ?: songLinkData.entities.values.firstOrNull()
+            )?.thumbnailUrl?.takeIf { it.isNotBlank() }
+        withContext(Dispatchers.IO) {
+            saveData(
+                artist = playingSongData.songData.artist,
+                albumName = playingSongData.songData.album,
+                thumbnail = thumbnailUrl ?: playingSongData.songData.artwork?.toBase64(),
+                isThumbUrl = thumbnailUrl != null,
+                title = playingSongData.songData.title,
+                url = songLinkData.pageUrl.takeIf { it.isNotBlank() },
+                playTime = playingSongData.playTime,
+                // 再生元アプリの mediaId は必ず保存し、次回以降の同定に使えるようにする
+                mapKey = keyMap + (playingSongData.songData.app to playingSongData.songData.mediaId),
+                mapUrl = urlMap,
+                status = SongLinkResponse.Status.OK,
+                mediaId = playingSongData.songData.mediaId,
+                app = playingSongData.songData.app,
+            )
+        }
+    }
+
     private suspend fun saveNoApi(
-        songId: Long,
         playingSongData: PlayingSongData,
         status: SongLinkResponse.Status,
     ) {
         val keyMap: Map<MusicApp, String> =
             mapOf(playingSongData.songData.app to playingSongData.songData.mediaId)
         withContext(Dispatchers.IO) {
-            if (songId != -1L) {
-                saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
-                checkAppSongKey(
-                    songId,
-                    keyMap,
-                    mapOf(),
-                )
-            } else {
-                saveData(
-                    artist = playingSongData.songData.artist,
-                    albumName = playingSongData.songData.album,
-                    thumbnail = playingSongData.songData.artwork?.toBase64(),
-                    isThumbUrl = false,
-                    title = playingSongData.songData.title,
-                    playTime = playingSongData.playTime,
-                    mapKey = keyMap,
-                    mapUrl = mapOf(),
-                    status = status,
-                    mediaId = playingSongData.songData.mediaId,
-                    app = playingSongData.songData.app,
-                )
-            }
+            saveData(
+                artist = playingSongData.songData.artist,
+                albumName = playingSongData.songData.album,
+                thumbnail = playingSongData.songData.artwork?.toBase64(),
+                isThumbUrl = false,
+                title = playingSongData.songData.title,
+                playTime = playingSongData.playTime,
+                mapKey = keyMap,
+                mapUrl = mapOf(),
+                status = status,
+                mediaId = playingSongData.songData.mediaId,
+                app = playingSongData.songData.app,
+            )
         }
     }
 
@@ -177,24 +219,30 @@ class SaveModel : KoinComponent {
         historiesUseCase.saveHistories(songId, playTime, app)
     }
 
+    /**
+     * まだ保存されていないキーだけを追加する
+     */
     private suspend fun checkAppSongKey(
         songId: Long,
         keyMap: Map<MusicApp, String>,
         urlMap: Map<MusicApp, String?>,
     ) {
         val result = appSongKeyUseCase.getBySongId(songId)
-        val addKeyMap = keyMap.filter {
-            result.find { appSongKey: AppSongKey ->
-                it.key == appSongKey.app &&
-                    it.value == appSongKey.mediaKey
-            } == null
+        val addKeyMap = keyMap.filter { (app, mediaKey) ->
+            result.none { appSongKey: AppSongKey ->
+                appSongKey.app == app && appSongKey.mediaKey == mediaKey
+            }
         }
         if (addKeyMap.isNotEmpty()) {
-            appSongKeyUseCase.insertAll(songId, keyMap, urlMap)
+            appSongKeyUseCase.insertAll(songId, addKeyMap, urlMap)
         }
     }
 
     private suspend fun saveTasks(songId: Long, mediaId: String) {
         tasksUseCase.saveTasks(mediaId, songId)
+    }
+
+    companion object {
+        private const val LOG_TAG = "SaveModel"
     }
 }

@@ -36,15 +36,17 @@ abstract class PlayingSongWorker<T : GlanceAppWidget>(
 
     private suspend fun update(playingSong: PlayingSongData?) {
         Log.d(PlayingSongWorker::class.java.name, playingSong?.songData?.title ?: "")
+        // Base64 化は重いので glanceId ごとではなく一度だけ行う
+        val artwork = playingSong?.songData?.artwork?.toBase64() ?: ""
         GlanceAppWidgetManager(context)
             .getGlanceIds(SmallArtworkWidget::class.java)
             .forEach { glanceId ->
                 updateAppWidgetState(context, glanceId) { preferences ->
-                    preferences[SmallArtworkWidget.artworkKey] =
-                        playingSong?.songData?.artwork?.toBase64() ?: ""
+                    preferences[SmallArtworkWidget.artworkKey] = artwork
                     preferences[SmallArtworkWidget.titleKey] = playingSong?.songData?.title ?: ""
-                    preferences[SmallArtworkWidget.mediaId] = playingSong?.songData?.mediaId ?: ""
-                    preferences[SmallArtworkWidget.platform] =
+                    preferences[SmallArtworkWidget.artistKey] = playingSong?.songData?.artist ?: ""
+                    preferences[SmallArtworkWidget.mediaIdKey] = playingSong?.songData?.mediaId ?: ""
+                    preferences[SmallArtworkWidget.platformKey] =
                         playingSong?.songData?.app?.platform ?: ""
                     preferences[SmallArtworkWidget.isSharedFailureKey] = false
                 }
