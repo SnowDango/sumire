@@ -1,28 +1,28 @@
 package com.snowdango.sumire.service
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
-import android.os.Build
+import android.media.session.PlaybackState
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.firebase.crashlytics.internal.model.CrashlyticsReport
+import com.snowdango.sumire.BuildConfig
+import com.snowdango.sumire.R
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.playing.PlayingSongData
 import com.snowdango.sumire.data.entity.playing.SongData
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.logging.Logging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
@@ -40,17 +40,24 @@ class SongListenerService : NotificationListenerService() {
     private val channelName = "SumireSongListener"
     private val notificationId = 234234423
 
-    override fun onCreate() {
-        super.onCreate()
-        initMediaMetadata()
-    }
-
     override fun onBind(intent: Intent?): IBinder? {
         startForeground()
         return super.onBind(intent)
     }
 
-    @SuppressLint("ObsoleteSdkInt")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // MainActivity から startForegroundService() で起動されたときも
+        // 5 秒以内に startForeground() を呼ぶ必要がある
+        startForeground()
+        return START_NOT_STICKY
+    }
+
+    override fun onListenerConnected() {
+        super.onListenerConnected()
+        // getActiveSessions() はリスナーが接続されてから呼ぶ
+        initMediaMetadata()
+    }
+
     private fun startForeground() {
         val channel = NotificationChannel(
             channelId,
@@ -62,30 +69,36 @@ class SongListenerService : NotificationListenerService() {
         (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).also {
             it.createNotificationChannel(channel)
         }
+        // smallIcon とタイトルが無いと、システムが汎用の「実行中」通知に差し替えてしまう
         val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(getString(R.string.app_name))
             .setCategory(Notification.CATEGORY_SERVICE)
             .setWhen(System.currentTimeMillis())
             .setOngoing(true)
             .build()
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            startForeground(notificationId, notification)
-        } else {
-            startForeground(notificationId, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-        }
+        startForeground(notificationId, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
-        sbn?.let {
-            if (
-                it.packageName == MusicApp.APPLE_MUSIC.packageName
-                || it.packageName == MusicApp.SPOTIFY.packageName
-            ) {
-                syncMediaMetadata(it.packageName)
-            }
+        val packageName = sbn?.packageName ?: return
+        if (isTargetMusicApp(packageName)) {
+            syncMediaMetadata(packageName)
         }
     }
+
+    override fun onNotificationRemoved(sbn: StatusBarNotification?) {
+        super.onNotificationRemoved(sbn)
+        val packageName = sbn?.packageName ?: return
+        if (isTargetMusicApp(packageName)) {
+            clearIfSessionGone(packageName)
+        }
+    }
+
+    private fun isTargetMusicApp(packageName: String): Boolean =
+        MusicApp.entries.any { it.packageName.isNotEmpty() && it.packageName == packageName }
 
     private fun initMediaMetadata() {
         getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
@@ -100,34 +113,64 @@ class SongListenerService : NotificationListenerService() {
     }
 
     private fun syncMediaMetadata(packageName: String) {
-        getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
-            val componentName =
-                ComponentName(this@SongListenerService, SongListenerService::class.java)
-            appScope.launch {
-                mediaSessionManager.getActiveSessions(componentName)
-                    .find { it.packageName == packageName }?.let {
-                        try {
-                            val metadata = it.metadata
-                            val currentQueueId = it.queue?.first()?.queueId
-                            songSharedFlow.changeSong(
-                                queueId = currentQueueId,
-                                playingSongData = if (metadata != null) {
-                                    createPlayingSongData(
-                                        metadata,
-                                        it,
-                                        MusicApp.entries.first { app -> app.packageName == packageName }
-                                    )
-                                } else {
-                                    null
-                                },
-                            )
-                            loggingMediaController(packageName, metadata, it)
-                        } catch (_: Exception) {
-                            Log.e("GetMetadata", "failed get metadata")
-                        }
-                    }
+        val mediaSessionManager = getSystemService(MediaSessionManager::class.java) ?: return
+        val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+        appScope.launch {
+            try {
+                val controller = mediaSessionManager.getActiveSessions(componentName)
+                    .find { it.packageName == packageName } ?: return@launch
+                val musicApp = MusicApp.entries.firstOrNull { it.packageName == packageName }
+                    ?: return@launch
+                val metadata = controller.metadata
+                songSharedFlow.changeSong(
+                    queueId = resolveQueueId(controller, metadata),
+                    playingSongData = metadata?.let { createPlayingSongData(it, controller, musicApp) },
+                )
+                if (BuildConfig.DEBUG) {
+                    loggingMediaController(metadata, controller)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "failed to sync media metadata for $packageName", e)
             }
         }
+    }
+
+    /**
+     * 通知が消えたあと、そのアプリのセッションも無くなっていれば再生中の曲をクリアする。
+     * 曲の切り替え時に通知が一瞬消えるだけのケースではセッションが残るので何もしない。
+     */
+    private fun clearIfSessionGone(packageName: String) {
+        val mediaSessionManager = getSystemService(MediaSessionManager::class.java) ?: return
+        val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+        appScope.launch {
+            try {
+                val stillActive = mediaSessionManager.getActiveSessions(componentName)
+                    .any { it.packageName == packageName }
+                val current = songSharedFlow.getCurrentPlayingSong()
+                if (!stillActive && current?.songData?.app?.packageName == packageName) {
+                    songSharedFlow.changeSong(queueId = null, playingSongData = null)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "failed to check media session for $packageName", e)
+            }
+        }
+    }
+
+    /**
+     * 曲を識別するためのキー。
+     * 再生中のキューアイテム ID を優先し、無ければキュー先頭、それも無ければ mediaId から導出する。
+     * キュー先頭は「再生中の曲」とは限らないので、あくまでフォールバック。
+     */
+    private fun resolveQueueId(controller: MediaController, metadata: MediaMetadata?): Long? {
+        val activeQueueItemId = controller.playbackState?.activeQueueItemId
+            ?.takeIf { it != PlaybackState.ACTIVE_QUEUE_ITEM_ID_UNKNOWN }
+        return activeQueueItemId
+            ?: controller.queue?.firstOrNull()?.queueId
+            ?: metadata?.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)?.hashCode()?.toLong()
     }
 
     @OptIn(ExperimentalTime::class)
@@ -135,39 +178,30 @@ class SongListenerService : NotificationListenerService() {
         metadata: MediaMetadata,
         mediaController: MediaController,
         musicApp: MusicApp,
-    ): PlayingSongData {
+    ): PlayingSongData? {
+        // タイトルが無いものは曲として扱えない
+        val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE) ?: return null
+        val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST).orEmpty()
+        val album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM).orEmpty()
+        // mediaId を返さないアプリ向けに、曲を同定できるキーを代わりに組み立てる
+        val mediaId = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)
+            ?: "${musicApp.platform}:$title:$artist:$album"
         return PlayingSongData(
             SongData(
-                title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE),
-                artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST),
-                album = metadata.getString(MediaMetadata.METADATA_KEY_ALBUM),
+                title = title,
+                artist = artist,
+                album = album,
                 app = musicApp,
                 artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
                     ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
-                mediaId = metadata.getString(MediaMetadata.METADATA_KEY_MEDIA_ID),
+                mediaId = mediaId,
             ),
             isActive = mediaController.playbackState?.isActive ?: false,
             playTime = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         )
     }
 
-    private fun loggingMediaNotification(
-        packageName: String,
-    ) {
-        getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
-            val componentName =
-                ComponentName(this@SongListenerService, SongListenerService::class.java)
-            appScope.launch {
-                mediaSessionManager.getActiveSessions(componentName)
-                    .find { it.packageName == packageName }?.let {
-                        loggingMediaController(packageName, it.metadata,it)
-                    }
-            }
-        }
-    }
-
     private fun loggingMediaController(
-        packageName: String,
         metadata: MediaMetadata?,
         mediaController: MediaController?,
     ) {
@@ -178,7 +212,7 @@ class SongListenerService : NotificationListenerService() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    companion object {
+        private const val LOG_TAG = "SongListenerService"
     }
 }

@@ -24,13 +24,20 @@ class SongLinkApi {
             parameter("id", id)
             parameter("userCountry", "JP")
         }
+        val status = when (response.status) {
+            HttpStatusCode.OK -> SongLinkResponse.Status.OK
+            HttpStatusCode.BadRequest, HttpStatusCode.NotFound -> SongLinkResponse.Status.NOT_FOUND
+            else -> SongLinkResponse.Status.Error
+        }
+        // 成功時以外は本文が JSON とは限らない(429 や 5xx)のでパースしない
+        val songData = if (status == SongLinkResponse.Status.OK) {
+            response.body<SongLinkData>()
+        } else {
+            SongLinkData()
+        }
         return SongLinkResponse(
-            status = when (response.status) {
-                HttpStatusCode.OK -> SongLinkResponse.Status.OK
-                HttpStatusCode.BadRequest -> SongLinkResponse.Status.NOT_FOUND
-                else -> SongLinkResponse.Status.Error
-            },
-            songData = response.body<SongLinkData>(),
+            status = status,
+            songData = songData,
         )
     }
 }

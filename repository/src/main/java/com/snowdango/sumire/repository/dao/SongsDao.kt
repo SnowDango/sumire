@@ -12,6 +12,9 @@ interface SongsDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(songs: Songs): Long
 
-    @Query("select * from ${Songs.TABLE_NAME} where ${Songs.COLUMN_TITLE} like :searchText limit 6")
+    @Query("select * from ${Songs.TABLE_NAME} where ${Songs.COLUMN_TITLE} like :searchText escape '\\' limit 6")
     suspend fun getSearchTitle(searchText: String): List<Songs>
+
+    @Query("update ${Songs.TABLE_NAME} set ${Songs.COLUMN_URL} = :url where ${Songs.COLUMN_ID} = :id")
+    suspend fun updateUrl(id: Long, url: String)
 }
