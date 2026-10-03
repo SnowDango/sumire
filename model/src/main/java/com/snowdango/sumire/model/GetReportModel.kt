@@ -60,8 +60,8 @@ class GetReportModel : KoinComponent {
     }
 
     companion object {
-        const val TOP_SONGS_LIMIT = 10
-        const val TOP_ARTISTS_LIMIT = 5
+        const val TOP_SONGS_LIMIT = 5
+        const val TOP_ARTISTS_LIMIT = 3
     }
 }
 
