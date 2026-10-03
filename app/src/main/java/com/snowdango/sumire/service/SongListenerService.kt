@@ -8,8 +8,8 @@ import android.content.Intent
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.media.MediaMetadata
 import android.media.session.MediaController
+import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
-import android.media.session.PlaybackState
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -167,7 +167,7 @@ class SongListenerService : NotificationListenerService() {
      */
     private fun resolveQueueId(controller: MediaController, metadata: MediaMetadata?): Long? {
         val activeQueueItemId = controller.playbackState?.activeQueueItemId
-            ?.takeIf { it != PlaybackState.ACTIVE_QUEUE_ITEM_ID_UNKNOWN }
+            ?.takeIf { it != MediaSession.QueueItem.UNKNOWN_ID.toLong() }
         return activeQueueItemId
             ?: controller.queue?.firstOrNull()?.queueId
             ?: metadata?.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)?.hashCode()?.toLong()
