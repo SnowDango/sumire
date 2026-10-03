@@ -5,8 +5,10 @@
 # 使い方: fetch-base-screenshots.sh <target-branch> <output-dir>
 #
 # target branch の HEAD と同じコミットで成功した save-screenshot ジョブが見つかれば、
-# その artifact(Roborazzi の PNG)を output-dir にダウンロードして 0 を返す。
-# 見つからない・取得に失敗したときは 1 を返し、呼び出し側は従来どおり撮影する。
+# その artifact(collect-screenshots.sh でまとめた Compose Preview Screenshot Testing の
+# 参照画像。artifact の path は screenshots/<module>/...)を output-dir にダウンロードして 0 を返す。
+# 見つからない・取得に失敗したとき、screenshots/ 以下の artifact が 1 つも無いとき
+# (Roborazzi 時代の artifact しか無いときなど)は 1 を返し、呼び出し側は撮影にフォールバックする。
 #
 # 必要な環境変数: CIRCLE_TOKEN, CIRCLE_PROJECT_USERNAME, CIRCLE_PROJECT_REPONAME
 set -u
@@ -29,7 +31,7 @@ api() {
 }
 
 # ダウンロードした画像が本物か確かめる。空ファイルやエラーページを比較元にすると
-# Roborazzi の compare が落ちるので、怪しければ呼び出し側で撮影にフォールバックさせる
+# CompareScreenshots.java が読めずに落ちるので、怪しければ呼び出し側で撮影にフォールバックさせる
 check_downloaded_file() {
   local file="$1"
   if [ ! -s "${file}" ]; then
@@ -111,9 +113,10 @@ while :; do
   fi
   while IFS=$'\t' read -r path download_url; do
     [ -n "${path}" ] || continue
-    # store_artifacts の path(app/build/outputs/roborazzi/...)から roborazzi 以下の相対パスを取る
-    rel="${path#*/roborazzi/}"
-    if [ "${rel}" = "${path}" ]; then rel=$(basename "${path}"); fi
+    # save-screenshot は store_artifacts の destination を screenshots にしている。
+    # それ以外(Roborazzi 時代の app/build/outputs/roborazzi/... など)は比較元に使えないので無視する
+    rel="${path#screenshots/}"
+    if [ "${rel}" = "${path}" ]; then continue; fi
     mkdir -p "$(dirname "${OUT_DIR}/${rel}")"
     if ! api -o "${OUT_DIR}/${rel}" "${download_url}"; then
       echo "failed to download ${path}" >&2
@@ -128,8 +131,8 @@ while :; do
   if [ -z "${page_token}" ]; then break; fi
 done
 if [ "${count}" -eq 0 ]; then
-  echo "no artifacts found in job #${job_number}" >&2
+  echo "no screenshots/ artifacts found in job #${job_number}" >&2
   exit 1
 fi
 echo "downloaded ${count} file(s) into ${OUT_DIR}"
-ls -la "${OUT_DIR}"
+find "${OUT_DIR}" -type f | sort

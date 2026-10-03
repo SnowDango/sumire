@@ -3,8 +3,6 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.roborazzi.plugin)
     alias(libs.plugins.deploygate)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.clashlytics)
@@ -77,14 +75,6 @@ android {
         compose = true
         buildConfig = true
     }
-    ksp {
-        arg("skipPrivatePreviews", "true")
-    }
-    testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-        }
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -139,9 +129,6 @@ dependencies {
 
     implementation(libs.workmanager.ktx)
 
-    debugImplementation(libs.showkase)
-    kspDebug(libs.showkase.prosessor)
-
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.analytics)
@@ -153,8 +140,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    testImplementation(libs.robolectric)
-    testImplementation(libs.bundles.roborazzi)
 }
 
 fun readProperties(propertiesFile: File) = Properties().apply {

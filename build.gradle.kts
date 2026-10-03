@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.roborazzi.plugin) apply false
+    alias(libs.plugins.compose.screenshot) apply false
     alias(libs.plugins.detekt)
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.firebase.clashlytics) apply false
@@ -22,7 +22,6 @@ buildscript {
         classpath(libs.android.gradle)
         classpath(libs.android.application.plugin)
         classpath(libs.android.library.plugin)
-        classpath(libs.roborazzi.gradle.plugin)
         classpath(libs.deploygate.plugin)
     }
 }

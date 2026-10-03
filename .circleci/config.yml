@@ -87,7 +87,8 @@ commands:
   save-gradle:
     description: |
       Gradle の依存キャッシュを保存する。
-      Robolectric の android-all jar は ~/.m2/repository に落ちるので、そこも含める。
+      Compose Preview Screenshot Testing が使う layoutlib も Gradle の依存として
+      ~/.gradle/caches に落ちる。
       CircleCI のキャッシュは同じ鍵では上書きされないため、テストまで実行して依存が
       揃っているジョブ(unittest / VRT 系)からだけ保存する。
     steps:
@@ -97,7 +98,6 @@ commands:
           paths:
             - ~/.gradle/caches
             - ~/.gradle/wrapper
-            - ~/.m2/repository
 
 jobs:
   lint:
@@ -220,11 +220,18 @@ jobs:
       - run:
           name: take screenshot
           command: |
-            ./gradlew recordRoborazziDebug --stacktrace
+            ./gradlew updateDebugScreenshotTest --stacktrace
           no_output_timeout: 20m
       - save-gradle
+      - run:
+          name: collect screenshots
+          command: |
+            chmod +x .circleci/collect-screenshots.sh
+            .circleci/collect-screenshots.sh screenshots
+      # fetch-base-screenshots.sh は path が screenshots/ で始まる artifact だけを比較元に使う
       - store_artifacts:
-          path: app/build/outputs/roborazzi
+          path: screenshots
+          destination: screenshots
   screen-shot:
     parameters:
       target-branch:
@@ -238,34 +245,50 @@ jobs:
       - checkout
       # 比較元(target branch)の画像は、develop/master への push 時に save-screenshot ジョブが
       # 撮って artifact に保存している。target branch の HEAD と同じコミットの artifact が
-      # あればそれを再利用し、フルビルドと撮影を省く。無いときだけ従来どおり撮影する。
+      # あればそれを再利用し、フルビルドと撮影を省く。無いときだけ撮影する。
+      # target branch がまだ Compose Preview Screenshot Testing を入れていない(移行前の)ときは
+      # 撮りようが無いので比較元を空にし、PR 側の画像をすべて追加扱いで比較する。
       - run:
           name: reuse base branch screenshots if available
           command: |
-            OUT=app/build/outputs/roborazzi
+            TARGET="<<parameters.target-branch>>"
+            OUT=vrt-base
             mkdir -p "$OUT"
             chmod +x .circleci/fetch-base-screenshots.sh
-            if .circleci/fetch-base-screenshots.sh "<<parameters.target-branch>>" "$OUT"; then
+            if .circleci/fetch-base-screenshots.sh "$TARGET" "$OUT"; then
               echo "source=reused" > "$OUT/.base_screenshots"
             else
-              echo "base screenshots are not available, fall back to recording"
               find "$OUT" -mindepth 1 -delete
-              echo "source=record" > "$OUT/.base_screenshots"
+              git fetch -q origin "$TARGET" || true
+              if ! base_toml=$(git show "origin/$TARGET:gradle/libs.versions.toml"); then
+                echo "cannot read gradle/libs.versions.toml of $TARGET, fall back to recording"
+                echo "source=record" > "$OUT/.base_screenshots"
+              elif [[ "$base_toml" == *com.android.compose.screenshot* ]]; then
+                echo "base screenshots are not available, fall back to recording"
+                echo "source=record" > "$OUT/.base_screenshots"
+              else
+                echo "$TARGET does not use Compose Preview Screenshot Testing yet, compare with an empty base"
+                echo "source=none" > "$OUT/.base_screenshots"
+              fi
             fi
       - persist_to_workspace:
-          root: ./app/build/outputs/roborazzi
+          root: ./
           paths:
-            - .
+            - vrt-base
       - run:
-          name: halt when base screenshots were reused
+          name: halt when recording is not needed
           command: |
-            if grep -q '^source=reused$' app/build/outputs/roborazzi/.base_screenshots; then
-              echo "reused base screenshots, skip recording"
+            cat vrt-base/.base_screenshots
+            if ! grep -q '^source=record$' vrt-base/.base_screenshots; then
+              echo "skip recording"
               circleci-agent step halt
             fi
+      # 撮影後に画像を集めるスクリプトは、target branch 側ではなくこの config と同じ版を使う
       - run:
           name: checkout target branch
           command: |
+            cp .circleci/collect-screenshots.sh /tmp/collect-screenshots.sh
+            chmod +x /tmp/collect-screenshots.sh
             git checkout <<parameters.target-branch>>
       - restore-gradle
       - run:
@@ -278,20 +301,20 @@ jobs:
       - run:
           name: take screenshot
           command: |
-            ./gradlew recordRoborazziDebug --stacktrace
+            ./gradlew updateDebugScreenshotTest --stacktrace
           no_output_timeout: 20m
       - save-gradle
       # .base_screenshots は最初の persist_to_workspace で既に workspace に入っている。
       # 同じファイルを 2 つの層に入れないよう、撮影した画像だけを持ち越す
       - run:
-          name: drop marker already persisted
+          name: collect screenshots
           command: |
-            rm -f app/build/outputs/roborazzi/.base_screenshots
-            ls -la app/build/outputs/roborazzi
+            rm -f vrt-base/.base_screenshots
+            /tmp/collect-screenshots.sh vrt-base
       - persist_to_workspace:
-          root: ./app/build/outputs/roborazzi
+          root: ./
           paths:
-            - .
+            - vrt-base
   vrt:
     parameters:
       target-branch:
@@ -303,8 +326,9 @@ jobs:
       tag: default
     steps:
       - checkout
+      # screen-shot ジョブが用意した比較元(vrt-base)を受け取る
       - attach_workspace:
-          at: ./app/build/outputs/roborazzi
+          at: ./
       - restore-gradle
       - run:
           name: chmod gradlew
@@ -314,24 +338,33 @@ jobs:
       - setup-siging-debug
       - setup-debug-google-services
       - run:
-          name: compare screenshot
+          name: take screenshot
           command: |
-            ./gradlew compareRoborazziDebug --stacktrace
-          no_output_timeout: 1h
+            ./gradlew updateDebugScreenshotTest --stacktrace
+          no_output_timeout: 20m
       - save-gradle
       - run:
-          name: delete unnecessary files
+          name: collect screenshots
           command: |
-            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
+            chmod +x .circleci/collect-screenshots.sh
+            .circleci/collect-screenshots.sh vrt-head
+      # 比較元と PR 側を突き合わせ、差分・追加・削除があった画面だけ
+      # vrt-result/images/*_compare.png(左から base / diff / PR)と vrt-result/summary.tsv を作る
+      - run:
+          name: compare screenshot
+          command: |
+            cat vrt-base/.base_screenshots || true
+            # gradlew と同じく JAVA_HOME を優先する(source-file mode なので JDK 11 以上が要る)
+            JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
+            "$JAVA" -version
+            "$JAVA" .circleci/CompareScreenshots.java vrt-base vrt-head vrt-result
       - store_artifacts:
-          path: app/build/outputs/roborazzi
+          path: vrt-result/images
       # result-comment ジョブに渡す結果一式。比較画像(PR コメントに直接添付する)と、
       # 添付できないときのリンク用に CircleCI artifact の一覧を入れる
       - run:
           name: collect vrt result
           command: |
-            mkdir -p vrt-result/images
-            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 -name '*_compare.png' -exec cp {} vrt-result/images/ \;
             ls -la vrt-result/images
             curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output vrt-result/artifact.json
             cat vrt-result/artifact.json

@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.screenshot)
 }
 
 android {
@@ -31,6 +31,10 @@ android {
     kotlin {
         jvmToolchain(21)
     }
+    buildFeatures {
+        compose = true
+    }
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
 }
 
 dependencies {
@@ -53,9 +57,8 @@ dependencies {
 
     implementation(libs.kotlinx.datetime)
 
-    implementation(libs.showkase.annotation)
-    debugImplementation(libs.showkase)
-    kspDebug(libs.showkase.prosessor)
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
