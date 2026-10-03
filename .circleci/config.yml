@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   android: circleci/android@2.5.0
-  gh: circleci/github-cli@2.3.0
   github-app-token: ostk0069/github-app-token@0.0.1
 
 parameters:
@@ -65,7 +64,40 @@ commands:
           command: |
             touch ./app/src/release/google-services.json
             echo $RELEASE_SERVICE_JSON | base64 -d >> ./app/src/release/google-services.json
-
+  restore-gradle:
+    description: |
+      Gradle の依存キャッシュを復元する。
+      orb の restore-gradle-cache は build.gradle* と settings.gradle* しか鍵に含めないため、
+      依存バージョンが gradle/libs.versions.toml にあるこのプロジェクトでは鍵が変わらず
+      古いキャッシュを復元し続けていた。toml と wrapper も鍵に含め、完全一致が無いときは
+      最新の同系キャッシュをフォールバックとして使う。
+    steps:
+      - run:
+          name: generate gradle cache seed
+          command: |
+            find . -path "*/build" -prune -o \
+              \( -name "build.gradle*" -o -name "settings.gradle*" -o -name "*.versions.toml" -o -name "gradle-wrapper.properties" \) -print \
+              | sort | xargs cat | shasum | awk '{print $1}' > /tmp/gradle_cache_seed
+            cat /tmp/gradle_cache_seed
+      - restore_cache:
+          name: restore gradle cache
+          keys:
+            - gradle-v2-{{ arch }}-{{ checksum "/tmp/gradle_cache_seed" }}
+            - gradle-v2-{{ arch }}-
+  save-gradle:
+    description: |
+      Gradle の依存キャッシュを保存する。
+      Robolectric の android-all jar は ~/.m2/repository に落ちるので、そこも含める。
+      CircleCI のキャッシュは同じ鍵では上書きされないため、テストまで実行して依存が
+      揃っているジョブ(unittest / VRT 系)からだけ保存する。
+    steps:
+      - save_cache:
+          name: save gradle cache
+          key: gradle-v2-{{ arch }}-{{ checksum "/tmp/gradle_cache_seed" }}
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/wrapper
+            - ~/.m2/repository
 
 jobs:
   lint:
@@ -75,6 +107,7 @@ jobs:
       tag: default
     steps:
       - checkout
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -93,8 +126,7 @@ jobs:
       tag: default
     steps:
       - checkout
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -106,8 +138,6 @@ jobs:
           name: build
           command: |
             ./gradlew assembleRelease
-      - android/save-gradle-cache
-      - android/save-build-cache
   build:
     executor:
       name: android/android-machine
@@ -115,8 +145,7 @@ jobs:
       tag: default
     steps:
       - checkout
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -129,8 +158,27 @@ jobs:
           command: |
             ./gradlew assembleDebug --stacktrace
           no_output_timeout: 20m
-      - android/save-gradle-cache
-      - android/save-build-cache
+      # ビルド成果物を unittest ジョブへ持ち越す。
+      # - project/.gradle と各モジュールの build: Gradle の up-to-date 判定に使われ、
+      #   同じ入力ならコンパイル済みの出力をそのまま再利用できる
+      # - ~/.gradle/caches/build-cache-1: Gradle build cache。up-to-date 判定が
+      #   外れたタスクもここから出力を復元できる(org.gradle.caching=true が前提)
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - .gradle/caches/build-cache-1
+            - project/.gradle
+            - project/app/build
+            - project/ui/build
+            - project/infla/build
+            - project/data/build
+            - project/model/build
+            - project/repository/build
+            - project/usecase/build
+            - project/presenter/playing/build
+            - project/presenter/history/build
+            - project/presenter/settings/build
+            - project/presenter/widget/build
   unittest:
     executor:
       name: android/android-machine
@@ -138,8 +186,10 @@ jobs:
       tag: default
     steps:
       - checkout
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - restore-gradle
+      # build ジョブの成果物を同じパスに展開する(restore-gradle の後に置くこと)
+      - attach_workspace:
+          at: ~/
       - run:
           name: chmod gradlew
           command: |
@@ -151,8 +201,7 @@ jobs:
           name: UnitTest
           command: |
             ./gradlew testDebugUnitTest
-      - android/save-gradle-cache
-      - android/save-build-cache
+      - save-gradle
   save-screenshot:
     executor:
       name: android/android-machine
@@ -160,6 +209,7 @@ jobs:
       tag: default
     steps:
       - checkout
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -172,6 +222,7 @@ jobs:
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
           no_output_timeout: 20m
+      - save-gradle
       - store_artifacts:
           path: app/build/outputs/roborazzi
   screen-shot:
@@ -185,12 +236,38 @@ jobs:
       tag: default
     steps:
       - checkout
+      # 比較元(target branch)の画像は、develop/master への push 時に save-screenshot ジョブが
+      # 撮って artifact に保存している。target branch の HEAD と同じコミットの artifact が
+      # あればそれを再利用し、フルビルドと撮影を省く。無いときだけ従来どおり撮影する。
+      - run:
+          name: reuse base branch screenshots if available
+          command: |
+            OUT=app/build/outputs/roborazzi
+            mkdir -p "$OUT"
+            chmod +x .circleci/fetch-base-screenshots.sh
+            if .circleci/fetch-base-screenshots.sh "<<parameters.target-branch>>" "$OUT"; then
+              echo "source=reused" > "$OUT/.base_screenshots"
+            else
+              echo "base screenshots are not available, fall back to recording"
+              find "$OUT" -mindepth 1 -delete
+              echo "source=record" > "$OUT/.base_screenshots"
+            fi
+      - persist_to_workspace:
+          root: ./app/build/outputs/roborazzi
+          paths:
+            - .
+      - run:
+          name: halt when base screenshots were reused
+          command: |
+            if grep -q '^source=reused$' app/build/outputs/roborazzi/.base_screenshots; then
+              echo "reused base screenshots, skip recording"
+              circleci-agent step halt
+            fi
       - run:
           name: checkout target branch
           command: |
             git checkout <<parameters.target-branch>>
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -203,8 +280,14 @@ jobs:
           command: |
             ./gradlew recordRoborazziDebug --stacktrace
           no_output_timeout: 20m
-      - android/save-gradle-cache
-      - android/save-build-cache
+      - save-gradle
+      # .base_screenshots は最初の persist_to_workspace で既に workspace に入っている。
+      # 同じファイルを 2 つの層に入れないよう、撮影した画像だけを持ち越す
+      - run:
+          name: drop marker already persisted
+          command: |
+            rm -f app/build/outputs/roborazzi/.base_screenshots
+            ls -la app/build/outputs/roborazzi
       - persist_to_workspace:
           root: ./app/build/outputs/roborazzi
           paths:
@@ -222,8 +305,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: ./app/build/outputs/roborazzi
-      - android/restore-gradle-cache
-      - android/restore-build-cache
+      - restore-gradle
       - run:
           name: chmod gradlew
           command: |
@@ -236,54 +318,63 @@ jobs:
           command: |
             ./gradlew compareRoborazziDebug --stacktrace
           no_output_timeout: 1h
-      - android/save-gradle-cache
-      - android/save-build-cache
+      - save-gradle
       - run:
           name: delete unnecessary files
           command: |
             find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 ! -name '*_compare.png' -exec rm -r {} +
       - store_artifacts:
           path: app/build/outputs/roborazzi
+      # result-comment ジョブに渡す結果一式。比較画像(PR コメントに直接添付する)と、
+      # 添付できないときのリンク用に CircleCI artifact の一覧を入れる
       - run:
-          name: create result json file
+          name: collect vrt result
           command: |
-            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output artifact.json
-            cat artifact.json
+            mkdir -p vrt-result/images
+            find app/build/outputs/roborazzi -mindepth 1 -maxdepth 1 -name '*_compare.png' -exec cp {} vrt-result/images/ \;
+            ls -la vrt-result/images
+            curl -H "Circle-Token: $CIRCLE_TOKEN" "https://circleci.com/api/v2/project/github/SnowDango/sumire/$CIRCLE_BUILD_NUM/artifacts" --output vrt-result/artifact.json
+            cat vrt-result/artifact.json
       - persist_to_workspace:
           root: ./
           paths:
-            - artifact.json
+            - vrt-result
   result-comment:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: default
+    # gh と curl を動かすだけなので android machine は不要。小さい docker で起動を速くする
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
     steps:
       - checkout
-      - gh/install
+      # 画像を直接アップロードする --attach は gh 2.99.0 で入ったので、バージョンを固定して入れる
+      - run:
+          name: install gh cli
+          environment:
+            GH_CLI_VERSION: "2.99.0"
+          command: |
+            curl -sSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" -o /tmp/gh.tgz
+            sudo tar -xzf /tmp/gh.tgz -C /usr/local --strip-components=1
+            gh --version
       - attach_workspace:
           at: ./
-      - run:
-          name: create comment
-          command: |
-            sh create-comment.sh
       - github-app-token/fetch-token:
           app_id: $GITHUB_APPS_ID
           base64_private_key: $GITHUB_APPS_PRIVATE_KEY
           installation_id: 54651436
+      # VRT_COMMENT_TOKEN(ユーザーの PAT)があれば比較画像をコメントに直接埋め込み、
+      # 無ければ GitHub App のトークンで従来どおり artifact へのリンク表を貼る
       - run:
           name: pull request comment
           command: |
-            echo "$GITHUB_APP_TOKEN" | gh auth login --with-token
-            comments=$(gh pr view "$CIRCLE_PULL_REQUEST" --comments --json comments --jq '[.comments[].author.login]|any(.=="sumire-apps")')
-            echo $comments
-            if [ ${comments} = "true" ]; then
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt --edit-last
-            else
-              gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
-            fi
+            chmod +x .circleci/post-vrt-comment.sh
+            .circleci/post-vrt-comment.sh vrt-result
 workflows:
+  # GitHub Actions から API 経由で起動される VRT 用パイプライン(target-branch 付き)では
+  # VRT 以外のワークフローを動かさない。従来は build-test がここでも走り、
+  # push 起動側のパイプラインと二重に実行されていた。
   save-screenshot:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
       - save-screenshot:
           filters:
@@ -292,6 +383,8 @@ workflows:
                 - "develop"
                 - "master"
   release-build-test:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
       - release-build:
           filters:
@@ -299,15 +392,20 @@ workflows:
               only:
                 - "develop"
   build-test:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
+      # lint と build は依存関係が無いので並列に走らせる
       - lint:
           filters:
             branches:
               ignore:
                 - "master"
       - build:
-          requires:
-            - lint
+          filters:
+            branches:
+              ignore:
+                - "master"
       - unittest:
           requires:
             - build
@@ -325,4 +423,3 @@ workflows:
       - result-comment:
           requires:
             - vrt
-
