@@ -281,6 +281,13 @@ jobs:
             ./gradlew recordRoborazziDebug --stacktrace
           no_output_timeout: 20m
       - save-gradle
+      # .base_screenshots は最初の persist_to_workspace で既に workspace に入っている。
+      # 同じファイルを 2 つの層に入れないよう、撮影した画像だけを持ち越す
+      - run:
+          name: drop marker already persisted
+          command: |
+            rm -f app/build/outputs/roborazzi/.base_screenshots
+            ls -la app/build/outputs/roborazzi
       - persist_to_workspace:
           root: ./app/build/outputs/roborazzi
           paths:

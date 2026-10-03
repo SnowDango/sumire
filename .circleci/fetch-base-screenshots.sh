@@ -24,7 +24,28 @@ if [ -z "${CIRCLE_TOKEN:-}" ]; then
 fi
 
 api() {
-  curl -sSf --retry 2 -H "Circle-Token: ${CIRCLE_TOKEN}" "$@"
+  # -L: artifact の URL はリダイレクトされることがあるので追従する
+  curl -sSfL --retry 2 -H "Circle-Token: ${CIRCLE_TOKEN}" "$@"
+}
+
+# ダウンロードした画像が本物か確かめる。空ファイルやエラーページを比較元にすると
+# Roborazzi の compare が落ちるので、怪しければ呼び出し側で撮影にフォールバックさせる
+check_downloaded_file() {
+  local file="$1"
+  if [ ! -s "${file}" ]; then
+    echo "downloaded file is empty: ${file}" >&2
+    return 1
+  fi
+  case "${file}" in
+    *.png)
+      if [ "$(head -c 8 "${file}" | od -An -tx1 | tr -d ' \n')" != "89504e470d0a1a0a" ]; then
+        echo "downloaded file is not a PNG: ${file}" >&2
+        head -c 200 "${file}" >&2; echo >&2
+        return 1
+      fi
+      ;;
+  esac
+  return 0
 }
 
 # 1. target branch の HEAD を解決する
@@ -98,6 +119,9 @@ while :; do
       echo "failed to download ${path}" >&2
       exit 1
     fi
+    if ! check_downloaded_file "${OUT_DIR}/${rel}"; then
+      exit 1
+    fi
     count=$((count + 1))
   done < <(printf '%s' "${json}" | jq -r '.items[] | [.path, .url] | @tsv')
   page_token=$(printf '%s' "${json}" | jq -r '.next_page_token // empty')
@@ -108,3 +132,4 @@ if [ "${count}" -eq 0 ]; then
   exit 1
 fi
 echo "downloaded ${count} file(s) into ${OUT_DIR}"
+ls -la "${OUT_DIR}"
