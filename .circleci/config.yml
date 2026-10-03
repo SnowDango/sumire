@@ -237,6 +237,33 @@ jobs:
       tag: default
     steps:
       - checkout
+      # 比較元(target branch)の画像は、develop/master への push 時に save-screenshot ジョブが
+      # 撮って artifact に保存している。target branch の HEAD と同じコミットの artifact が
+      # あればそれを再利用し、フルビルドと撮影を省く。無いときだけ従来どおり撮影する。
+      - run:
+          name: reuse base branch screenshots if available
+          command: |
+            OUT=app/build/outputs/roborazzi
+            mkdir -p "$OUT"
+            chmod +x .circleci/fetch-base-screenshots.sh
+            if .circleci/fetch-base-screenshots.sh "<<parameters.target-branch>>" "$OUT"; then
+              echo "source=reused" > "$OUT/.base_screenshots"
+            else
+              echo "base screenshots are not available, fall back to recording"
+              find "$OUT" -mindepth 1 -delete
+              echo "source=record" > "$OUT/.base_screenshots"
+            fi
+      - persist_to_workspace:
+          root: ./app/build/outputs/roborazzi
+          paths:
+            - .
+      - run:
+          name: halt when base screenshots were reused
+          command: |
+            if grep -q '^source=reused$' app/build/outputs/roborazzi/.base_screenshots; then
+              echo "reused base screenshots, skip recording"
+              circleci-agent step halt
+            fi
       - run:
           name: checkout target branch
           command: |
@@ -302,10 +329,10 @@ jobs:
           paths:
             - artifact.json
   result-comment:
-    executor:
-      name: android/android-machine
-      resource-class: large
-      tag: default
+    # gh と curl を動かすだけなので android machine は不要。小さい docker で起動を速くする
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
     steps:
       - checkout
       - gh/install
@@ -331,7 +358,12 @@ jobs:
               gh pr comment "$CIRCLE_PULL_REQUEST" -F comment.txt
             fi
 workflows:
+  # GitHub Actions から API 経由で起動される VRT 用パイプライン(target-branch 付き)では
+  # VRT 以外のワークフローを動かさない。従来は build-test がここでも走り、
+  # push 起動側のパイプラインと二重に実行されていた。
   save-screenshot:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
       - save-screenshot:
           filters:
@@ -340,6 +372,8 @@ workflows:
                 - "develop"
                 - "master"
   release-build-test:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
       - release-build:
           filters:
@@ -347,6 +381,8 @@ workflows:
               only:
                 - "develop"
   build-test:
+    when:
+      equal: [ "", << pipeline.parameters.target-branch >> ]
     jobs:
       # lint と build は依存関係が無いので並列に走らせる
       - lint:
