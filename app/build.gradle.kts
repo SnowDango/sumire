@@ -17,6 +17,7 @@ android {
     defaultConfig {
         applicationId = "com.snowdango.sumire"
         minSdk = libs.versions.minsdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = libs.versions.versionCode.get().toInt()
         versionName = libs.versions.versionName.get()
 
@@ -27,18 +28,22 @@ android {
     }
 
     signingConfigs {
-        val properties = readProperties(file("../siging.properties"))
+        // CI 以外では siging.properties や jks が無いこともあるので、無ければ既定のまま進める
+        val properties = readProperties(rootProject.file("siging.properties"))
+        val debugKeystore = rootProject.file("debug.jks")
         create("release") {
-            storeFile = file("../release.jks")
+            storeFile = rootProject.file("release.jks")
             storePassword = properties.getProperty("release.store_pass")
             keyAlias = properties.getProperty("release.alias")
             keyPassword = properties.getProperty("release.alias_pass")
         }
         getByName("debug") {
-            storeFile = file("../debug.jks")
-            storePassword = properties.getProperty("debug.store_pass")
-            keyAlias = properties.getProperty("debug.alias")
-            keyPassword = properties.getProperty("debug.alias_pass")
+            if (debugKeystore.exists()) {
+                storeFile = debugKeystore
+                storePassword = properties.getProperty("debug.store_pass")
+                keyAlias = properties.getProperty("debug.alias")
+                keyPassword = properties.getProperty("debug.alias_pass")
+            }
         }
     }
 
@@ -88,7 +93,7 @@ android {
 }
 
 deploygate {
-    val properties = readProperties(file("../local.properties"))
+    val properties = readProperties(rootProject.file("local.properties"))
     appOwnerName = properties.getProperty("deploygate.user")
     apiToken = properties.getProperty("deploygate.token")
     deployments {
@@ -153,7 +158,9 @@ dependencies {
 }
 
 fun readProperties(propertiesFile: File) = Properties().apply {
-    propertiesFile.inputStream().use { fis ->
-        load(fis)
+    if (propertiesFile.exists()) {
+        propertiesFile.inputStream().use { fis ->
+            load(fis)
+        }
     }
 }

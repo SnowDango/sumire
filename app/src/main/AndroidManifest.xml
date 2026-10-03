@@ -18,8 +18,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Sumire.SplashScreen"
-        android:permission="android.permission.MEDIA_CONTENT_CONTROL">
+        android:theme="@style/Theme.Sumire.SplashScreen">
         <activity
             android:name=".MainActivity"
             android:exported="true"
