@@ -14,6 +14,7 @@
 
 Sumire fetches the songs you play on music services and saves them as a history.
 You can browse the song you are currently listening to as well as your past playback history.
+The report tab shows a listening report for the current month, including your most played songs and artists.
 A widget is also available, allowing you to view the currently playing song, copy its URL, and share it to X with ease.
 
 ## Requirements

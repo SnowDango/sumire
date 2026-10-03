@@ -1,0 +1,13 @@
+<resources>
+    <string name="report_title">%1$s Report</string>
+    <string name="summary_plays">Plays</string>
+    <string name="summary_songs">Songs</string>
+    <string name="summary_artists">Artists</string>
+    <string name="top_songs">Top Songs</string>
+    <string name="top_artists">Top Artists</string>
+    <string name="no_play_report">No songs have been played\nin %1$s yet.</string>
+    <plurals name="play_count">
+        <item quantity="one">%d play</item>
+        <item quantity="other">%d plays</item>
+    </plurals>
+</resources>

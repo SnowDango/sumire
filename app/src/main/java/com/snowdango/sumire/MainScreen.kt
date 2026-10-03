@@ -6,9 +6,11 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Settings
@@ -36,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import com.snowdango.presenter.history.HistoryScreen
 import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.presenter.playing.PlayingScreen
+import com.snowdango.sumire.presenter.report.ReportScreen
 import com.snowdango.sumire.settings.SettingsScreen
 
 @SuppressLint("RestrictedApi")
@@ -135,6 +138,18 @@ fun MainScreen(
             }
 
             composable(
+                route = ROUTE.REPORT.name,
+                exitTransition = null,
+                enterTransition = null,
+                popExitTransition = null,
+                popEnterTransition = null,
+            ) {
+                ReportScreen(
+                    windowSize,
+                )
+            }
+
+            composable(
                 route = ROUTE.SETTINGS.name,
                 exitTransition = null,
                 enterTransition = null,
@@ -161,6 +176,11 @@ private enum class ROUTE(
         selectedIcon = Icons.Filled.MusicNote,
         unSelectedIcon = Icons.Outlined.MusicNote,
         label = "history",
+    ),
+    REPORT(
+        selectedIcon = Icons.Filled.BarChart,
+        unSelectedIcon = Icons.Outlined.BarChart,
+        label = "report",
     ),
     SETTINGS(
         selectedIcon = Icons.Filled.Settings,
