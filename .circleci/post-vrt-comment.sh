@@ -6,14 +6,16 @@
 #   <result-dir>/artifact.json        : vrt ジョブの CircleCI artifact 一覧(API のレスポンス)
 #
 # 画像の埋め込み方法は 3 段構え。上から順に試して、失敗したら次へ落ちる。
-#   1. VRT_COMMENT_TOKEN(ユーザーの PAT)があれば gh の --attach でアップロードする(gh 2.99.0 以降)。
-#      gh の --attach は OAuth / PAT のトークンしか受け付けない(クライアント側の allowlist)。
-#   2. GITHUB_APP_TOKEN(sumire-apps の GitHub App トークン)で、gh が内部で使っている
-#      アップロードエンドポイント(uploads.github.com/user-attachments/assets)を直接呼ぶ。
-#      gh のソース(internal/attachments/client.go)と同じ URL・クエリ・ヘッダ・レスポンス形式を使う。
-#      App トークンをサーバーが受け付けるかは未確認なので、ここが通るかはログで確認する。
-#   3. どちらも使えなければ、従来どおり CircleCI artifact へのリンク表を貼る。
-# コメントの投稿自体は常に gh pr comment で行う(App トークンでも投稿はできる)。
+#   1. VRT_COMMENT_TOKEN(ユーザーの PAT)があれば gh の --attach で GitHub にアップロードする
+#      (gh 2.99.0 以降)。画像は GitHub 側に残る。gh の --attach は OAuth / PAT のトークンしか
+#      受け付けず、GitHub App のトークンはクライアント側の allowlist で拒否される。
+#      App トークンで gh が使うアップロードエンドポイントを直接叩く方法も試したが、
+#      サーバー側でも拒否されたため、ボット(GITHUB_APP_TOKEN)ではアップロードできない。
+#   2. PAT が無ければ、vrt ジョブが store_artifacts した CircleCI artifact の URL を
+#      そのまま ![](url) で本文に埋め込む。公開プロジェクトの artifact は認証無しで取れるので
+#      GitHub(camo)が画像を表示できる。artifact は 30 日で消えるため古いコメントの画像は後で壊れる。
+#   3. artifact の一覧が取れていなければ、名前だけのリンク表を貼る。
+# コメントの投稿自体は常に GITHUB_APP_TOKEN(sumire-apps)または PAT で行う。
 #
 # 必要な環境変数: CIRCLE_PULL_REQUEST(PR の URL)
 set -u
@@ -21,7 +23,6 @@ set -u
 RESULT_DIR="${1:?usage: $0 <result-dir>}"
 PR_URL="${CIRCLE_PULL_REQUEST:?CIRCLE_PULL_REQUEST is not set}"
 GH="${GH_BIN:-gh}"
-UPLOAD_BASE="${GITHUB_UPLOAD_BASE:-https://uploads.github.com}"
 MAX_ATTACHMENTS=50
 COMMENT_FILE="${RESULT_DIR}/comment.txt"
 
@@ -62,7 +63,7 @@ if [ -s "${RESULT_DIR}/artifact.json" ]; then
 fi
 
 # 画像ごとの埋め込み先。attach モードではローカルパス(gh が書き換える)、
-# bot モードではアップロード済みの asset URL が入る
+# bot モードでは CircleCI artifact の URL が入る
 declare -A IMAGE_URL=()
 
 display_name() {
@@ -84,51 +85,6 @@ artifact_link() {
   else
     printf '%s' "${name}"
   fi
-}
-
-# ---- bot モード: App トークンで直接アップロードする ---------------------------
-# gh の postAsset と同じ呼び方。成功すると {"url": "..."} が返る
-upload_with_app_token() {
-  local file="$1" repo_id="$2" name query status resp
-  name=$(basename "${file}")
-  query=$(jq -rn --arg n "${name}" --arg r "${repo_id}" '"name=\($n|@uri)&content_type=image/png&repository_id=\($r)"')
-  resp=$(mktemp)
-  status=$(curl -sS -o "${resp}" -w '%{http_code}' --max-time 120 \
-    -X POST "${UPLOAD_BASE}/user-attachments/assets?${query}" \
-    -H "Authorization: Bearer ${GH_TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    -H "Content-Type: application/octet-stream" \
-    --data-binary "@${file}") || status="000"
-  if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
-    echo "upload of ${name} with the app token failed: HTTP ${status} $(head -c 300 "${resp}" | tr '\n' ' ')" >&2
-    rm -f "${resp}"
-    return 1
-  fi
-  local url
-  url=$(jq -r '.url // empty' "${resp}")
-  rm -f "${resp}"
-  if [ -z "${url}" ]; then
-    echo "upload of ${name} returned no asset url" >&2
-    return 1
-  fi
-  printf '%s' "${url}"
-}
-
-upload_images_with_app_token() {
-  local repo_id img url i=0
-  if ! repo_id=$("${GH}" api "repos/${OWNER_REPO}" --jq .id) || [ -z "${repo_id}" ]; then
-    echo "failed to resolve the repository id" >&2
-    return 1
-  fi
-  for img in "${IMAGES[@]}"; do
-    i=$((i + 1))
-    [ "${i}" -le "${MAX_ATTACHMENTS}" ] || break
-    if ! url=$(upload_with_app_token "${img}" "${repo_id}"); then
-      return 1
-    fi
-    IMAGE_URL["${img}"]="${url}"
-  done
-  echo "uploaded ${#IMAGE_URL[@]} image(s) with the app token"
 }
 
 # ---- 本文を作る ---------------------------------------------------------------
@@ -162,7 +118,7 @@ build_image_body() {
     if [ -n "${IMAGE_URL[${img}]:-}" ]; then
       printf '![%s](%s)\n' "$(escape_alt "${name}")" "${IMAGE_URL[${img}]}"
     else
-      # --attach の 50 件上限を超えた分など
+      # --attach の 50 件上限を超えた分や、artifact の URL が取れなかった分
       printf '%s (artifact)\n' "$(artifact_link "${img}")"
     fi
   done
@@ -229,15 +185,20 @@ if [ "${#IMAGES[@]}" -gt 0 ]; then
       echo "warning: posting with --attach failed, falling back to artifact links" >&2
       ;;
     bot)
-      if upload_images_with_app_token; then
+      # artifact の URL を画像として埋め込む
+      for img in "${IMAGES[@]}"; do
+        url="${ARTIFACT_URL[$(basename "${img}")]:-}"
+        [ -n "${url}" ] && IMAGE_URL["${img}"]="${url}"
+      done
+      if [ "${#IMAGE_URL[@]}" -gt 0 ]; then
         build_image_body > "${COMMENT_FILE}"
         if post_comment_rest; then
-          echo "posted VRT result with ${#IMAGE_URL[@]} inline image(s) uploaded by the app token"
+          echo "posted VRT result with ${#IMAGE_URL[@]} inline image(s) from CircleCI artifacts"
           exit 0
         fi
-        echo "warning: posting the comment with uploaded images failed, falling back to artifact links" >&2
+        echo "warning: posting the comment with artifact images failed, falling back to the link table" >&2
       else
-        echo "warning: uploading with the app token is not possible, falling back to artifact links" >&2
+        echo "warning: no artifact urls available, falling back to the link table" >&2
       fi
       ;;
   esac
