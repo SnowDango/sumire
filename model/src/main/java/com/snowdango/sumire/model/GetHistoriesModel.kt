@@ -3,6 +3,7 @@ package com.snowdango.sumire.model
 import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
 import com.snowdango.sumire.data.util.LocalDateTimeFormatType
+import com.snowdango.sumire.data.util.escapeLike
 import com.snowdango.sumire.data.util.toFormatString
 import com.snowdango.sumire.data.util.toLastDateTimeString
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
@@ -39,7 +40,8 @@ class GetHistoriesModel : KoinComponent {
     }
 
     fun getPagingSearchHistorySongs(text: String): PagingSource<Int, HistorySong> {
-        return historiesUseCase.getPagingSearchHistoriesSongs(text)
+        // 部分一致にする(以前は % が付かず完全一致になっていた)
+        return historiesUseCase.getPagingSearchHistoriesSongs("%${text.escapeLike()}%")
     }
 
     fun convertRecentSongToSongCardViewData(

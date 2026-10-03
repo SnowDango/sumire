@@ -44,22 +44,29 @@ object Logging {
         )
     }
 
-    fun loggingPlaybackAction(action: Long) {
+    /**
+     * actions はビットマスクなので、立っているフラグをすべて列挙する
+     */
+    fun loggingPlaybackAction(actions: Long) {
+        val names = ACTION_NAMES
+            .filter { (flag, _) -> (actions and flag) != 0L }
+            .map { (_, name) -> name }
         Log.d(
             "CurrentPlaybackAction",
-            when (action) {
-                PlaybackState.ACTION_PLAY -> "Play"
-                PlaybackState.ACTION_STOP -> "Stop"
-                PlaybackState.ACTION_PAUSE -> "Pause"
-                PlaybackState.ACTION_SKIP_TO_NEXT -> "SkipNext"
-                PlaybackState.ACTION_SKIP_TO_PREVIOUS -> "SkipPrevious"
-                PlaybackState.ACTION_SKIP_TO_QUEUE_ITEM -> "SkipQueue"
-                PlaybackState.ACTION_PLAY_PAUSE -> "PlayPause"
-                PlaybackState.ACTION_FAST_FORWARD -> "FastForward"
-                PlaybackState.ACTION_PREPARE -> "Prepare"
-                PlaybackState.ACTION_REWIND -> "Rewind"
-                else -> "UnknownAction: $action"
-            },
+            if (names.isEmpty()) "UnknownAction: $actions" else names.joinToString(separator = ","),
         )
     }
+
+    private val ACTION_NAMES: List<Pair<Long, String>> = listOf(
+        PlaybackState.ACTION_PLAY to "Play",
+        PlaybackState.ACTION_STOP to "Stop",
+        PlaybackState.ACTION_PAUSE to "Pause",
+        PlaybackState.ACTION_SKIP_TO_NEXT to "SkipNext",
+        PlaybackState.ACTION_SKIP_TO_PREVIOUS to "SkipPrevious",
+        PlaybackState.ACTION_SKIP_TO_QUEUE_ITEM to "SkipQueue",
+        PlaybackState.ACTION_PLAY_PAUSE to "PlayPause",
+        PlaybackState.ACTION_FAST_FORWARD to "FastForward",
+        PlaybackState.ACTION_PREPARE to "Prepare",
+        PlaybackState.ACTION_REWIND to "Rewind",
+    )
 }

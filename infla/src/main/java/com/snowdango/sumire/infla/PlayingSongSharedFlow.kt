@@ -31,6 +31,8 @@ class PlayingSongSharedFlow : KoinComponent {
             val result = updateState(queueId, playingSongData)
             if (result.notifyListener) {
                 listener?.invoke(result.notifyValue)
+                // 曲が null になった(停止した)ときも画面側に通知する
+                eventSharedFlow.postEvent(EventSharedFlow.SharedEvent.ChangeCurrentSong)
             }
             if (result.type != PlayingSongChangeType.NONE) {
                 handleStateChange(result.type, queueId)
@@ -104,7 +106,6 @@ class PlayingSongSharedFlow : KoinComponent {
         type: PlayingSongChangeType,
         queueId: Long?,
     ) {
-        eventSharedFlow.postEvent(EventSharedFlow.SharedEvent.ChangeCurrentSong)
         if (type == PlayingSongChangeType.CHANGE_ACTIVE) return
 
         val current = playingSong

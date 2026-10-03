@@ -1,7 +1,7 @@
 package com.snowdango.sumire.model
 
-import android.util.Log
 import com.snowdango.sumire.data.entity.MusicApp
+import com.snowdango.sumire.data.entity.preference.UrlPriorityPlatform
 import com.snowdango.sumire.usecase.db.AppSongKeyUseCase
 import com.snowdango.sumire.usecase.setting.SettingsUseCase
 import org.koin.core.component.KoinComponent
@@ -18,27 +18,26 @@ class ShareSongModel : KoinComponent {
             return null
         }
         val urlMap = getUrlMap(mediaId, app)
-        return if (urlMap.isNullOrEmpty()) {
-            null
-        } else {
-            Log.d("ShareSongModel", "getUrlMap: $urlMap")
-            val priorityPlatform = settingsUseCase.getUrlPlatform()
-            urlMap[priorityPlatform.platform]
+        if (urlMap.isEmpty()) {
+            return null
         }
+        val priorityPlatform = settingsUseCase.getUrlPlatform()
+        // 優先サービスの URL が無ければ song.link のページ、それも無ければ持っている URL のどれか
+        return urlMap[priorityPlatform.platform]
+            ?: urlMap[UrlPriorityPlatform.SONG_LINK.platform]
+            ?: urlMap.values.firstOrNull()
     }
 
-    private suspend fun getUrlMap(mediaId: String?, app: MusicApp): Map<String, String>? {
-        if (mediaId == null) return null
-        val keys = appSongKeyUseCase.getAppSongKeys(mediaId, app)
-        Log.d("ShareSongModel", "getUrlMap: $keys")
+    private suspend fun getUrlMap(mediaId: String, app: MusicApp): Map<String, String> {
+        val keys = appSongKeyUseCase.getAppSongKeys(mediaId, app) ?: return emptyMap()
         val urlMap: MutableMap<String, String> = mutableMapOf()
-        keys?.songKeys?.appSongKeys?.forEach { key ->
+        keys.songKeys.appSongKeys?.forEach { key ->
             key.url?.let {
                 urlMap[key.app.platform] = it
             }
         }
-        keys?.songKeys?.song?.url?.let {
-            urlMap["songlink"] = it
+        keys.songKeys.song.url?.let {
+            urlMap[UrlPriorityPlatform.SONG_LINK.platform] = it
         }
         return urlMap
     }
