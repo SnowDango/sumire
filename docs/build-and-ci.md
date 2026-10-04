@@ -38,8 +38,7 @@
 | applicationId | `com.snowdango.sumire.debug` (`applicationIdSuffix = ".debug"`) | `com.snowdango.sumire` |
 | アプリ名 | `SumireDebug` (`app/src/debug/res/values/strings.xml`) | `Sumire` |
 | 難読化・縮小 | なし | `isMinifyEnabled = true` / `isShrinkResources = true` ([`proguard-rules.pro`](../app/proguard-rules.pro)) |
-| Showkase | 有効 (`debugImplementation` / `kspDebug`) | 含まれない (`startShowkase` は空実装) |
-| 設定画面の Dev セクション | 表示 | 非表示 |
+| 設定画面の Dev セクション (Crashlytics の動作確認) | 表示 | 非表示 |
 | `BuildConfig.VERSION_NAME` | `:app` と `:presenter:settings` の両方に `buildConfigField` で埋め込む | 同左 |
 
 ライブラリモジュールは release でも `isMinifyEnabled = false` (縮小はアプリ側の R8 でまとめて行う)。
@@ -48,17 +47,26 @@
 
 `versionName` / `versionCode` は [`gradle/libs.versions.toml`](../gradle/libs.versions.toml) の `[versions]` にあり、`:app` と `:presenter:settings` がここから読む。上げるときは Claude Code のスキル `/version-up` ([`.claude/skills/version-up/SKILL.md`](../.claude/skills/version-up/SKILL.md)) で、`feature/version-up/<version>` ブランチの作成から develop 宛ての PR 作成まで行える。
 
+## Gradle の設定
+
+[`gradle.properties`](../gradle.properties) で次を有効にしている。
+
+- `org.gradle.parallel=true` (並列ビルド) と `org.gradle.caching=true` (ビルドキャッシュ。CI のジョブ間で出力を再利用する前提)
+- デーモンのヒープ `-Xmx4g`、Kotlin デーモンのヒープ `-Xmx2g`
+- `android.experimental.enableScreenshotTest=true` (Compose Preview Screenshot Testing の `screenshotTest` ソースセットを有効にする。各モジュールの `build.gradle.kts` でも `experimentalProperties` に同じ値を入れている)
+
 ## よく使う Gradle タスク
 
 | タスク | 内容 |
 | --- | --- |
 | `./gradlew assembleDebug` | debug APK のビルド |
-| `./gradlew assembleRelease` / `bundleRelease` | release APK / AAB のビルド (署名ファイルが必要) |
-| `./gradlew testDebugUnitTest` | JVM ユニットテスト。`PreviewTest` も実行されるが、スクリーンショットの保存・比較は下の Roborazzi タスクで行う |
+| `./gradlew assembleRelease bundleRelease` | release APK / AAB のビルド (署名ファイルが必要) |
+| `./gradlew testDebugUnitTest` | JVM ユニットテスト |
+| `./gradlew :model:testDebugUnitTest --tests "com.snowdango.sumire.model.GetReportModelTest"` | テストクラスを指定して実行 |
 | `./gradlew detekt` | detekt による静的解析 (CI では `--auto-correct` 付き) |
 | `./gradlew lint` | Android Lint |
-| `./gradlew recordRoborazziDebug` | Preview のスクリーンショットを撮影して保存 |
-| `./gradlew compareRoborazziDebug` | 保存済みスクリーンショットとの比較画像を生成 |
+| `./gradlew updateDebugScreenshotTest` | `@PreviewTest` の Preview を撮影し、各モジュールの `src/screenshotTestDebug/reference/` に参照画像として保存する |
+| `./gradlew validateDebugScreenshotTest` | 手元の参照画像と比較する (CI の VRT はこのタスクではなく、独自の比較ツールを使う) |
 | `./gradlew uploadDeployGateDebug` | debug APK を DeployGate にアップロード (`local.properties` の DeployGate 設定が必要) |
 
 ## 静的解析
@@ -80,15 +88,15 @@
 
 ## テスト
 
-- 各モジュールの `ExampleUnitTest` / `ExampleInstrumentedTest` は Android Studio のテンプレートのままで、ロジックのユニットテストは現状ほぼ無い。
-- 実質的な回帰テストは [`app/src/test/.../PreviewTest.kt`](../app/src/test/java/com/snowdango/sumire/PreviewTest.kt) によるスクリーンショットテストだけ。
+- ロジックのユニットテストは [`GetReportModelTest`](../model/src/test/java/com/snowdango/sumire/model/GetReportModelTest.kt) (月の範囲計算とレポートへの変換) だけ。他のモジュールの `ExampleUnitTest` / `ExampleInstrumentedTest` は Android Studio のテンプレートのまま。
+- 画面の回帰は Compose Preview Screenshot Testing による VRT で確認している。
 
 ### VRT の仕組み
 
-1. Showkase が全モジュールの `@Preview` (private を除く) を収集する ([screens.md](screens.md#preview-と-showkase))。
-2. `PreviewTest` は `ParameterizedRobolectricTestRunner` で `Showkase.getMetadata().componentList` の要素ごとにテストを生成する。端末設定は `RobolectricDeviceQualifiers.Pixel6`、`GraphicsMode.NATIVE`。
-3. 各 Preview を Roborazzi の `captureRoboImage` で撮影し、`app/build/outputs/roborazzi/<group>_<componentName>_<componentKey>.png` に保存する (`componentName` の空白は除去)。
-4. CI では PR のベースブランチで `recordRoborazziDebug` → PR ブランチで `compareRoborazziDebug` を実行し、差分画像を PR にコメントする (下記)。
+1. `:ui`, `:presenter:playing`, `:presenter:history`, `:presenter:report`, `:presenter:settings` に `com.android.compose.screenshot` プラグインを適用している。
+2. 各モジュールの `src/screenshotTest/kotlin/` に、main の Preview を呼ぶだけの `@PreviewTest` 付き Composable を置く (例: [`ReportScreenshotTest.kt`](../presenter/report/src/screenshotTest/kotlin/com/snowdango/sumire/presenter/report/ReportScreenshotTest.kt))。撮影されるのはこの `@PreviewTest` だけで、`@Preview` のパラメータは main 側と揃える ([screens.md](screens.md#preview-とスクリーンショットテスト))。
+3. `updateDebugScreenshotTest` で各モジュールの `src/screenshotTestDebug/reference/` に PNG が出力される。参照画像は `.gitignore` 済みでコミットしない (CI が PR 先ブランチで撮り直して比較するため)。
+4. CI では PR 先ブランチと PR ブランチの画像を [`.circleci/collect-screenshots.sh`](../.circleci/collect-screenshots.sh) で 1 か所に集め (`<出力先>/<モジュールのパス>/...`)、[`.circleci/CompareScreenshots.java`](../.circleci/CompareScreenshots.java) で比較して PR にコメントする (下記)。
 
 ## CI/CD
 
@@ -98,12 +106,15 @@ CircleCI ([`.circleci/config.yml`](../.circleci/config.yml)) と GitHub Actions 
 
 | ワークフロー | 対象 | ジョブ |
 | --- | --- | --- |
-| `build-test` | `master` 以外の全ブランチの push | `lint` (`detekt --auto-correct`) → `build` (`assembleDebug`) → `unittest` (`testDebugUnitTest`) |
-| `release-build-test` | `develop` | `release-build` (`assembleRelease`) |
-| `save-screenshot` | `develop`, `master` | `recordRoborazziDebug` を実行し、スクリーンショットを artifacts に保存 |
+| `build-test` | `master` 以外の全ブランチの push | `lint` (`detekt --auto-correct`) と `build` (`assembleDebug`) を並列に実行し、`build` の後に `unittest` (`testDebugUnitTest`) |
+| `release-build-test` | `develop` の push | `release-build` (`assembleRelease`) |
+| `save-screenshot` | `develop`, `master` の push | `updateDebugScreenshotTest` で撮影し、画像を `screenshots/<モジュール>/...` の artifact として保存 (VRT の比較元として再利用される) |
 | `vrt-test` | パイプラインパラメータ `target-branch` が空でないとき (GitHub Actions から API で起動) | `screen-shot` → `vrt` → `result-comment` |
 
-各ジョブはまず `local.properties` (空) / `siging.properties` / キーストア / `google-services.json` を環境変数から生成する。
+- API で起動した VRT 用のパイプラインでは `vrt-test` 以外のワークフローは動かない (`when` で `target-branch` が空のときだけ動くようにしている)。
+- 各ジョブはまず `local.properties` (空) / `siging.properties` / キーストア / `google-services.json` を環境変数から生成する。
+- Gradle の依存キャッシュは独自コマンド `restore-gradle` / `save-gradle` で扱う。キーには `build.gradle*` / `settings.gradle*` / `*.versions.toml` / `gradle-wrapper.properties` のハッシュを使い、保存はテストまで実行して依存が揃うジョブ (`unittest` と VRT 系) だけで行う。
+- `build` ジョブは `.gradle` / 各モジュールの `build` / Gradle のビルドキャッシュを workspace に入れて `unittest` に引き継ぐ。**モジュールを追加したら `config.yml` の `persist_to_workspace` の一覧にもその `build` ディレクトリを足す。**
 
 ### GitHub Actions
 
@@ -111,7 +122,9 @@ CircleCI ([`.circleci/config.yml`](../.circleci/config.yml)) と GitHub Actions 
 | --- | --- | --- |
 | [`vrt-test.yml`](../.github/workflows/vrt-test.yml) | `develop` 宛ての PR | CircleCI の API を叩き、`target-branch` = PR のベースブランチ、`pr-number` を渡して `vrt-test` パイプラインを起動 |
 | [`deploygate-debug.yml`](../.github/workflows/deploygate-debug.yml) | `develop` への push | debug をビルドして DeployGate にアップロード |
-| [`deploygate-release.yml`](../.github/workflows/deploygate-release.yml) (名前は `Release`) | 手動実行 (`workflow_dispatch`、入力 `tag`) | release の APK と AAB をビルドし、指定タグで GitHub Release を作成 (自動リリースノート、`make_latest`) |
+| [`deploygate-release.yml`](../.github/workflows/deploygate-release.yml) (名前は `Release`) | 手動実行 (`workflow_dispatch`、入力 `tag`) | `assembleRelease bundleRelease` を 1 回の Gradle 起動で実行し、指定タグで GitHub Release を作成 (自動リリースノート、`make_latest`) |
+
+どちらの Actions も `gradle/actions/setup-gradle@v4` (`cache-read-only: false`) で Gradle のキャッシュを使う。
 
 ### VRT のパイプライン
 
@@ -121,16 +134,25 @@ sequenceDiagram
     participant CI as CircleCI (vrt-test)
     participant PR as Pull Request
 
-    GH->>CI: POST /pipeline (branch=PR ブランチ, target-branch=ベース)
-    CI->>CI: screen-shot: ベースブランチを checkout して recordRoborazziDebug
-    CI->>CI: vrt: PR ブランチで compareRoborazziDebug
-    CI->>CI: *_compare.png 以外を削除して artifacts に保存
-    CI->>CI: artifacts 一覧を artifact.json に保存
-    CI->>CI: result-comment: create-comment.sh で表を生成
-    CI->>PR: GitHub App (sumire-apps) で PR にコメント (既存があれば最後のコメントを編集)
+    GH->>CI: POST /pipeline (branch=PR ブランチ, target-branch=PR 先)
+    CI->>CI: screen-shot: PR 先 HEAD の save-screenshot artifact を取得 (fetch-base-screenshots.sh)
+    alt artifact が無い
+        CI->>CI: PR 先ブランチを checkout して updateDebugScreenshotTest で撮影
+    end
+    CI->>CI: vrt: PR ブランチで updateDebugScreenshotTest → collect-screenshots.sh
+    CI->>CI: CompareScreenshots.java で比較 (images/*_compare.png と summary.tsv)
+    CI->>CI: 比較画像を artifact に保存し、artifact 一覧を取得
+    CI->>PR: result-comment: post-vrt-comment.sh で PR にコメント (既存のコメントがあれば編集)
 ```
 
-[`create-comment.sh`](../create-comment.sh) は `artifact.json` の各 artifact をリンクにした表 (「VRT Result」) を作る。差分が無ければ「not changed screen」とだけ書く。
+- **比較元 (PR 先ブランチ)**: [`fetch-base-screenshots.sh`](../.circleci/fetch-base-screenshots.sh) が、PR 先ブランチの HEAD と同じコミットで成功した `save-screenshot` ジョブの artifact を探してダウンロードする。見つからなければ PR 先ブランチを checkout して撮影する。PR 先がまだ Compose Preview Screenshot Testing を導入していない場合は比較元を空にし、PR 側の画像をすべて「追加」として扱う。
+- **比較**: `CompareScreenshots.java` (JDK 11 以上の source-file mode で実行) が相対パスで画像を対応付け、1 ピクセルでも違うもの・PR 側にだけあるもの・PR 先にだけあるものについて、左から base / diff / PR を並べた `<名前>_compare.png` と、`summary.tsv` (`changed` / `added` / `deleted`) を出力する。
+- **コメント**: [`post-vrt-comment.sh`](../.circleci/post-vrt-comment.sh) が次の順に試す。
+  1. `VRT_COMMENT_TOKEN` (ユーザーの PAT) があれば `gh pr comment --attach` で画像を GitHub に直接アップロードして埋め込む (gh 2.99.0 以降が必要。GitHub App のトークンでは不可)。
+  2. 無ければ、CircleCI artifact の URL を `![](url)` でそのまま埋め込む (artifact は 30 日で消えるので、古いコメントの画像は表示されなくなる)。
+  3. artifact の一覧も取れなければ、名前だけのリンク表を貼る。
+
+  投稿は GitHub App (`sumire-apps`) のトークン、または PAT で行う。
 
 ### 使用している Secrets / 環境変数
 
@@ -142,8 +164,9 @@ sequenceDiagram
 | `DEBUG_JKS` / `RELEASE_JKS` | CircleCI / Actions | キーストアの Base64 |
 | `DEBUG_SERVICE_JSON` / `RELEASE_SERVICE_JSON` | CircleCI / Actions | `google-services.json` の Base64 |
 | `DEPLOYGATE_USER` / `DEPLOYGATE_TOKEN` | Actions | DeployGate のユーザー名とトークン |
-| `CIRCLE_TOKEN` | Actions / CircleCI | CircleCI API (パイプライン起動、artifacts 取得) |
+| `CIRCLE_TOKEN` | Actions / CircleCI | CircleCI API (パイプライン起動、比較元 artifact の検索・取得、artifact 一覧の取得) |
 | `GITHUB_APPS_ID` / `GITHUB_APPS_PRIVATE_KEY` | CircleCI | VRT 結果をコメントする GitHub App のトークン取得 |
+| `VRT_COMMENT_TOKEN` | CircleCI (任意) | VRT の比較画像を PR コメントに直接添付するためのユーザーの PAT |
 
 ## ブランチ運用とリリース
 

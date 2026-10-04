@@ -1,6 +1,6 @@
 # 保存・DB・API・設定
 
-再生が確定した曲を Room に保存する流れと、そのとき使う song.link API、DB スキーマ、DataStore の設定値をまとめる。
+再生が確定した曲を Room に保存する流れと、そのとき使う song.link API、DB スキーマ、読み出し・集計のクエリ、DataStore の設定値をまとめる。
 
 ## 保存フロー (SaveModel)
 
@@ -181,9 +181,22 @@ erDiagram
 | `HistoriesDao` | `getPagingHistorySongs()` | 全履歴を `play_time` 降順で `PagingSource` |
 | | `getPagingSearchHistorySong(text)` | `songs` と inner join し `title LIKE :text ESCAPE '\'`、`play_time` 降順で `PagingSource` |
 | | `getHistoriesSongRecent(size)` | 直近 `size` 件を `Flow<List<HistorySong>>` (DB 更新で再発行) |
+| | `getPlaySummary(start, end)` | 期間内の再生回数・曲の種類数・アーティストの種類数を `Flow<PlaySummary>` |
+| | `getTopSongs(start, end, limit)` | 期間内の曲ごとの再生回数ランキング (`Flow<List<SongPlayCount>>`、アルバムのサムネイル付き) |
+| | `getTopArtists(start, end, limit)` | 期間内のアーティストごとの再生回数ランキング (`Flow<List<ArtistPlayCount>>`) |
 | `AppSongKeyDao` | `getAppKeys(key, app)` | `(media_key, app)` で 1 件 + 同じ曲の全キー (`SongAppKeys`) |
 | | `getBySongId(songId)` | 曲に紐づく全キー |
 | `TasksDao` | `insert` のみ | |
+
+### 集計クエリ (レポート用)
+
+[`HistoriesDao`](../repository/src/main/java/com/snowdango/sumire/repository/dao/HistoriesDao.kt) の `getPlaySummary` / `getTopSongs` / `getTopArtists` はレポート画面のための集計クエリ。
+
+- 期間は `startInclusive` 以上 `endExclusive` 未満。引数の `LocalDateTime` は TypeConverter で epoch ミリ秒に変換されて `histories.play_time` と比較される。
+- 結合と期間の条件は、ファイル先頭の `private const val` (`HISTORIES_JOIN_SONGS`, `JOIN_ARTISTS`, `JOIN_ALBUMS`, `PLAY_TIME_IN_RANGE`) を組み合わせて作っている。
+- ランキングは再生回数の降順で、同数のときは最後に再生した時刻 (`max(play_time)`) が新しいほうを上にする。
+- 戻り値は Room のエンティティではない集計用の data class で、[`data/entity/db/report`](../data/src/main/java/com/snowdango/sumire/data/entity/db/report/) にある (`PlaySummary`, `SongPlayCount`, `ArtistPlayCount`)。SQL の別名は各クラスの `COLUMN_*` 定数に合わせる。
+- 戻り値は `Flow` なので、期間内に新しい再生が保存されると再発行される。
 
 LIKE に渡す文字列は [`String.escapeLike()`](../data/src/main/java/com/snowdango/sumire/data/util/StringExtension.kt) で `\`, `%`, `_` をエスケープしてから、Model 側でワイルドカードを付ける。
 
@@ -200,12 +213,14 @@ LIKE に渡す文字列は [`String.escapeLike()`](../data/src/main/java/com/sno
 | | `getPagingHistorySongs()` / `getPagingSearchHistorySongs(text)` | `PagingSource` をそのまま返す (変換は ViewModel 側で `PagingData.map`) |
 | | `convertRecentSongToSongCardViewData(historySong, type)` | `playTimeText` を `LocalDateTimeFormatType` の書式で作る |
 | [`GetSongsModel`](../model/src/main/java/com/snowdango/sumire/model/GetSongsModel.kt) | `getSearchTitleList(text)` | 検索候補のタイトル一覧 |
+| [`GetReportModel`](../model/src/main/java/com/snowdango/sumire/model/GetReportModel.kt) | `getCurrentMonthReportFlow()` | 当月のレポート。collect を始めた時点の年月を求め、`getMonthlyReportFlow` に切り替える |
+| | `getMonthlyReportFlow(yearMonth)` | 月初 0 時〜翌月初 0 時 (含まない) の集計 3 種を `combine` し、`MonthlyReportViewData` (ランキングは曲 5 件 / アーティスト 3 件、順位は 1 始まり) に変換する |
 | [`ShareSongModel`](../model/src/main/java/com/snowdango/sumire/model/ShareSongModel.kt) | `getUrl(mediaId, appPlatform)` | ウィジェットで共有する URL を決める (下記) |
 | [`SettingsModel`](../model/src/main/java/com/snowdango/sumire/model/SettingsModel.kt) | 各設定の get / set / Flow | `SettingsUseCase` の薄いラッパー |
 
 日時の書式 ([`LocalDateTime.kt`](../data/src/main/java/com/snowdango/sumire/data/util/LocalDateTime.kt)):
 
-- `LocalDateTimeFormatType`: `ONLY_DATE` = `yyyy/MM/dd`、`FULL_DATE_TIME` = `yyyy/MM/dd-HH:mm:ss`、`ONLY_TIME` = `HH:mm:ss`
+- `LocalDateTimeFormatType`: `ONLY_DATE` = `yyyy/MM/dd`、`FULL_DATE_TIME` = `yyyy/MM/dd-HH:mm:ss`、`ONLY_TIME` = `HH:mm:ss`、`YEAR_MONTH` = `yyyy/MM` (レポートの見出し用)
 - `toLastDateTimeString(current)`: 差分が 1 日以上なら `Nd ago`、1 時間以上なら `Nh ago`、1 分以上なら `Nm ago`、1 秒以上なら `Ns ago`、それ未満 (未来の時刻も含む) は `now`
 
 ### 共有 URL の解決 (ShareSongModel.getUrl)

@@ -26,22 +26,23 @@
 
 ## ナビゲーション
 
-[`MainScreen`](../app/src/main/java/com/snowdango/sumire/MainScreen.kt) は `Scaffold` + `NavigationBar` + `NavHost` の 3 タブ構成。
+[`MainScreen`](../app/src/main/java/com/snowdango/sumire/MainScreen.kt) は `Scaffold` + `NavigationBar` + `NavHost` の 4 タブ構成。
 
 | `ROUTE` | ルート文字列 | 画面 | アイコン (選択時 / 非選択時) | ラベル |
 | --- | --- | --- | --- | --- |
 | `PLAYING` (開始画面) | `"PLAYING"` | `PlayingScreen(windowSize)` | `Filled.PlayArrow` / `Outlined.PlayArrow` | `playing` |
 | `HISTORY` | `"HISTORY"` | `HistoryScreen(windowSize)` | `Filled.MusicNote` / `Outlined.MusicNote` | `history` |
-| `SETTINGS` | `"SETTINGS"` | `SettingsScreen(onShowkaseIntent)` | `Filled.Settings` / `Outlined.Settings` | `settings` |
+| `REPORT` | `"REPORT"` | `ReportScreen(windowSize)` | `Filled.BarChart` / `Outlined.BarChart` | `report` |
+| `SETTINGS` | `"SETTINGS"` | `SettingsScreen()` | `Filled.Settings` / `Outlined.Settings` | `settings` |
 
-- ルート文字列は enum の `name` をそのまま使う。
+- タブの並び順は `ROUTE` enum の定義順。ルート文字列は enum の `name` をそのまま使う。
 - タブ切り替えは `popUpTo(startDestination) { saveState = true }` + `launchSingleTop` + `restoreState` で、バックスタックを積まずに各タブの状態を保存・復元する。
 - 画面遷移アニメーションは全部 `None`。
 - 遷移のたびに Analytics の `view_screen` (パラメータ `screen` = ルート文字列) を送る。リスナーは `LifecycleStartEffect` で start / stop に合わせて登録・解除する。
 
 ## 画面サイズへの対応
 
-`MainActivity` で `calculateWindowSizeClass(activity)` を計算して各画面に渡す。再生中画面と履歴画面は同じ規則でレイアウトを切り替える。
+`MainActivity` で `calculateWindowSizeClass(activity)` を計算して各画面に渡す。再生中画面・履歴画面・レポート画面は同じ規則でレイアウトを切り替える。
 
 | 条件 | レイアウト |
 | --- | --- |
@@ -92,6 +93,33 @@ ViewModel の状態:
 - 読み込み中 (`loadState.refresh == LoadState.Loading`) は `CircleLoading` だけを出す。
 - 日付 (`headerDay`、`yyyy/MM/dd`) が変わるところに `DateHeader` を挟む。Compact は `LazyColumn` の `stickyHeader`、Split2 は 2 カラムの `LazyVerticalGrid` で全幅アイテムとして挟む (sticky ではない)。
 
+## レポート画面 (`:presenter:report`)
+
+ファイル: [`ReportScreen.kt`](../presenter/report/src/main/java/com/snowdango/sumire/presenter/report/ReportScreen.kt) / [`ReportViewModel.kt`](../presenter/report/src/main/java/com/snowdango/sumire/presenter/report/ReportViewModel.kt)
+
+当月の再生状況をまとめて表示する。
+
+- ViewModel は `GetReportModel.getCurrentMonthReportFlow()` を `stateIn(WhileSubscribed(5000), initialValue = null)` で `StateFlow<MonthlyReportViewData?>` にする。`null` の間は読み込み中。
+- 集計は Room の Flow なので、画面を開いている間に再生が保存されると表示も更新される。集計の中身は [persistence.md](persistence.md#集計クエリ-レポート用) を参照。
+
+| 状態 | 表示 |
+| --- | --- |
+| 読み込み中 (`null`) | `CircleLoading` |
+| 当月の再生が 0 回 | `NoPlayReportComponent` (「No songs have been played in <年月> yet.」) |
+| 縦向き かつ Compact | `ReportCompactScreen`: 1 カラムで「<年月> Report」+ サマリー → Top Songs → Top Artists |
+| それ以外 (横向き / Medium / Expanded) | `ReportSplit2Screen`: 左に見出し・サマリー・Top Artists、右に Top Songs |
+
+コンポーネント (`component/`):
+
+| Composable | 内容 |
+| --- | --- |
+| `PlaySummary` | 再生回数 (Plays)・曲の種類数 (Songs)・アーティストの種類数 (Artists) の 3 つのタイル |
+| `RankedSongCard` | 順位、サムネイル (`SongThumbnail`)、タイトル / アルバム / アーティスト、再生回数 (上位 5 曲) |
+| `RankedArtistCard` | 順位、アーティスト名、再生回数 (上位 3 組) |
+| `RankText` / `PlayCountText` | 順位と「N play(s)」の表示 (`plurals` リソース) |
+
+文言は `presenter/report/src/main/res/values/strings.xml` の文字列リソース (英語) にある。
+
 ## 設定画面 (`:presenter:settings`)
 
 ファイル: [`SettingsScreen.kt`](../presenter/settings/src/main/java/com/snowdango/sumire/settings/SettingsScreen.kt) / [`SettingsViewModel.kt`](../presenter/settings/src/main/java/com/snowdango/sumire/settings/SettingsViewModel.kt)
@@ -104,33 +132,33 @@ ViewModel の状態:
 | Settings | ウィジェットのタップ時の動作 | `WidgetActionTypeDialog` で `COPY` (URL をコピー) / `TWITTER` (X に共有) を選ぶ。サブタイトルは `WidgetActionType.description` |
 | | URL取得時に優先されるサービス | `UrlPriorityPlatformDialog` で `UrlPriorityPlatform` を選ぶ。サブタイトルは platform 文字列そのまま |
 | | Version | `BuildConfig.VERSION_NAME` (`:presenter:settings` の BuildConfig) を表示するだけ |
-| Dev (`BuildConfig.DEBUG` のみ) | Showkaseの表示 | `onShowkaseIntent` → `:app` の `startShowkase(context)` で Showkase ブラウザを開く |
-| | Crashlytics | `RuntimeException("意図的なCrash")` を投げる |
+| Dev (`BuildConfig.DEBUG` のみ) | Crashlytics | `RuntimeException("意図的なCrash")` を投げる |
 
-選択ダイアログは選択前は「Select」ボタンが無効で、ダイアログを開くたびに未選択状態から始まる (現在値は初期選択されない)。
-
-`startShowkase` は `app/src/debug` と `app/src/release` に同名の関数があり、release 版は何もしない。
+選択ダイアログは選択前は「Select」ボタンが無効で、ダイアログを開くたびに未選択状態から始まる (現在値は初期選択されない)。ラジオボタンの配色は Material 3 の `ListItemDefaults.colors(...)` で渡す (compose-settings 3.x の API)。
 
 ## 共通 UI (`:ui`)
 
 | ファイル | 内容 |
 | --- | --- |
-| [`component/ListSongCard.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/ListSongCard.kt) | 履歴 1 件のカード。サムネイル (`isThumbUrl` なら Coil の `AsyncImage`、そうでなければ Base64 をデコード。デコード結果は `remember` でキャッシュ)、タイトル / アルバム / アーティスト、サービスアイコン、時刻 |
+| [`component/ListSongCard.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/ListSongCard.kt) | 履歴 1 件のカード。サムネイル (`SongThumbnail`)、タイトル / アルバム / アーティスト、サービスアイコン、時刻 |
+| [`component/SongThumbnail.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/SongThumbnail.kt) | 角丸のサムネイル。`isThumbUrl` なら Coil の `AsyncImage`、そうでなければ Base64 をデコード (結果は `remember` でキャッシュ)、どちらも無ければ `noimage`。履歴カードとレポートのランキングで共用 |
 | [`component/CircleSongArtwork.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/CircleSongArtwork.kt) | 円形のアートワーク。`null` なら `noimage` |
 | [`component/MusicAppImage.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/MusicAppImage.kt) | `MusicApp` → アイコン drawable (`when` で網羅) |
 | [`component/MusicAppText.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/MusicAppText.kt) | `MusicApp` → 表示名 (`when` で網羅)。Preview 用の `MusicAppPramProvider` もここ |
 | [`component/SearchText.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/SearchText.kt) | `DockedSearchBar`。フォーカス中だけ候補リストを展開する |
 | [`component/CircleLoading.kt`](../ui/src/main/java/com/snowdango/sumire/ui/component/CircleLoading.kt) | 中央に `CircularProgressIndicator` |
 | [`viewdata/SongCardViewData.kt`](../ui/src/main/java/com/snowdango/sumire/ui/viewdata/SongCardViewData.kt) | カード表示用データ (`title`, `artistName`, `albumName`, `thumbnail`, `isThumbUrl`, `playTimeText`, `headerDay`, `app`) |
+| [`viewdata/MonthlyReportViewData.kt`](../ui/src/main/java/com/snowdango/sumire/ui/viewdata/MonthlyReportViewData.kt) | レポート表示用データ (`MonthlyReportViewData` と、ランキング 1 件分の `RankedSongViewData` / `RankedArtistViewData`) |
 | [`theme/SumireTheme.kt`](../ui/src/main/java/com/snowdango/sumire/ui/theme/SumireTheme.kt) | material-kolor の `rememberDynamicColorScheme` でシード色 `@color/seed` (`#b0c4de`) から配色を作る。ダークモードは端末設定に従う。Android 12+ の壁紙ダイナミックカラーは使っていない |
 | [`theme/Typography.kt`](../ui/src/main/java/com/snowdango/sumire/ui/theme/Typography.kt) | Material 3 の Typography 定義 (`FontFamily.Default`) |
 | [`theme/glance/`](../ui/src/main/java/com/snowdango/sumire/ui/theme/glance/) | ウィジェット用の `SumireGlanceTheme` と固定配色 `glanceColors` (ライト / ダーク) |
 
 リソース: 各音楽サービスのアイコン (`apple_music.png` など)、`noimage.png`、ウィジェットから参照するランチャーアイコン (`mipmap/ic_launcher*`)。
 
-## Preview と Showkase
+## Preview とスクリーンショットテスト
 
-- 画面・コンポーネントの `@Preview` には `group` を付ける。グループ名は各モジュールの `ShowkaseModule.kt` の定数 (`PLAYING_GROUP = "playing"`, `HISTORY_GROUP = "history"`, `SETTING_GROUP = "settings"`, `UTIL_GROUP = "util/ui"`)。
-- 各モジュールの `src/debug` に `@ShowkaseRoot` を付けたクラスがあり、`kspDebug(showkase-processor)` が Preview を収集する。`:app` の KSP 引数 `skipPrivatePreviews = true` により private な Preview は対象外。
+- 画面・コンポーネントの `@Preview` には `group` と `name` を付ける。グループ名は各モジュールの `PreviewGroup.kt` の定数 (`PLAYING_GROUP = "playing"`, `HISTORY_GROUP = "history"`, `REPORT_GROUP = "report"`, `SETTING_GROUP = "settings"`, `UTIL_GROUP = "util/ui"`)。
 - Preview 用のダミーデータは各 presenter の `mock/MockData.kt` にある。
-- 収集された Preview はそのまま VRT のスクリーンショット対象になる ([build-and-ci.md](build-and-ci.md#vrt-の仕組み))。Preview を追加・変更すると VRT の差分として PR にコメントされる。
+- VRT の撮影対象は、各モジュールの `src/screenshotTest/kotlin/` にある `@PreviewTest` 付きの Composable だけ。中身は main の Preview 関数を呼ぶだけのラッパーで、`@Preview` のパラメータ (`group`, `name`, `device`) は main 側と揃える。ラッパーから呼べるように、VRT に載せる main の Preview は private にしない。
+- 撮影対象のモジュールは `:ui`, `:presenter:playing`, `:presenter:history`, `:presenter:report`, `:presenter:settings` (`:presenter:widget` と `:app` には無い)。
+- 撮影の仕組みと CI の流れは [build-and-ci.md](build-and-ci.md#vrt-の仕組み) を参照。対象の Preview を変更すると、VRT の差分として PR にコメントされる。

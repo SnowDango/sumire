@@ -6,7 +6,7 @@
 
 | 分類 | 採用技術 | バージョン |
 | --- | --- | --- |
-| 言語 / ビルド | Kotlin, AGP, Gradle Wrapper, KSP, JDK | Kotlin 2.3.21 / AGP 9.2.1 / Gradle 9.4.1 / KSP 2.3.4 / JDK 21 |
+| 言語 / ビルド | Kotlin, AGP, Gradle Wrapper, KSP (Room のコード生成のみ), JDK | Kotlin 2.3.21 / AGP 9.2.1 / Gradle 9.4.1 / KSP 2.3.8 / JDK 21 |
 | SDK | minSdk / compileSdk / targetSdk | 33 (Android 13) / 36 / 36 |
 | UI | Jetpack Compose (Material 3), Navigation Compose, material-kolor | Compose BOM 2026.03.00 / Navigation 2.9.6 |
 | ウィジェット | Jetpack Glance, WorkManager | Glance 1.1.1 / WorkManager 2.11.1 |
@@ -16,23 +16,24 @@
 | 設定 | DataStore Preferences | 1.2.0 |
 | 通信 | Ktor Client (Android engine) + kotlinx.serialization | Ktor 3.5.0 |
 | 画像 | Coil (URL のサムネイル表示) | 2.7.0 |
-| 設定画面 UI | compose-settings (alorma) | 2.23.0 |
+| 設定画面 UI | compose-settings (alorma) | 3.1.0 |
 | 計測 | Firebase Analytics / Crashlytics | Firebase BOM 34.13.0 |
-| UI カタログ / VRT | Showkase, Roborazzi, Robolectric | Showkase 1.0.5 / Roborazzi 1.63.0 / Robolectric 4.16.1 |
+| VRT | Compose Preview Screenshot Testing (`com.android.compose.screenshot`) | 0.0.1-alpha16 |
 | 静的解析 | detekt (+ formatting, compose rules), Android Lint | detekt 1.23.8 |
 
 ## モジュール構成
 
-[`settings.gradle.kts`](../settings.gradle.kts) で 11 モジュールを include している。
+[`settings.gradle.kts`](../settings.gradle.kts) で 12 モジュールを include している。
 
 | モジュール | 役割 | Android namespace | Kotlin パッケージ |
 | --- | --- | --- | --- |
 | `:app` | Application / Activity / 通知リスナーサービス / ウィジェットの Receiver。Koin の起動と画面遷移 | `com.snowdango.sumire` | `com.snowdango.sumire` |
 | `:presenter:playing` | 再生中画面 (Compose + ViewModel) | `com.snowdango.sumire.presenter.playing` | `com.snowdango.sumire.presenter.playing` |
 | `:presenter:history` | 履歴画面 (Compose + ViewModel + Paging) | `com.snowdango.sumire.presenter.history` | `com.snowdango.presenter.history` ※ |
+| `:presenter:report` | レポート画面 (当月の再生集計。Compose + ViewModel) | `com.snowdango.sumire.presenter.report` | `com.snowdango.sumire.presenter.report` |
 | `:presenter:settings` | 設定画面 (Compose + ViewModel) | `com.snowdango.sumire.presenter.settings` | `com.snowdango.sumire.settings` ※ |
 | `:presenter:widget` | Glance ウィジェット本体・Worker・タップ時のアクション | `com.snowdango.sumire.presenter.widget` | `com.snowdango.sumire.widget` ※ |
-| `:ui` | 共通 Compose コンポーネント、テーマ (Compose / Glance)、表示用データ `SongCardViewData`、アプリアイコン等のリソース | `com.snowdango.sumire.ui` | `com.snowdango.sumire.ui` |
+| `:ui` | 共通 Compose コンポーネント、テーマ (Compose / Glance)、表示用データ (`SongCardViewData`, `MonthlyReportViewData` など)、アプリアイコン等のリソース | `com.snowdango.sumire.ui` | `com.snowdango.sumire.ui` |
 | `:model` | 画面やインフラから呼ばれるビジネスロジック (保存・取得・共有 URL 解決・設定) | `com.snowdango.sumire.model` | `com.snowdango.sumire.model` |
 | `:usecase` | DB / API / DataStore への細かい操作を 1 クラス 1 テーブル程度の粒度で包む | `com.snowdango.sumire.usecase` | `com.snowdango.sumire.usecase` |
 | `:repository` | Room の Database と DAO、Ktor による song.link API クライアント | `com.snowdango.sumire.repository` | `com.snowdango.sumire.repository` |
@@ -50,6 +51,7 @@ graph TD
     app[":app"]
     playing[":presenter:playing"]
     history[":presenter:history"]
+    report[":presenter:report"]
     settings[":presenter:settings"]
     widget[":presenter:widget"]
     ui[":ui"]
@@ -58,11 +60,12 @@ graph TD
     usecase[":usecase"]
     repository[":repository"]
 
-    app --> playing & history & settings & widget
+    app --> playing & history & report & settings & widget
     app --> ui & infla & model & usecase & repository
 
     playing --> ui & infla & model
     history --> ui & infla & model
+    report --> ui & model
     settings --> ui & model
     widget --> ui & infla & model
 
@@ -74,7 +77,7 @@ graph TD
 押さえておくべき点:
 
 - すべて `implementation` 依存なので推移的には見えない。`:app` が `SongLinkApi` や `SongsDatabase` を直接触るのは、`:app` が `:repository` を直接依存に持っているから。
-- `:model` が `:ui` に依存している。`GetHistoriesModel` が Room のリレーション (`HistorySong`) を表示用の `SongCardViewData` (`:ui` 所属) に変換するため。
+- `:model` が `:ui` に依存している。`GetHistoriesModel` / `GetReportModel` が Room の結果を表示用の `SongCardViewData` / `MonthlyReportViewData` (`:ui` 所属) に変換するため。
 - `:infla` が `:model` に依存している。`PlayingSongSharedFlow` が曲の確定時に `SaveModel.saveSong()` を呼ぶため。
 
 ## レイヤーと責務
@@ -82,7 +85,7 @@ graph TD
 ```
 Presenter (Compose 画面 / ViewModel / Glance)
    ↓
-Model      (SaveModel, GetHistoriesModel, GetSongsModel, ShareSongModel, SettingsModel)
+Model      (SaveModel, GetHistoriesModel, GetSongsModel, GetReportModel, ShareSongModel, SettingsModel)
    ↓
 UseCase    (SongsUseCase, HistoriesUseCase, AppSongKeyUseCase, ... , SongLinkApiUseCase, SettingsUseCase)
    ↓
@@ -103,7 +106,7 @@ Infla は横断的な位置付け: Service / Presenter から使われ、Model �
 
 ## DI (Koin)
 
-Koin は [`SumireApp.onCreate()`](../app/src/main/java/com/snowdango/sumire/SumireApp.kt) で起動する。`GlobalContext.getOrNull() ?: startKoin { ... }` としているのは、Robolectric のテストなどで Application が複数回生成されても二重起動しないようにするため。
+Koin は [`SumireApp.onCreate()`](../app/src/main/java/com/snowdango/sumire/SumireApp.kt) で起動する。`GlobalContext.getOrNull() ?: startKoin { ... }` として、すでに Koin が起動していれば二重に起動しないようにしている。
 
 | Koin モジュール | 定義場所 | 中身 |
 | --- | --- | --- |
@@ -111,6 +114,7 @@ Koin は [`SumireApp.onCreate()`](../app/src/main/java/com/snowdango/sumire/Sumi
 | `mainModule` | `SumireApp` (private) | `viewModel`: `MainViewModel` |
 | `playingKoinModule` | `:presenter:playing` | `viewModel`: `PlayingViewModel(get(), get())` |
 | `historyKoinModule` | `:presenter:history` | `viewModel`: `HistoryViewModel` |
+| `reportKoinModule` | `:presenter:report` | `viewModel`: `ReportViewModel` |
 | `settingsModule` | `:presenter:settings` | `viewModel`: `SettingsViewModel` |
 | `widgetModule` | `:presenter:widget` | `single`: `WidgetViewModel(get())`, `SmallArtworkWidget` |
 | `modelModule` | `:model` | `factory`: 全 Model クラス |

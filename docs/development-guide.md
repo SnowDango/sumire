@@ -28,7 +28,8 @@
 ### Compose
 
 - Composable は `modifier: Modifier = Modifier` を受け取り、ルート要素に渡す (Compose 用 detekt ルールの前提)。
-- `@Preview` には必ず `group` (各モジュールの `*_GROUP` 定数) と `name` を付ける。Preview は VRT の撮影対象になる ([build-and-ci.md](build-and-ci.md#vrt-の仕組み))。
+- `@Preview` には必ず `group` (各モジュールの `PreviewGroup.kt` の `*_GROUP` 定数) と `name` を付ける。
+- 画面やコンポーネントの Preview を追加・変更したら、同じモジュールの `src/screenshotTest/kotlin/` にある `*ScreenshotTest.kt` にも、main の Preview を呼ぶ `@PreviewTest` 付きのラッパーを足す (`@Preview` のパラメータは main 側と揃える)。これが無い Preview は VRT で撮影されない ([build-and-ci.md](build-and-ci.md#vrt-の仕組み))。
 - Preview 用のダミーデータは各 presenter の `mock/MockData.kt` に置く。
 - 画面は `WindowSizeClass` と画面の向きで Compact / Split2 のレイアウトを切り替える ([screens.md](screens.md#画面サイズへの対応))。
 
@@ -48,7 +49,8 @@
 1. `presenter/<name>` モジュールを作り、[`settings.gradle.kts`](../settings.gradle.kts) に `include(":presenter:<name>")`、`:app` の `dependencies` に `implementation(project(":presenter:<name>"))` を足す。`build.gradle.kts` は既存の presenter (例: [`presenter/history/build.gradle.kts`](../presenter/history/build.gradle.kts)) をコピーして namespace を変える。
 2. `XxxScreen` / `XxxViewModel` と、`viewModel { XxxViewModel() }` を持つ Koin モジュールを作り、[`SumireApp`](../app/src/main/java/com/snowdango/sumire/SumireApp.kt) の `modules(...)` に追加する。
 3. [`MainScreen`](../app/src/main/java/com/snowdango/sumire/MainScreen.kt) の `ROUTE` enum に項目 (アイコン 2 種とラベル) を足し、`NavHost` に `composable(route = ROUTE.XXX.name) { ... }` を足す。
-4. Preview を VRT に載せるため、`*_GROUP` 定数と `src/debug` の `@ShowkaseRoot` クラスを用意し、`kspDebug(libs.showkase.prosessor)` などの依存を入れる (既存 presenter と同じ構成)。
+4. Preview を VRT に載せるため、`PreviewGroup.kt` に `*_GROUP` 定数を置き、`src/screenshotTest/kotlin/` に `@PreviewTest` のラッパーを書く。`build.gradle.kts` には `alias(libs.plugins.compose.screenshot)`、`experimentalProperties["android.experimental.enableScreenshotTest"] = true`、`screenshotTestImplementation(libs.screenshot.validation.api)` / `screenshotTestImplementation(libs.androidx.ui.tooling)` が要る (既存 presenter と同じ構成。例: [`presenter/report/build.gradle.kts`](../presenter/report/build.gradle.kts))。
+5. CircleCI の `build` ジョブが `unittest` に引き継ぐ `persist_to_workspace` の一覧 ([`.circleci/config.yml`](../.circleci/config.yml)) に、新しいモジュールの `build` ディレクトリを足す。
 
 ### DB スキーマを変更する
 
@@ -93,6 +95,7 @@ Claude Code で `/version-up` (patch を +1) または `/version-up 0.1.0` を�
 | `saveData` は複数テーブルへの insert をトランザクション無しで行うので、途中で失敗すると中途半端な行が残る | `SaveModel.saveData` |
 | アーティストは名前だけで同一判定するため、同名の別アーティストは 1 行にまとまる | `SaveModel.saveArtist` |
 | 設定の選択ダイアログは、開いたとき現在の設定値が選択されていない | `UrlPriorityPlatformDialog` / `WidgetActionTypeDialog` |
+| レポートの「当月」は collect を始めた時点で 1 回だけ決まる。画面を表示したまま月をまたぐと前の月の集計が出続け、画面を離れて 5 秒以上経ってから戻る (`WhileSubscribed(5000)` で購読し直す) と当月に切り替わる | `GetReportModel.getCurrentMonthReportFlow` / `ReportViewModel` |
 
 ### 将来の変更で踏みやすいもの
 
@@ -121,4 +124,5 @@ Claude Code で `/version-up` (patch を +1) または `/version-up 0.1.0` を�
 | 内容 | 場所 |
 | --- | --- |
 | detekt は `ignoreFailures = true` なので、指摘があっても CI は落ちない | ルート `build.gradle.kts` |
-| ロジックのユニットテストはほぼ無く、回帰検知は Preview の VRT に頼っている | 各モジュールの `src/test` |
+| ロジックのユニットテストは `GetReportModelTest` だけで、保存処理 (`SaveModel`) や再生状態 (`PlayingSongSharedFlow`) にはテストが無い。画面の回帰検知は VRT に頼っている | 各モジュールの `src/test` |
+| VRT は `@PreviewTest` のラッパーを書いた Preview しか撮らないので、ラッパーを足し忘れた画面の変化は検知されない。ウィジェット (`:presenter:widget`) は対象外 | 各モジュールの `src/screenshotTest` |
