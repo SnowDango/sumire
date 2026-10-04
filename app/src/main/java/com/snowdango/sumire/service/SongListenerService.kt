@@ -10,7 +10,10 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -40,6 +43,14 @@ class SongListenerService : NotificationListenerService() {
     private val channelName = "SumireSongListener"
     private val notificationId = 234234423
 
+    // 通知を出し直さずに一時停止・曲送りするアプリもあるので、対象アプリの MediaSession の変化も直接受け取る。
+    // コールバックはすべてメインスレッドで受けるので、watchedSessions はメインスレッドからしか触らない
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val watchedSessions = mutableMapOf<MediaSession.Token, WatchedSession>()
+    private val activeSessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
+        watchMediaSessions(controllers.orEmpty())
+    }
+
     override fun onBind(intent: Intent?): IBinder? {
         startForeground()
         return super.onBind(intent)
@@ -56,6 +67,17 @@ class SongListenerService : NotificationListenerService() {
         super.onListenerConnected()
         // getActiveSessions() はリスナーが接続されてから呼ぶ
         initMediaMetadata()
+        startWatchingMediaSessions()
+    }
+
+    override fun onListenerDisconnected() {
+        stopWatchingMediaSessions()
+        super.onListenerDisconnected()
+    }
+
+    override fun onDestroy() {
+        stopWatchingMediaSessions()
+        super.onDestroy()
     }
 
     private fun startForeground() {
@@ -99,6 +121,45 @@ class SongListenerService : NotificationListenerService() {
 
     private fun isTargetMusicApp(packageName: String): Boolean =
         MusicApp.entries.any { it.packageName.isNotEmpty() && it.packageName == packageName }
+
+    private fun startWatchingMediaSessions() {
+        val mediaSessionManager = getSystemService(MediaSessionManager::class.java) ?: return
+        val componentName = ComponentName(this@SongListenerService, SongListenerService::class.java)
+        try {
+            // 同じリスナーを 2 回登録しても無視されるので、再接続で呼ばれても重複しない
+            mediaSessionManager.addOnActiveSessionsChangedListener(
+                activeSessionsListener,
+                componentName,
+                mainHandler,
+            )
+            watchMediaSessions(mediaSessionManager.getActiveSessions(componentName))
+        } catch (e: SecurityException) {
+            // 通知へのアクセスが外された直後などは呼べない。通知からの検知だけで動く
+            Log.e(LOG_TAG, "failed to watch media sessions", e)
+        }
+    }
+
+    private fun stopWatchingMediaSessions() {
+        getSystemService(MediaSessionManager::class.java)
+            ?.removeOnActiveSessionsChangedListener(activeSessionsListener)
+        watchMediaSessions(emptyList())
+    }
+
+    /**
+     * 対象アプリのセッションにだけコールバックを登録し、無くなったセッションのコールバックは外す
+     */
+    private fun watchMediaSessions(controllers: List<MediaController>) {
+        val targets = controllers.filter { isTargetMusicApp(it.packageName) }
+            .associateBy { it.sessionToken }
+        (watchedSessions.keys - targets.keys).forEach { token ->
+            watchedSessions.remove(token)?.let { it.controller.unregisterCallback(it.callback) }
+        }
+        (targets - watchedSessions.keys).forEach { (token, controller) ->
+            val callback = SessionCallback(controller.packageName)
+            controller.registerCallback(callback, mainHandler)
+            watchedSessions[token] = WatchedSession(controller, callback)
+        }
+    }
 
     private fun initMediaMetadata() {
         getSystemService(MediaSessionManager::class.java)?.let { mediaSessionManager ->
@@ -226,6 +287,38 @@ class SongListenerService : NotificationListenerService() {
             Logging.loggingPlaybackAction(it.actions)
         }
     }
+
+    private inner class SessionCallback(
+        private val packageName: String,
+    ) : MediaController.Callback() {
+        private var lastIsActive: Boolean? = null
+        private var lastQueueItemId: Long? = null
+
+        // 状態の変化は通知と両方から届くことがあるが、changeSong() は変化が無ければ何もしない。
+        // 再生位置が進むたびに PlaybackState を更新するアプリもあるので、再生中かどうかと
+        // 再生中のキューアイテムが変わったときだけ読み直す
+        override fun onPlaybackStateChanged(state: PlaybackState?) {
+            val isActive = state?.isActive
+            val queueItemId = state?.activeQueueItemId
+            if (isActive == lastIsActive && queueItemId == lastQueueItemId) return
+            lastIsActive = isActive
+            lastQueueItemId = queueItemId
+            syncMediaMetadata(packageName)
+        }
+
+        override fun onMetadataChanged(metadata: MediaMetadata?) {
+            syncMediaMetadata(packageName)
+        }
+
+        override fun onSessionDestroyed() {
+            clearIfSessionGone(packageName)
+        }
+    }
+
+    private class WatchedSession(
+        val controller: MediaController,
+        val callback: MediaController.Callback,
+    )
 
     companion object {
         private const val LOG_TAG = "SongListenerService"

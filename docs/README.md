@@ -31,7 +31,7 @@ flowchart LR
     DB --> Share["ShareSongModel<br/>(ウィジェットタップ時の URL 解決)"]
 ```
 
-1. `SongListenerService` (`NotificationListenerService`) が音楽アプリの通知を受け取り、`MediaSessionManager` から再生中のメタデータを取り出す。
+1. `SongListenerService` (`NotificationListenerService`) が音楽アプリの通知と MediaSession のコールバックを受け取り、`MediaSessionManager` から再生中のメタデータを取り出す。
 2. `PlayingSongSharedFlow` がメモリ上に「今再生中の曲」を保持し、変化があれば画面とウィジェットに通知する。再生中だった時間も曲ごとに測る。
 3. 曲のメタデータが揃ったら `SaveModel` が song.link API で各サービスの URL を取得し、Room に履歴として保存する。測った再生時間は、一時停止や曲の切り替えのたびにその履歴へ足し込む。
 4. 画面 (Jetpack Compose) は Room の履歴を Paging / Flow で表示し、レポートタブでは当月の再生時間・再生回数やランキングを集計して表示する。ウィジェット (Glance) は再生中の曲を表示し、タップで URL のコピーまたは X への共有を行う。

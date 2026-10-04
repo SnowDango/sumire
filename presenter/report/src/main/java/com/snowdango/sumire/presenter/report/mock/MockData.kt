@@ -80,6 +80,7 @@ object MockData {
         songCount = 5,
         artistCount = 3,
         listeningTime = 3.hours + 25.minutes,
+        unmeasuredPlayCount = 0,
         topSongs = mockTopSongs,
         topArtists = mockTopArtists,
     )

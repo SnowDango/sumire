@@ -1,12 +1,12 @@
 # 再生検知と再生中の曲の状態管理
 
-音楽アプリの通知をきっかけに MediaSession からメタデータを取り出し、「今再生中の曲」をメモリ上に保持する仕組み。曲ごとの再生時間もここで測る。
+音楽アプリの通知と MediaSession のコールバックをきっかけにメタデータを取り出し、「今再生中の曲」をメモリ上に保持する仕組み。曲ごとの再生時間もここで測る。
 
 ## 関係するクラス
 
 | クラス | モジュール | 役割 |
 | --- | --- | --- |
-| [`SongListenerService`](../app/src/main/java/com/snowdango/sumire/service/SongListenerService.kt) | `:app` | `NotificationListenerService`。通知の追加・削除を受けて MediaSession を読みに行く |
+| [`SongListenerService`](../app/src/main/java/com/snowdango/sumire/service/SongListenerService.kt) | `:app` | `NotificationListenerService`。通知の追加・削除と、対象アプリの MediaSession のコールバックを受けて MediaSession を読みに行く |
 | [`MusicApp`](../data/src/main/java/com/snowdango/sumire/data/entity/MusicApp.kt) | `:data` | 対応サービスの enum。`packageName` が空でないものが再生検知の対象 |
 | [`PlayingSongData` / `SongData`](../data/src/main/java/com/snowdango/sumire/data/entity/playing/) | `:data` | 再生中の曲の値オブジェクト |
 | [`PlayingSongSharedFlow`](../infla/src/main/java/com/snowdango/sumire/infla/PlayingSongSharedFlow.kt) | `:infla` | 再生中の曲の保持、変化の判定、通知、保存タイミングの決定、再生時間の書き込み |
@@ -40,6 +40,7 @@ sequenceDiagram
     participant Sys as システム
     participant Svc as SongListenerService
     participant MSM as MediaSessionManager
+    participant MC as MediaController<br/>(対象アプリのセッション)
     participant PSF as PlayingSongSharedFlow
 
     Sys->>Svc: onListenerConnected()
@@ -47,6 +48,15 @@ sequenceDiagram
     loop isActive なセッションごと
         Svc->>Svc: syncMediaMetadata(packageName)
     end
+    Svc->>MSM: addOnActiveSessionsChangedListener()
+    Svc->>MC: registerCallback() (watchMediaSessions)
+    MSM-->>Svc: onActiveSessionsChanged (セッションの増減)
+    Svc->>MC: 増えたセッションに registerCallback() / 消えたセッションから unregisterCallback()
+
+    MC->>Svc: onPlaybackStateChanged / onMetadataChanged
+    Svc->>Svc: syncMediaMetadata(packageName)
+    MC->>Svc: onSessionDestroyed
+    Svc->>Svc: clearIfSessionGone(packageName)
 
     Sys->>Svc: onNotificationPosted(sbn)
     alt 対象アプリ (MusicApp.packageName と一致)
@@ -62,6 +72,12 @@ sequenceDiagram
 ```
 
 - `getActiveSessions()` は通知リスナーが接続されてから呼ぶ必要があるため、初回の読み込みは `onListenerConnected()` で行う。
+- 通知を出し直さずに一時停止・曲送りするアプリもあるため、`onListenerConnected()` で `addOnActiveSessionsChangedListener` を登録し、対象アプリのセッションごとに `MediaController.Callback` を登録する (`watchMediaSessions`)。セッションが増減するたびに登録し直し、`onListenerDisconnected()` / `onDestroy()` で全部外す。コールバックと登録の管理はすべてメインスレッドで行う。
+  - `onPlaybackStateChanged`: 再生位置が進むたびに呼ぶアプリもあるので、`isActive` か `activeQueueItemId` が前回と変わったときだけ `syncMediaMetadata` する。
+  - `onMetadataChanged`: そのまま `syncMediaMetadata` する。
+  - `onSessionDestroyed`: `clearIfSessionGone` する。
+  - 通知とコールバックの両方から同じ変化が届くことがあるが、`changeSong()` は変化が無ければ何もしない (`NONE`)。
+  - 登録時に `SecurityException` (通知へのアクセスが外された直後など) が出たらログだけ出し、通知からの検知だけで動く。
 - 処理はすべてアプリスコープで `launch` し、`CancellationException` 以外の例外はログに出して握りつぶす。
 - 対象アプリの判定は `MusicApp.entries.any { it.packageName.isNotEmpty() && it.packageName == packageName }`。現状 `packageName` を持つのは `APPLE_MUSIC` (`com.apple.android.music`) と `SPOTIFY` (`com.spotify.music`) だけで、他の enum 値は URL 取得用。
 - 通知が消えても、曲の切り替え時に一瞬消えただけならセッションは残っているので何もしない (`clearIfSessionGone`)。
@@ -150,16 +166,18 @@ flowchart TD
 | queueId が変わった (別の曲・再生中の曲なし) | 前の曲のセッションを `finish()` (最後の区間を締める) | 締めた区間を書き込む |
 | 同じ曲で `isActive` が false → true (`CHANGE_ACTIVE`) | `resume()` | - |
 | 同じ曲で `isActive` が true → false (`CHANGE_ACTIVE`) | `pause()` | 締めた区間を書き込む |
+| 再生が続いたまま 5 分 (`LISTENING_CHECKPOINT_INTERVAL_MS`) 経った | `checkpoint()` (区間を区切って計測は続ける) | 区切った区間を書き込む |
 
 - 書き込みは `SaveModel.addListeningTime(historyId, ms)` で、`histories.listening_ms` に **足し込む** ([persistence.md](persistence.md#再生時間の書き込み))。一時停止のたびに書くので、1 曲の再生時間は複数回に分けて届く。曲の終わりを待たないのは、プロセスが終了しても一時停止までの分を残すため。
 - 履歴の ID は保存が終わるまで (アートワーク待ちの最大 10 秒 + song.link API) 分からない。そのため書き込みはアプリスコープで `launch` し、`ListeningSession.historyId` (`CompletableDeferred<Long?>`) を `await` してから行う。`changeSong()` の呼び出し元は待たない。
 - 保存は再生中の曲に対してしか行わないので、保存が始まらないまま `finish()` した曲はこの先も保存されない。このとき `historyId` を `null` で完了させ、待っている書き込みを捨てる (アートワークが無いまま 10 秒以内にスキップされた曲など)。
-- 0 ミリ秒の区間 (一時停止中に曲が切り替わったなど) は書き込まない。一度も再生しなかった履歴の `listening_ms` は `null` のまま。
+- 0 ミリ秒の区間 (一時停止中に曲が切り替わったなど) は書き込まない。新しい履歴は `listening_ms = 0` で作るので、一度も再生しなかった履歴は 0 のまま。
+- 5 分ごとの区切りは、再開・曲の切り替えのたびにタイマー (`checkpointJob`、アプリスコープ) を作り直して数え直す。一時停止・曲の終わりで止める。間隔より短い曲では区切りの書き込みは発生しない。書き込むたびに `histories` を読む Room の Flow / Paging が読み直すので、間隔は短くしすぎない。
 
 計測の限界:
 
-- 一時停止に気づけるのは、音楽アプリが通知を出し直して `onNotificationPosted` が呼ばれたときだけ。`MediaController.Callback` は登録していないので、通知を更新しないまま止まった場合は次の通知まで再生中として数える。
-- 計測中の区間はメモリ上にしか無いので、再生中にプロセスが終了すると、最後に再開した (または曲が始まった) ときからの分は失われる。
+- 計測中の区間はメモリ上にしか無いので、再生中にプロセスが終了すると、最後に区切った (または再開した・曲が始まった) ときからの分、最大 5 分が失われる。
+- `MediaController.Callback` を登録できなかったとき (`SecurityException`) は通知の更新でしか一時停止に気づけないので、通知を出し直さないアプリでは次の通知まで再生中として数える。
 - queueId が変わらないリピート再生は 1 件の履歴にまとめて足される (回数は 1 のまま、時間は流れた分だけ増える)。
 
 ## 再生中の曲を読む側

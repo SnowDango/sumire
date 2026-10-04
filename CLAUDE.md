@@ -29,10 +29,10 @@ JDK 21 が必要。ビルドには gitignore 済みの `app/src/debug/google-ser
 
 ### データの流れ
 
-1. `SongListenerService` (`:app`, `NotificationListenerService`) が `MusicApp.packageName` に一致するアプリの通知を受け、`MediaSessionManager` からメタデータを読んで `PlayingSongSharedFlow.changeSong(queueId, data)` を呼ぶ。
+1. `SongListenerService` (`:app`, `NotificationListenerService`) が `MusicApp.packageName` に一致するアプリの通知と、そのアプリの MediaSession の `MediaController.Callback` を受け、`MediaSessionManager` からメタデータを読んで `PlayingSongSharedFlow.changeSong(queueId, data)` を呼ぶ。
 2. `PlayingSongSharedFlow` (`:infla`, Koin の single) が再生中の曲を **メモリ上だけ** に保持する。変化があれば `listener` (ウィジェット用、1 つしか持てない) と `EventSharedFlow` の `ChangeCurrentSong` (画面・Analytics 用) に通知する。
 3. アートワーク付きのメタデータが揃ったら即、揃わなければ 10 秒待って `SaveModel.saveSong()` を呼ぶ。`SaveModel` は `AppSongKey` に `(mediaId, app)` があれば履歴だけ追加し、無ければ song.link API で各サービスの URL を取ってから Room に保存する。戻り値は追加した履歴の ID。
-4. 再生時間は `PlayingSongSharedFlow` が曲ごとの `ListeningSession` で `isActive` だった区間を測り、一時停止・曲の切り替えのたびに `SaveModel.addListeningTime()` で `histories.listening_ms` に足し込む (履歴の ID が決まるまでアプリスコープで待つ)。
+4. 再生時間は `PlayingSongSharedFlow` が曲ごとの `ListeningSession` で `isActive` だった区間を測り、一時停止・曲の切り替え・流し続けて 5 分ごとに `SaveModel.addListeningTime()` で `histories.listening_ms` に足し込む (履歴の ID が決まるまでアプリスコープで待つ)。新しい履歴は 0 で作り、`null` は再生時間を記録し始める前の履歴だけ。
 5. 画面は Room を Paging / Flow で読む。レポートタブは `HistoriesDao` の集計クエリ (期間内の再生回数・再生時間の合計・曲 / アーティストのランキング) を `GetReportModel` で当月分にまとめる。ウィジェット (Glance) はタップ時に `ShareSongModel` で `AppSongKey` から URL を解決する。
 
 詳細: [docs/playback-detection.md](docs/playback-detection.md), [docs/persistence.md](docs/persistence.md), [docs/widget.md](docs/widget.md)

@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.snowdango.sumire.presenter.report.R
@@ -30,6 +32,7 @@ fun PlaySummary(
     songCount: Int,
     artistCount: Int,
     listeningTime: Duration,
+    unmeasuredPlayCount: Int,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -41,6 +44,16 @@ fun PlaySummary(
             value = listeningTimeText(listeningTime),
             label = stringResource(R.string.summary_listening_time),
             modifier = Modifier.fillMaxWidth(),
+            // 記録を始める前の再生は時間が分からず合計に入らないので、回数に比べて少なく見える理由を出す
+            note = if (unmeasuredPlayCount > 0) {
+                pluralStringResource(
+                    R.plurals.listening_time_unmeasured_note,
+                    unmeasuredPlayCount,
+                    unmeasuredPlayCount,
+                )
+            } else {
+                null
+            },
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -82,6 +95,7 @@ private fun PlaySummaryItem(
     value: String,
     label: String,
     modifier: Modifier = Modifier,
+    note: String? = null,
 ) {
     Column(
         modifier = modifier
@@ -101,6 +115,16 @@ private fun PlaySummaryItem(
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
         )
+        if (note != null) {
+            Text(
+                text = note,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp),
+            )
+        }
     }
 }
 
@@ -118,6 +142,27 @@ fun Preview_PlaySummary() {
                 songCount = 64,
                 artistCount = 12,
                 listeningTime = 8.hours + 32.minutes,
+                unmeasuredPlayCount = 0,
+            )
+        }
+    }
+}
+
+@Preview(group = REPORT_GROUP, name = "PlaySummaryWithUnmeasuredPlays")
+@Composable
+fun Preview_PlaySummaryWithUnmeasuredPlays() {
+    SumireTheme {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+        ) {
+            PlaySummary(
+                playCount = 128,
+                songCount = 64,
+                artistCount = 12,
+                listeningTime = 2.hours + 5.minutes,
+                unmeasuredPlayCount = 96,
             )
         }
     }

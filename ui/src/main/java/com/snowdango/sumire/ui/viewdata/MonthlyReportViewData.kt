@@ -7,8 +7,10 @@ data class MonthlyReportViewData(
     val playCount: Int,
     val songCount: Int,
     val artistCount: Int,
-    // 再生時間を記録していない履歴 (記録を始める前の履歴など) の分は含まない
+    // 再生時間を記録し始める前の再生の分は含まない
     val listeningTime: Duration,
+    // listeningTime に入っていない、再生時間を記録し始める前の再生の回数
+    val unmeasuredPlayCount: Int,
     val topSongs: List<RankedSongViewData>,
     val topArtists: List<RankedArtistViewData>,
 )

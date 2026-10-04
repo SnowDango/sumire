@@ -33,7 +33,7 @@ flowchart TD
 1. **Artists**: `name` が一致する行があればその ID、無ければ insert。
 2. **Albums**: `name` と `artistId` が一致する行があればその ID、無ければ insert。サムネイルはアルバムを新規作成したときだけ保存される。
 3. **Songs**: 常に insert (重複チェックなし。新しい曲として扱うのは `AppSongKey` が見つからなかったときだけなので、通常は重複しない)。
-4. **Histories**: 再生 1 回につき 1 行 insert。`listening_ms` は `null` で作り、insert した行の ID を `saveSong` の戻り値にする。
+4. **Histories**: 再生 1 回につき 1 行 insert。`listening_ms` は 0 で作り (`Histories` のデフォルト値)、insert した行の ID を `saveSong` の戻り値にする。
 5. **AppSongKey**: その曲に紐づくキーを取得し、`(app, mediaKey)` がまだ無いものだけ insert。
 6. **Tasks**: API の結果が `Status.Error` のときだけ `(mediaId, songId)` を insert。
 
@@ -53,12 +53,14 @@ flowchart TD
 
 ### 再生時間の書き込み
 
-`SaveModel.addListeningTime(historyId, listeningMs)` が `HistoriesDao.addListeningTime` で `histories.listening_ms` に足し込む (`coalesce(listening_ms, 0) + :listeningMs`)。呼ぶのは `PlayingSongSharedFlow` だけで、1 曲の再生時間は一時停止や曲の切り替えのたびに分けて届く。計測のしかたは [playback-detection.md](playback-detection.md#再生時間の計測-listeningsession) を参照。
+`SaveModel.addListeningTime(historyId, listeningMs)` が `HistoriesDao.addListeningTime` で `histories.listening_ms` に足し込む (`coalesce(listening_ms, 0) + :listeningMs`)。呼ぶのは `PlayingSongSharedFlow` だけで、1 曲の再生時間は一時停止や曲の切り替え、長く流し続けたときの 5 分ごとの区切りで分けて届く。計測のしかたは [playback-detection.md](playback-detection.md#再生時間の計測-listeningsession) を参照。
 
 | `listening_ms` | 意味 |
 | --- | --- |
-| `null` | 再生時間が無い。DB version 3 までに保存された履歴 (Migration で追加した列なので全部 `null`)、保存されてから一度も再生中の区間が締まっていない履歴、一度も再生しなかった履歴 |
-| 0 以上 | 実際に再生していた時間 (ミリ秒) の合計 |
+| `null` | 再生時間を記録し始める前 (DB version 3 まで) に保存された履歴だけ。Migration で追加した列なので、それまでの行は全部 `null` になる |
+| 0 以上 | 実際に再生していた時間 (ミリ秒) の合計。新しい履歴は 0 で作るので、一度も再生しなかった履歴や、まだ区間が締まっていない再生中の曲は 0 |
+
+`null` を「記録を始める前」だけに使うのは、レポートで「時間が分からない再生」の回数を数えられるようにするため。`@ColumnInfo(defaultValue)` で SQL のデフォルトを付けると、Migration の `ADD COLUMN` で既存の行まで 0 になってしまうので、0 は Kotlin 側のデフォルト値で入れている。
 
 ### アートワークの Base64 化
 
@@ -192,11 +194,11 @@ erDiagram
 | `AlbumsDao` | `getIdByNameAndArtistId(name, artistId)` | 名前 + アーティストで ID を 1 件 |
 | `SongsDao` | `getSearchTitle(searchText)` | `title LIKE :searchText ESCAPE '\'`、最大 6 件 (検索候補用) |
 | | `updateUrl(id, url)` | `songs.url` の更新 (backfill 用) |
-| `HistoriesDao` | `addListeningTime(id, listeningMs)` | `listening_ms` に足し込む (`null` は 0 として扱う) |
+| `HistoriesDao` | `addListeningTime(id, listeningMs)` | `listening_ms` に足し込む (念のため `null` も 0 として扱う) |
 | | `getPagingHistorySongs()` | 全履歴を `play_time` 降順で `PagingSource` |
 | | `getPagingSearchHistorySong(text)` | `songs` と inner join し `title LIKE :text ESCAPE '\'`、`play_time` 降順で `PagingSource` |
 | | `getHistoriesSongRecent(size)` | 直近 `size` 件を `Flow<List<HistorySong>>` (DB 更新で再発行) |
-| | `getPlaySummary(start, end)` | 期間内の再生回数・曲の種類数・アーティストの種類数・再生時間の合計を `Flow<PlaySummary>` |
+| | `getPlaySummary(start, end)` | 期間内の再生回数・曲の種類数・アーティストの種類数・再生時間の合計・再生時間を記録し始める前の再生回数を `Flow<PlaySummary>` |
 | | `getTopSongs(start, end, limit)` | 期間内の曲ごとの再生回数ランキング (`Flow<List<SongPlayCount>>`、アルバムのサムネイル付き) |
 | | `getTopArtists(start, end, limit)` | 期間内のアーティストごとの再生回数ランキング (`Flow<List<ArtistPlayCount>>`) |
 | `AppSongKeyDao` | `getAppKeys(key, app)` | `(media_key, app)` で 1 件 + 同じ曲の全キー (`SongAppKeys`) |
@@ -210,7 +212,7 @@ erDiagram
 - 期間は `startInclusive` 以上 `endExclusive` 未満。引数の `LocalDateTime` は TypeConverter で epoch ミリ秒に変換されて `histories.play_time` と比較される。
 - 結合と期間の条件は、ファイル先頭の `private const val` (`HISTORIES_JOIN_SONGS`, `JOIN_ARTISTS`, `JOIN_ALBUMS`, `PLAY_TIME_IN_RANGE`) を組み合わせて作っている。
 - ランキングは再生回数の降順で、同数のときは最後に再生した時刻 (`max(play_time)`) が新しいほうを上にする。
-- 再生時間の合計は `coalesce(sum(listening_ms), 0)`。`sum` は `null` (再生時間が無い履歴) を飛ばし、計測済みの履歴が 1 件も無いと `null` を返すので 0 にしている。再生時間を記録し始めた月は、それより前の再生の分が合計に入らない。
+- 再生時間の合計は `coalesce(sum(listening_ms), 0)`。`sum` は `null` (記録を始める前の履歴) を飛ばし、計測済みの履歴が 1 件も無いと `null` を返すので 0 にしている。飛ばした件数は `count(*) - count(listening_ms)` で `unmeasuredPlayCount` として返し、レポートに「N 回分は含まない」と出す。
 - 戻り値は Room のエンティティではない集計用の data class で、[`data/entity/db/report`](../data/src/main/java/com/snowdango/sumire/data/entity/db/report/) にある (`PlaySummary`, `SongPlayCount`, `ArtistPlayCount`)。SQL の別名は各クラスの `COLUMN_*` 定数に合わせる。
 - 戻り値は `Flow` なので、期間内に新しい再生が保存されると再発行される。
 
@@ -230,7 +232,7 @@ LIKE に渡す文字列は [`String.escapeLike()`](../data/src/main/java/com/sno
 | | `convertRecentSongToSongCardViewData(historySong, type)` | `playTimeText` を `LocalDateTimeFormatType` の書式で作る |
 | [`GetSongsModel`](../model/src/main/java/com/snowdango/sumire/model/GetSongsModel.kt) | `getSearchTitleList(text)` | 検索候補のタイトル一覧 |
 | [`GetReportModel`](../model/src/main/java/com/snowdango/sumire/model/GetReportModel.kt) | `getCurrentMonthReportFlow()` | 当月のレポート。collect を始めた時点の年月を求め、`getMonthlyReportFlow` に切り替える |
-| | `getMonthlyReportFlow(yearMonth)` | 月初 0 時〜翌月初 0 時 (含まない) の集計 3 種を `combine` し、`MonthlyReportViewData` (再生時間は `Duration`、ランキングは曲 5 件 / アーティスト 3 件、順位は 1 始まり) に変換する |
+| | `getMonthlyReportFlow(yearMonth)` | 月初 0 時〜翌月初 0 時 (含まない) の集計 3 種を `combine` し、`MonthlyReportViewData` (再生時間は `Duration`、記録を始める前の再生回数も持つ。ランキングは曲 5 件 / アーティスト 3 件、順位は 1 始まり) に変換する |
 | [`ShareSongModel`](../model/src/main/java/com/snowdango/sumire/model/ShareSongModel.kt) | `getUrl(mediaId, appPlatform)` | ウィジェットで共有する URL を決める (下記) |
 | [`SettingsModel`](../model/src/main/java/com/snowdango/sumire/model/SettingsModel.kt) | 各設定の get / set / Flow | `SettingsUseCase` の薄いラッパー |
 

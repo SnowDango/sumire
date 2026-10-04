@@ -43,6 +43,7 @@ class GetReportModelTest {
                 songCount = 3,
                 artistCount = 2,
                 listeningMs = (1.hours + 23.minutes + 450.milliseconds).inWholeMilliseconds,
+                unmeasuredPlayCount = 4,
             ),
             topSongs = listOf(
                 songPlayCount(songId = 3, title = "most", playCount = 7),
@@ -60,6 +61,7 @@ class GetReportModelTest {
         assertEquals(3, viewData.songCount)
         assertEquals(2, viewData.artistCount)
         assertEquals(1.hours + 23.minutes + 450.milliseconds, viewData.listeningTime)
+        assertEquals(4, viewData.unmeasuredPlayCount)
         assertEquals(listOf(1, 2, 3), viewData.topSongs.map { it.rank })
         assertEquals(listOf("most", "second", "third"), viewData.topSongs.map { it.title })
         assertEquals(listOf(7, 3, 2), viewData.topSongs.map { it.playCount })
@@ -72,13 +74,20 @@ class GetReportModelTest {
     fun convertToMonthlyReportViewData_noPlays() {
         val viewData = convertToMonthlyReportViewData(
             yearMonthText = "2026/10",
-            summary = PlaySummary(playCount = 0, songCount = 0, artistCount = 0, listeningMs = 0),
+            summary = PlaySummary(
+                playCount = 0,
+                songCount = 0,
+                artistCount = 0,
+                listeningMs = 0,
+                unmeasuredPlayCount = 0,
+            ),
             topSongs = listOf(),
             topArtists = listOf(),
         )
 
         assertEquals(0, viewData.playCount)
         assertEquals(Duration.ZERO, viewData.listeningTime)
+        assertEquals(0, viewData.unmeasuredPlayCount)
         assertTrue(viewData.topSongs.isEmpty())
         assertTrue(viewData.topArtists.isEmpty())
     }

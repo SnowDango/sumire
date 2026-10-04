@@ -131,7 +131,7 @@ Koin は [`SumireApp.onCreate()`](../app/src/main/java/com/snowdango/sumire/Sumi
 
 | スコープ | 定義 | 用途 |
 | --- | --- | --- |
-| アプリスコープ (`CoroutineScope` の single) | `SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler` | `SongListenerService` からのメタデータ同期、`EventSharedFlow` の購読 (Analytics 送信)、`PlayingSongSharedFlow` の再生時間の書き込み (履歴の保存を待つことがあるため)。子の例外で全体が止まらないよう `SupervisorJob` にしてあり、未捕捉例外は `Log.e` と Crashlytics の `recordException` に送られる |
+| アプリスコープ (`CoroutineScope` の single) | `SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler` | `SongListenerService` からのメタデータ同期、`EventSharedFlow` の購読 (Analytics 送信)、`PlayingSongSharedFlow` の再生時間の書き込み (履歴の保存を待つことがあるため) と 5 分ごとの区切りのタイマー。子の例外で全体が止まらないよう `SupervisorJob` にしてあり、未捕捉例外は `Log.e` と Crashlytics の `recordException` に送られる |
 | `viewModelScope` | 各 ViewModel | 画面の状態更新、Paging の `cachedIn`、`EventSharedFlow` の購読 |
 | `WidgetViewModel` の独自スコープ | `SupervisorJob() + Dispatchers.Default` | ウィジェットの状態更新 |
 | `CoroutineWorker` | WorkManager | ウィジェットの定期更新・エラー表示 |

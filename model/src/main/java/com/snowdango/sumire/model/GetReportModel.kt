@@ -85,6 +85,7 @@ internal fun convertToMonthlyReportViewData(
         songCount = summary.songCount,
         artistCount = summary.artistCount,
         listeningTime = summary.listeningMs.milliseconds,
+        unmeasuredPlayCount = summary.unmeasuredPlayCount,
         topSongs = topSongs.mapIndexed { index, song ->
             RankedSongViewData(
                 rank = index + 1,

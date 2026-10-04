@@ -44,6 +44,19 @@ internal class ListeningSession(
     }
 
     /**
+     * 再生を続けたまま、ここまでの区間を区切る。長い曲の途中でプロセスが終了しても、
+     * 区切った分までは書き込めているようにするために使う。
+     * @return 区間の始まり (または前回区切ったとき) からの長さ (ミリ秒)。再生中でなかったら 0
+     */
+    @Synchronized
+    fun checkpoint(): Long {
+        val since = activeSince ?: return 0L
+        val now = clock()
+        activeSince = now
+        return (now - since).coerceAtLeast(0L)
+    }
+
+    /**
      * 曲の保存を始めた。これ以降に曲が終わっても、historyId は保存の結果で完了させる
      */
     @Synchronized

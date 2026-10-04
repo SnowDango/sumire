@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.android.tools.screenshot.PreviewTest
 import com.snowdango.sumire.presenter.report.component.Preview_PlaySummary
+import com.snowdango.sumire.presenter.report.component.Preview_PlaySummaryWithUnmeasuredPlays
 import com.snowdango.sumire.presenter.report.component.Preview_RankedArtistCard
 import com.snowdango.sumire.presenter.report.component.Preview_RankedSongCard
 
@@ -16,6 +17,13 @@ import com.snowdango.sumire.presenter.report.component.Preview_RankedSongCard
 @Composable
 fun PlaySummaryPreviewTest() {
     Preview_PlaySummary()
+}
+
+@PreviewTest
+@Preview(group = REPORT_GROUP, name = "PlaySummaryWithUnmeasuredPlays")
+@Composable
+fun PlaySummaryWithUnmeasuredPlaysPreviewTest() {
+    Preview_PlaySummaryWithUnmeasuredPlays()
 }
 
 @PreviewTest

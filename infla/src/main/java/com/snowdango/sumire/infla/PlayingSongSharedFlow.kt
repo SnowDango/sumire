@@ -7,6 +7,7 @@ import com.snowdango.sumire.model.SaveModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -26,6 +27,9 @@ class PlayingSongSharedFlow : KoinComponent {
 
     @Volatile
     private var playingSong: PlayingState? = null
+
+    // 再生中の区間を途中で区切って書き込むタイマー。playingSongMutex の中でだけ触る
+    private var checkpointJob: Job? = null
 
     @Volatile
     var listener: ((playingSong: PlayingSongData?) -> Unit)? = null
@@ -73,7 +77,7 @@ class PlayingSongSharedFlow : KoinComponent {
         playingSong?.let { finishListening(it.listeningSession) }
         playingSong = if (queueId != null && playingSongData != null) {
             val listeningSession = ListeningSession(clock).also {
-                if (playingSongData.isActive) it.resume()
+                if (playingSongData.isActive) startListening(it)
             }
             PlayingState(queueId, playingSongData, listeningSession)
         } else {
@@ -186,15 +190,35 @@ class PlayingSongSharedFlow : KoinComponent {
 
     private fun changeListeningActive(listeningSession: ListeningSession, isActive: Boolean) {
         if (isActive) {
-            listeningSession.resume()
+            startListening(listeningSession)
         } else {
+            stopCheckpoint()
             // プロセスが終了しても一時停止までの分は残るよう、曲の終わりを待たずに書き込む
             addListeningTime(listeningSession, listeningSession.pause())
         }
     }
 
     private fun finishListening(listeningSession: ListeningSession) {
+        stopCheckpoint()
         addListeningTime(listeningSession, listeningSession.finish())
+    }
+
+    private fun startListening(listeningSession: ListeningSession) {
+        listeningSession.resume()
+        // 長い曲を流し続けている途中でプロセスが終了しても、失うのが最大この間隔の分で済むよう区切って書き込む。
+        // 再開・曲の切り替えのたびに数え直すので、間隔より短い曲では書き込みは増えない
+        checkpointJob?.cancel()
+        checkpointJob = appScope.launch {
+            while (true) {
+                delay(LISTENING_CHECKPOINT_INTERVAL_MS)
+                addListeningTime(listeningSession, listeningSession.checkpoint())
+            }
+        }
+    }
+
+    private fun stopCheckpoint() {
+        checkpointJob?.cancel()
+        checkpointJob = null
     }
 
     private fun addListeningTime(listeningSession: ListeningSession, listeningMs: Long) {
@@ -245,5 +269,8 @@ class PlayingSongSharedFlow : KoinComponent {
     companion object {
         private const val LOG_TAG = "CurrentPlayingSong"
         private const val METADATA_WAIT_TIMEOUT_MS = 10_000L
+
+        // 書き込むたびに Room の Flow / Paging が読み直すので、ふつうの曲の長さより長めにしている
+        private const val LISTENING_CHECKPOINT_INTERVAL_MS = 5 * 60_000L
     }
 }

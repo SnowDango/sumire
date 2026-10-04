@@ -55,6 +55,34 @@ class ListeningSessionTest {
     }
 
     @Test
+    fun checkpoint_splitsIntervalWithoutLosingTime() {
+        session.resume()
+        now = 300_000L
+
+        assertEquals(300_000L, session.checkpoint())
+
+        now = 420_000L
+
+        // 区切ったあとも再生は続いていて、残りは区切った時点から数える
+        assertEquals(120_000L, session.finish())
+    }
+
+    @Test
+    fun checkpointWhilePaused_returnsZero() {
+        session.resume()
+        now = 1_000L
+        session.pause()
+        now = 2_000L
+
+        assertEquals(0L, session.checkpoint())
+
+        session.resume()
+        now = 3_000L
+
+        assertEquals(1_000L, session.pause())
+    }
+
+    @Test
     fun clockGoingBack_doesNotReturnNegative() {
         now = 1_000L
         session.resume()
