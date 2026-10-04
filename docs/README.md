@@ -2,7 +2,7 @@
 
 Sumire の実装を把握するためのドキュメント集。ユーザー向けの説明はリポジトリ直下の [README.ja.md](../README.ja.md) を参照。
 
-記載内容は `develop` ブランチ (レポートタブ追加の SnowDango/sumire#341 まで。`versionName 0.0.5` / Room DB `version 3`) のコードに基づく。コードを変更したら、関係するドキュメントも合わせて更新すること。
+記載内容は `develop` ブランチ (レポートタブ追加の SnowDango/sumire#341 まで。`versionName 0.0.5` / Room DB `version 3`) のコードに基づく。実装を変えてここに書かれている内容に影響が出る場合は、同じ PR でドキュメントも更新すること。どのドキュメントを直すかは [CLAUDE.md の対応表](../CLAUDE.md#docs-の更新) を参照。
 
 ## 目次
 

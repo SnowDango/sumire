@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Sumire は、音楽アプリ (Apple Music / Spotify) の再生を通知から検知して履歴として保存する Android アプリ (Android 13 / API 33 以上)。画面は再生中・履歴・レポート (当月の集計)・設定の 4 タブ。再生中の曲を表示するホーム画面ウィジェットがあり、タップで曲の URL のコピーや X への共有ができる。Kotlin + Jetpack Compose のマルチモジュール構成。
 
-実装の詳細は [`docs/`](docs/README.md) にまとめてある。コードを変更したら、関係する docs も合わせて更新すること。
+実装の詳細は [`docs/`](docs/README.md) にまとめてある。実装を変えたら docs も同じ PR で更新する ([docs の更新](#docs-の更新))。
 
 ## コマンド
 
@@ -56,6 +56,25 @@ JDK 21 が必要。ビルドには gitignore 済みの `app/src/debug/google-ser
 - モジュールを追加したら、`settings.gradle.kts` と `SumireApp` の Koin 登録に加えて、`.circleci/config.yml` の `build` ジョブの `persist_to_workspace` にもその `build` ディレクトリを足す。
 - コルーチン内で `Exception` を catch するときは先に `CancellationException` を再スローする (既存コードの書き方)。コメントは日本語で「なぜ」を書く。
 - 既知の課題の一覧は [docs/development-guide.md](docs/development-guide.md#実装上の注意点と既知の課題) にある。
+
+## docs の更新
+
+実装の変更が `docs/` に書かれている内容 (挙動・クラス名・ファイルパス・設定値・手順・図など) に影響する場合は、**同じ PR の中で該当する docs も更新する**。作業の最後に、変更したファイルが下の表のどれに当たるかを確認し、記述が実装と食い違っていないか読み直すこと。docs の内容に影響しない変更 (内部のリファクタや文言の微修正など) では更新しなくてよい。
+
+| 変更した内容 | 更新するドキュメント |
+| --- | --- |
+| モジュールの追加・削除、モジュール間の依存、Koin の登録、コルーチンのスコープ、技術スタックとそのバージョン | [docs/architecture.md](docs/architecture.md) |
+| 通知リスナー (`SongListenerService`)、`PlayingSongSharedFlow` / `EventSharedFlow`、再生検知の対象アプリ (`MusicApp.packageName`) | [docs/playback-detection.md](docs/playback-detection.md) |
+| `SaveModel` の保存フロー、song.link API、Room のエンティティ / DAO / DB version、読み出し・集計の Model、DataStore の設定キー | [docs/persistence.md](docs/persistence.md) |
+| 画面・タブ・ダイアログ、`:ui` の共通コンポーネントやテーマ、Preview とスクリーンショットテストの構成 | [docs/screens.md](docs/screens.md) |
+| ウィジェット、Worker、タップ時の共有処理 (`ShareSongAction`) | [docs/widget.md](docs/widget.md) |
+| Gradle の設定、署名、静的解析、テスト、CircleCI / GitHub Actions、VRT の流れ、Secrets、リリース手順 | [docs/build-and-ci.md](docs/build-and-ci.md) |
+| コーディング規約、よくある変更の手順、既知の課題 (直したら表から消す、新しく見つけたら足す) | [docs/development-guide.md](docs/development-guide.md) |
+| ドキュメントの追加・削除、全体の流れ、用語 | [docs/README.md](docs/README.md) |
+| コマンド、データの流れの要約、変更時の注意、この表 | この `CLAUDE.md` |
+
+- docs と実装が食い違っていたら実装が正しい。気づいた時点で docs を実装に合わせる。
+- 見出しを変えるとアンカーリンク (`docs/xxx.md#見出し`) が切れるので、参照元も直す。mermaid の図も実装に合わせて更新する。
 
 ## ブランチと PR
 
