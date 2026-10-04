@@ -160,6 +160,8 @@ private fun ReportHeader(
             playCount = report.playCount,
             songCount = report.songCount,
             artistCount = report.artistCount,
+            listeningTime = report.listeningTime,
+            unmeasuredPlayCount = report.unmeasuredPlayCount,
             modifier = Modifier
                 .padding(horizontal = 32.dp),
         )

@@ -17,13 +17,20 @@ class HistoriesUseCase : KoinComponent {
 
     private val songsDatabase: SongsDatabase by inject()
 
-    suspend fun saveHistories(songId: Long, playTime: LocalDateTime, app: MusicApp) {
+    /**
+     * @return 追加した履歴の ID。あとから再生時間を書き込むときに使う
+     */
+    suspend fun saveHistories(songId: Long, playTime: LocalDateTime, app: MusicApp): Long {
         val history = Histories(
             songId = songId,
             playTime = playTime,
             app = app,
         )
-        songsDatabase.historiesDao.insert(history)
+        return songsDatabase.historiesDao.insert(history)
+    }
+
+    suspend fun addListeningTime(historyId: Long, listeningMs: Long) {
+        songsDatabase.historiesDao.addListeningTime(historyId, listeningMs)
     }
 
     fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>> {

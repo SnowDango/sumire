@@ -14,47 +14,88 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.snowdango.sumire.presenter.report.R
 import com.snowdango.sumire.presenter.report.REPORT_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun PlaySummary(
     playCount: Int,
     songCount: Int,
     artistCount: Int,
+    listeningTime: Duration,
+    unmeasuredPlayCount: Int,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // 「12h 34m」は他のタイルより幅を取るので、1 行使って上に置く
         PlaySummaryItem(
-            value = playCount,
-            label = stringResource(R.string.summary_plays),
-            modifier = Modifier.weight(1f),
+            value = listeningTimeText(listeningTime),
+            label = stringResource(R.string.summary_listening_time),
+            modifier = Modifier.fillMaxWidth(),
+            // 記録を始める前の再生は時間が分からず合計に入らないので、回数に比べて少なく見える理由を出す
+            note = if (unmeasuredPlayCount > 0) {
+                pluralStringResource(
+                    R.plurals.listening_time_unmeasured_note,
+                    unmeasuredPlayCount,
+                    unmeasuredPlayCount,
+                )
+            } else {
+                null
+            },
         )
-        PlaySummaryItem(
-            value = songCount,
-            label = stringResource(R.string.summary_songs),
-            modifier = Modifier.weight(1f),
-        )
-        PlaySummaryItem(
-            value = artistCount,
-            label = stringResource(R.string.summary_artists),
-            modifier = Modifier.weight(1f),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PlaySummaryItem(
+                value = playCount.toString(),
+                label = stringResource(R.string.summary_plays),
+                modifier = Modifier.weight(1f),
+            )
+            PlaySummaryItem(
+                value = songCount.toString(),
+                label = stringResource(R.string.summary_songs),
+                modifier = Modifier.weight(1f),
+            )
+            PlaySummaryItem(
+                value = artistCount.toString(),
+                label = stringResource(R.string.summary_artists),
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+// 月の合計なので秒は出さず、1 分未満は切り捨てる
+@Composable
+private fun listeningTimeText(listeningTime: Duration): String {
+    return listeningTime.toComponents { wholeHours, minutesOfHour, _, _ ->
+        if (wholeHours > 0) {
+            stringResource(R.string.listening_time_hours_minutes, wholeHours, minutesOfHour)
+        } else {
+            stringResource(R.string.listening_time_minutes, minutesOfHour)
+        }
     }
 }
 
 @Composable
 private fun PlaySummaryItem(
-    value: Int,
+    value: String,
     label: String,
     modifier: Modifier = Modifier,
+    note: String? = null,
 ) {
     Column(
         modifier = modifier
@@ -64,7 +105,7 @@ private fun PlaySummaryItem(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = value.toString(),
+            text = value,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
@@ -74,6 +115,16 @@ private fun PlaySummaryItem(
             style = MaterialTheme.typography.labelMedium,
             maxLines = 1,
         )
+        if (note != null) {
+            Text(
+                text = note,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 4.dp, end = 16.dp),
+            )
+        }
     }
 }
 
@@ -90,6 +141,28 @@ fun Preview_PlaySummary() {
                 playCount = 128,
                 songCount = 64,
                 artistCount = 12,
+                listeningTime = 8.hours + 32.minutes,
+                unmeasuredPlayCount = 0,
+            )
+        }
+    }
+}
+
+@Preview(group = REPORT_GROUP, name = "PlaySummaryWithUnmeasuredPlays")
+@Composable
+fun Preview_PlaySummaryWithUnmeasuredPlays() {
+    SumireTheme {
+        Box(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(16.dp),
+        ) {
+            PlaySummary(
+                playCount = 128,
+                songCount = 64,
+                artistCount = 12,
+                listeningTime = 2.hours + 5.minutes,
+                unmeasuredPlayCount = 96,
             )
         }
     }

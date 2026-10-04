@@ -41,6 +41,14 @@ interface HistoriesDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(histories: Histories): Long
 
+    // 再生時間は一時停止や曲の切り替えのたびに分けて足し込む。新しい履歴は 0 で作るが、念のため null も 0 として扱う
+    @Query(
+        "update ${Histories.TABLE_NAME} " +
+            "set ${Histories.COLUMN_LISTENING_MS} = coalesce(${Histories.COLUMN_LISTENING_MS}, 0) + :listeningMs " +
+            "where ${Histories.COLUMN_ID} = :id"
+    )
+    suspend fun addListeningTime(id: Long, listeningMs: Long)
+
     @Transaction
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc")
     fun getPagingHistorySongs(): PagingSource<Int, HistorySong>
@@ -55,10 +63,14 @@ interface HistoriesDao {
     @Query("select * from ${Histories.TABLE_NAME} order by ${Histories.COLUMN_PLAY_TIME} desc limit :size")
     fun getHistoriesSongRecent(size: Long): Flow<List<HistorySong>>
 
+    // 再生時間の sum は記録を始める前 (null) の履歴を飛ばし、その件数は count(*) - count(列) で別に数える。
+    // 計測済みが 1 件も無いと sum は null になるので 0 にする
     @Query(
         "select count(*) as ${PlaySummary.COLUMN_PLAY_COUNT}, " +
             "count(distinct ${Histories.TABLE_NAME}.${Histories.COLUMN_SONG_ID}) as ${PlaySummary.COLUMN_SONG_COUNT}, " +
-            "count(distinct ${Songs.TABLE_NAME}.${Songs.COLUMN_ARTIST_ID}) as ${PlaySummary.COLUMN_ARTIST_COUNT} " +
+            "count(distinct ${Songs.TABLE_NAME}.${Songs.COLUMN_ARTIST_ID}) as ${PlaySummary.COLUMN_ARTIST_COUNT}, " +
+            "coalesce(sum(${Histories.TABLE_NAME}.${Histories.COLUMN_LISTENING_MS}), 0) as ${PlaySummary.COLUMN_LISTENING_MS}, " +
+            "count(*) - count(${Histories.TABLE_NAME}.${Histories.COLUMN_LISTENING_MS}) as ${PlaySummary.COLUMN_UNMEASURED_PLAY_COUNT} " +
             "from $HISTORIES_JOIN_SONGS where $PLAY_TIME_IN_RANGE"
     )
     fun getPlaySummary(startInclusive: LocalDateTime, endExclusive: LocalDateTime): Flow<PlaySummary>

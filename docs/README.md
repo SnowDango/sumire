@@ -2,7 +2,7 @@
 
 Sumire の実装を把握するためのドキュメント集。ユーザー向けの説明はリポジトリ直下の [README.ja.md](../README.ja.md) を参照。
 
-記載内容は `develop` ブランチ (レポートタブ追加の SnowDango/sumire#341 まで。`versionName 0.0.5` / Room DB `version 3`) のコードに基づく。実装を変えてここに書かれている内容に影響が出る場合は、同じ PR でドキュメントも更新すること。どのドキュメントを直すかは [CLAUDE.md の対応表](../CLAUDE.md#docs-の更新) を参照。
+記載内容は `develop` ブランチ (レポートタブ追加の SnowDango/sumire#341 と、その後の再生時間の記録まで。`versionName 0.0.5` / Room DB `version 4`) のコードに基づく。実装を変えてここに書かれている内容に影響が出る場合は、同じ PR でドキュメントも更新すること。どのドキュメントを直すかは [CLAUDE.md の対応表](../CLAUDE.md#docs-の更新) を参照。
 
 ## 目次
 
@@ -24,17 +24,17 @@ flowchart LR
     Service -- "changeSong" --> State["PlayingSongSharedFlow<br/>(再生中の曲をメモリ保持)"]
     State -- "listener" --> Widget["SmallArtworkWidget<br/>(Glance)"]
     State -- "ChangeCurrentSong イベント" --> Playing["再生中画面"]
-    State -- "メタデータが揃ったら" --> Save["SaveModel"]
+    State -- "メタデータが揃ったら<br/>/ 再生時間" --> Save["SaveModel"]
     Save -- "未知の曲のみ" --> API["song.link API"]
     Save --> DB[("Room<br/>song_db")]
     DB --> History["履歴画面 / 再生中画面の Recent<br/>/ レポート画面 (当月の集計)"]
     DB --> Share["ShareSongModel<br/>(ウィジェットタップ時の URL 解決)"]
 ```
 
-1. `SongListenerService` (`NotificationListenerService`) が音楽アプリの通知を受け取り、`MediaSessionManager` から再生中のメタデータを取り出す。
-2. `PlayingSongSharedFlow` がメモリ上に「今再生中の曲」を保持し、変化があれば画面とウィジェットに通知する。
-3. 曲のメタデータが揃ったら `SaveModel` が song.link API で各サービスの URL を取得し、Room に履歴として保存する。
-4. 画面 (Jetpack Compose) は Room の履歴を Paging / Flow で表示し、レポートタブでは当月の再生回数やランキングを集計して表示する。ウィジェット (Glance) は再生中の曲を表示し、タップで URL のコピーまたは X への共有を行う。
+1. `SongListenerService` (`NotificationListenerService`) が音楽アプリの通知と MediaSession のコールバックを受け取り、`MediaSessionManager` から再生中のメタデータを取り出す。
+2. `PlayingSongSharedFlow` がメモリ上に「今再生中の曲」を保持し、変化があれば画面とウィジェットに通知する。再生中だった時間も曲ごとに測る。
+3. 曲のメタデータが揃ったら `SaveModel` が song.link API で各サービスの URL を取得し、Room に履歴として保存する。測った再生時間は、一時停止や曲の切り替えのたびにその履歴へ足し込む。
+4. 画面 (Jetpack Compose) は Room の履歴を Paging / Flow で表示し、レポートタブでは当月の再生時間・再生回数やランキングを集計して表示する。ウィジェット (Glance) は再生中の曲を表示し、タップで URL のコピーまたは X への共有を行う。
 
 ## 用語
 

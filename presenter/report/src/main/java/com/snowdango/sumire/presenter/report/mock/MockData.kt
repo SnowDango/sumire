@@ -3,6 +3,8 @@ package com.snowdango.sumire.presenter.report.mock
 import com.snowdango.sumire.ui.viewdata.MonthlyReportViewData
 import com.snowdango.sumire.ui.viewdata.RankedArtistViewData
 import com.snowdango.sumire.ui.viewdata.RankedSongViewData
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 object MockData {
 
@@ -77,6 +79,8 @@ object MockData {
         playCount = 48,
         songCount = 5,
         artistCount = 3,
+        listeningTime = 3.hours + 25.minutes,
+        unmeasuredPlayCount = 0,
         topSongs = mockTopSongs,
         topArtists = mockTopArtists,
     )

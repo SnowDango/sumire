@@ -3,6 +3,13 @@
     <string name="summary_plays">Plays</string>
     <string name="summary_songs">Songs</string>
     <string name="summary_artists">Artists</string>
+    <string name="summary_listening_time">Listening Time</string>
+    <string name="listening_time_hours_minutes">%1$dh %2$dm</string>
+    <string name="listening_time_minutes">%1$dm</string>
+    <plurals name="listening_time_unmeasured_note">
+        <item quantity="one">Excludes %d play from before listening time was recorded</item>
+        <item quantity="other">Excludes %d plays from before listening time was recorded</item>
+    </plurals>
     <string name="top_songs">Top Songs</string>
     <string name="top_artists">Top Artists</string>
     <string name="no_play_report">No songs have been played\nin %1$s yet.</string>
