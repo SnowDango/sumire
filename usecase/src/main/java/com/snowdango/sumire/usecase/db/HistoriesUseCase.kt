@@ -4,6 +4,9 @@ import androidx.paging.PagingSource
 import com.snowdango.sumire.data.entity.MusicApp
 import com.snowdango.sumire.data.entity.db.Histories
 import com.snowdango.sumire.data.entity.db.relations.HistorySong
+import com.snowdango.sumire.data.entity.db.report.ArtistPlayCount
+import com.snowdango.sumire.data.entity.db.report.PlaySummary
+import com.snowdango.sumire.data.entity.db.report.SongPlayCount
 import com.snowdango.sumire.repository.SongsDatabase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
@@ -33,5 +36,21 @@ class HistoriesUseCase : KoinComponent {
 
     fun getPagingSearchHistoriesSongs(text: String): PagingSource<Int, HistorySong> {
         return songsDatabase.historiesDao.getPagingSearchHistorySong(text)
+    }
+
+    fun getPlaySummary(startInclusive: LocalDateTime, endExclusive: LocalDateTime): Flow<PlaySummary> {
+        return songsDatabase.historiesDao.getPlaySummary(startInclusive, endExclusive)
+    }
+
+    fun getTopSongs(startInclusive: LocalDateTime, endExclusive: LocalDateTime, limit: Int): Flow<List<SongPlayCount>> {
+        return songsDatabase.historiesDao.getTopSongs(startInclusive, endExclusive, limit)
+    }
+
+    fun getTopArtists(
+        startInclusive: LocalDateTime,
+        endExclusive: LocalDateTime,
+        limit: Int,
+    ): Flow<List<ArtistPlayCount>> {
+        return songsDatabase.historiesDao.getTopArtists(startInclusive, endExclusive, limit)
     }
 }

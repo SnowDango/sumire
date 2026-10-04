@@ -44,4 +44,5 @@ enum class LocalDateTimeFormatType(
     ONLY_DATE("yyyy/MM/dd"),
     FULL_DATE_TIME("yyyy/MM/dd-HH:mm:ss"),
     ONLY_TIME("HH:mm:ss"),
+    YEAR_MONTH("yyyy/MM"),
 }

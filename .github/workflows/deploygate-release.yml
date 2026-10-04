@@ -20,6 +20,10 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
       - name: chmod gradlew
         run: |
           chmod +x gradlew
@@ -39,12 +43,10 @@ jobs:
         run: |
           touch google-services.json
           echo "${{ secrets.RELEASE_SERVICE_JSON }}" | base64 -d >> google-services.json
-      - name: build release apk
+      - name: build release apk and aab
+        # 1 回の Gradle 起動で両方を作る(以前は --no-daemon で 2 回起動していた)
         run:
-          ./gradlew assembleRelease --no-daemon
-      - name: build release aab
-        run:
-          ./gradlew bundleRelease --no-daemon
+          ./gradlew assembleRelease bundleRelease
       - name: Release
         uses: softprops/action-gh-release@v2
         with:

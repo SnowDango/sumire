@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.screenshot)
 }
 
 android {
@@ -32,7 +32,9 @@ android {
     }
     buildFeatures {
         buildConfig = true
+        compose = true
     }
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -59,9 +61,8 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
-    implementation(libs.showkase.annotation)
-    debugImplementation(libs.showkase)
-    kspDebug(libs.showkase.prosessor)
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,6 +1,5 @@
 package com.snowdango.sumire.ui.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,18 +14,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.snowdango.sumire.data.entity.MusicApp
-import com.snowdango.sumire.data.util.toBitmap
-import com.snowdango.sumire.ui.R
 import com.snowdango.sumire.ui.UTIL_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
 import com.snowdango.sumire.ui.viewdata.SongCardViewData
@@ -49,42 +42,12 @@ fun ListSongCard(
                 .height(60.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
+            SongThumbnail(
+                thumbnail = songCardViewData.thumbnail,
+                isThumbUrl = songCardViewData.isThumbUrl,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
                     .size(60.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (songCardViewData.thumbnail != null) {
-                    if (songCardViewData.isThumbUrl) {
-                        AsyncImage(
-                            model = songCardViewData.thumbnail,
-                            contentDescription = null,
-                        )
-                    } else {
-                        // Base64 のデコードは重いので recomposition のたびにやり直さない
-                        val bitmap = remember(songCardViewData.thumbnail) {
-                            songCardViewData.thumbnail.toBitmap()
-                        }
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = null,
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.noimage),
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.noimage),
-                        contentDescription = null,
-                    )
-                }
-            }
+            )
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)

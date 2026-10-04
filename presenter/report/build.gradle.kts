@@ -1,0 +1,64 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.compose.screenshot)
+}
+
+android {
+    namespace = "com.snowdango.sumire.presenter.report"
+    compileSdk = libs.versions.compileSdk.get().toInt()
+
+    defaultConfig {
+        minSdk = libs.versions.minsdk.get().toInt()
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
+    }
+    kotlin {
+        jvmToolchain(21)
+    }
+    buildFeatures {
+        compose = true
+    }
+    experimentalProperties["android.experimental.enableScreenshotTest"] = true
+}
+
+dependencies {
+    implementation(project(":ui"))
+    implementation(project(":data"))
+    implementation(project(":model"))
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.material)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material3.windiow)
+    implementation(libs.androidX.lifecycleCompose)
+    implementation(libs.koin)
+    implementation(libs.koin.compose)
+    implementation(libs.coroutine.core)
+
+    screenshotTestImplementation(libs.screenshot.validation.api)
+    screenshotTestImplementation(libs.androidx.ui.tooling)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    debugImplementation(libs.ui.tooling)
+}

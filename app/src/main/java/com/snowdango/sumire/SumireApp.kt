@@ -13,6 +13,7 @@ import com.snowdango.sumire.infla.LogEvent
 import com.snowdango.sumire.infla.PlayingSongSharedFlow
 import com.snowdango.sumire.model.modelModule
 import com.snowdango.sumire.presenter.playing.playingKoinModule
+import com.snowdango.sumire.presenter.report.reportKoinModule
 import com.snowdango.sumire.repository.SongLinkApi
 import com.snowdango.sumire.repository.SongsDatabase
 import com.snowdango.sumire.settings.settingsModule
@@ -48,6 +49,7 @@ class SumireApp : Application() {
                 playingKoinModule,
                 mainModule,
                 historyKoinModule,
+                reportKoinModule,
                 settingsModule,
                 modelModule,
                 useCaseModule,
