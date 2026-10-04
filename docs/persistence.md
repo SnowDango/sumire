@@ -4,7 +4,7 @@
 
 ## 保存フロー (SaveModel)
 
-入口は [`SaveModel.saveSong(playingSongData)`](../model/src/main/java/com/snowdango/sumire/model/SaveModel.kt)。呼ぶのは `PlayingSongSharedFlow` だけ ([playback-detection.md](playback-detection.md#保存タイミング-handlestatechange))。
+入口は [`SaveModel.saveSong(playingSongData)`](../model/src/main/java/com/snowdango/sumire/model/SaveModel.kt)。呼ぶのは `PlayingSongSharedFlow` だけ ([playback-detection.md](playback-detection.md#保存タイミング-handlestatechange))。戻り値は追加した `Histories` の行 ID で、あとから再生時間を書き込むのに使う ([再生時間の書き込み](#再生時間の書き込み))。
 
 ```mermaid
 flowchart TD
@@ -33,7 +33,7 @@ flowchart TD
 1. **Artists**: `name` が一致する行があればその ID、無ければ insert。
 2. **Albums**: `name` と `artistId` が一致する行があればその ID、無ければ insert。サムネイルはアルバムを新規作成したときだけ保存される。
 3. **Songs**: 常に insert (重複チェックなし。新しい曲として扱うのは `AppSongKey` が見つからなかったときだけなので、通常は重複しない)。
-4. **Histories**: 再生 1 回につき 1 行 insert。
+4. **Histories**: 再生 1 回につき 1 行 insert。`listening_ms` は `null` で作り、insert した行の ID を `saveSong` の戻り値にする。
 5. **AppSongKey**: その曲に紐づくキーを取得し、`(app, mediaKey)` がまだ無いものだけ insert。
 6. **Tasks**: API の結果が `Status.Error` のときだけ `(mediaId, songId)` を insert。
 
@@ -50,6 +50,15 @@ flowchart TD
 - 再生元アプリの mediaId は必ず `AppSongKey` に保存する。次回以降はこのキーで既知の曲と判定し、API を呼ばずに履歴だけ追加する。
 - API のエンティティに再生元アプリのものが含まれていても、`keyMap + (app to mediaId)` で再生元の mediaId が優先される。
 - 通信例外 (`CancellationException` 以外) は `Log.w` を出して `null` 扱いにし、ローカル情報だけで保存する。
+
+### 再生時間の書き込み
+
+`SaveModel.addListeningTime(historyId, listeningMs)` が `HistoriesDao.addListeningTime` で `histories.listening_ms` に足し込む (`coalesce(listening_ms, 0) + :listeningMs`)。呼ぶのは `PlayingSongSharedFlow` だけで、1 曲の再生時間は一時停止や曲の切り替えのたびに分けて届く。計測のしかたは [playback-detection.md](playback-detection.md#再生時間の計測-listeningsession) を参照。
+
+| `listening_ms` | 意味 |
+| --- | --- |
+| `null` | 再生時間が無い。DB version 3 までに保存された履歴 (Migration で追加した列なので全部 `null`)、保存されてから一度も再生中の区間が締まっていない履歴、一度も再生しなかった履歴 |
+| 0 以上 | 実際に再生していた時間 (ミリ秒) の合計 |
 
 ### アートワークの Base64 化
 
@@ -99,9 +108,13 @@ flowchart TD
 
 ## DB スキーマ (Room)
 
-- Database: [`SongsDatabase`](../repository/src/main/java/com/snowdango/sumire/repository/SongsDatabase.kt)、ファイル名 `song_db`、`version = 3`
+- Database: [`SongsDatabase`](../repository/src/main/java/com/snowdango/sumire/repository/SongsDatabase.kt)、ファイル名 `song_db`、`version = 4`
 - `exportSchema = true`、出力先は `repository/schemas` (KSP 引数 `room.schemaLocation`)。ただし現時点でスキーマ JSON はリポジトリにコミットされていない
-- Migration は登録しておらず、`fallbackToDestructiveMigration` も指定していない
+- Migration は [`Migrations.kt`](../repository/src/main/java/com/snowdango/sumire/repository/migration/Migrations.kt) に置き、`getInstance()` の `addMigrations(...)` で登録する。`fallbackToDestructiveMigration` は指定していない
+
+| Migration | 内容 |
+| --- | --- |
+| `MIGRATION_3_4` | `histories` に `listening_ms INTEGER` (nullable) を追加する。既存の履歴は再生時間を測っていないので `null` のまま |
 - インスタンスは `getInstance()` で `synchronized` + `@Volatile` のシングルトン。Koin からも `single` で配っている
 - TypeConverter: [`LocalDataTimeConverter`](../repository/src/main/java/com/snowdango/sumire/repository/typeconverter/LocalDataTimeConverter.kt) (`LocalDateTime` ⇔ epoch ミリ秒。変換時の端末タイムゾーンを使う)
 - enum (`MusicApp`) は Room の標準変換で **定数名の文字列** (`APPLE_MUSIC` など) として保存される
@@ -138,6 +151,7 @@ erDiagram
         Long song_id
         Long play_time "epoch ミリ秒"
         String app "MusicApp の定数名"
+        Long listening_ms "再生時間のミリ秒 (nullable)"
     }
     appSongKey {
         Long id PK
@@ -160,7 +174,7 @@ erDiagram
 | `artists` | `Artists` | アーティスト名。名前だけで同一判定する |
 | `albums` | `Albums` | アルバム名 + アーティストで同一判定。サムネイルはここに持つ |
 | `songs` | `Songs` | 曲。song.link のページ URL を持つ |
-| `histories` | `Histories` | 再生履歴。1 再生 = 1 行。どのアプリで再生したかも持つ |
+| `histories` | `Histories` | 再生履歴。1 再生 = 1 行。どのアプリで再生したかと、実際に再生していた時間も持つ |
 | `appSongKey` | `AppSongKey` | 「どのサービスのどの ID がどの曲か」の対応表。既知の曲の判定と共有 URL の解決に使う |
 | `tasks` | `Tasks` | API が `Error` だった曲の記録。現在は書き込みのみで、読み出す処理は無い |
 
@@ -178,10 +192,11 @@ erDiagram
 | `AlbumsDao` | `getIdByNameAndArtistId(name, artistId)` | 名前 + アーティストで ID を 1 件 |
 | `SongsDao` | `getSearchTitle(searchText)` | `title LIKE :searchText ESCAPE '\'`、最大 6 件 (検索候補用) |
 | | `updateUrl(id, url)` | `songs.url` の更新 (backfill 用) |
-| `HistoriesDao` | `getPagingHistorySongs()` | 全履歴を `play_time` 降順で `PagingSource` |
+| `HistoriesDao` | `addListeningTime(id, listeningMs)` | `listening_ms` に足し込む (`null` は 0 として扱う) |
+| | `getPagingHistorySongs()` | 全履歴を `play_time` 降順で `PagingSource` |
 | | `getPagingSearchHistorySong(text)` | `songs` と inner join し `title LIKE :text ESCAPE '\'`、`play_time` 降順で `PagingSource` |
 | | `getHistoriesSongRecent(size)` | 直近 `size` 件を `Flow<List<HistorySong>>` (DB 更新で再発行) |
-| | `getPlaySummary(start, end)` | 期間内の再生回数・曲の種類数・アーティストの種類数を `Flow<PlaySummary>` |
+| | `getPlaySummary(start, end)` | 期間内の再生回数・曲の種類数・アーティストの種類数・再生時間の合計を `Flow<PlaySummary>` |
 | | `getTopSongs(start, end, limit)` | 期間内の曲ごとの再生回数ランキング (`Flow<List<SongPlayCount>>`、アルバムのサムネイル付き) |
 | | `getTopArtists(start, end, limit)` | 期間内のアーティストごとの再生回数ランキング (`Flow<List<ArtistPlayCount>>`) |
 | `AppSongKeyDao` | `getAppKeys(key, app)` | `(media_key, app)` で 1 件 + 同じ曲の全キー (`SongAppKeys`) |
@@ -195,6 +210,7 @@ erDiagram
 - 期間は `startInclusive` 以上 `endExclusive` 未満。引数の `LocalDateTime` は TypeConverter で epoch ミリ秒に変換されて `histories.play_time` と比較される。
 - 結合と期間の条件は、ファイル先頭の `private const val` (`HISTORIES_JOIN_SONGS`, `JOIN_ARTISTS`, `JOIN_ALBUMS`, `PLAY_TIME_IN_RANGE`) を組み合わせて作っている。
 - ランキングは再生回数の降順で、同数のときは最後に再生した時刻 (`max(play_time)`) が新しいほうを上にする。
+- 再生時間の合計は `coalesce(sum(listening_ms), 0)`。`sum` は `null` (再生時間が無い履歴) を飛ばし、計測済みの履歴が 1 件も無いと `null` を返すので 0 にしている。再生時間を記録し始めた月は、それより前の再生の分が合計に入らない。
 - 戻り値は Room のエンティティではない集計用の data class で、[`data/entity/db/report`](../data/src/main/java/com/snowdango/sumire/data/entity/db/report/) にある (`PlaySummary`, `SongPlayCount`, `ArtistPlayCount`)。SQL の別名は各クラスの `COLUMN_*` 定数に合わせる。
 - 戻り値は `Flow` なので、期間内に新しい再生が保存されると再発行される。
 
@@ -214,7 +230,7 @@ LIKE に渡す文字列は [`String.escapeLike()`](../data/src/main/java/com/sno
 | | `convertRecentSongToSongCardViewData(historySong, type)` | `playTimeText` を `LocalDateTimeFormatType` の書式で作る |
 | [`GetSongsModel`](../model/src/main/java/com/snowdango/sumire/model/GetSongsModel.kt) | `getSearchTitleList(text)` | 検索候補のタイトル一覧 |
 | [`GetReportModel`](../model/src/main/java/com/snowdango/sumire/model/GetReportModel.kt) | `getCurrentMonthReportFlow()` | 当月のレポート。collect を始めた時点の年月を求め、`getMonthlyReportFlow` に切り替える |
-| | `getMonthlyReportFlow(yearMonth)` | 月初 0 時〜翌月初 0 時 (含まない) の集計 3 種を `combine` し、`MonthlyReportViewData` (ランキングは曲 5 件 / アーティスト 3 件、順位は 1 始まり) に変換する |
+| | `getMonthlyReportFlow(yearMonth)` | 月初 0 時〜翌月初 0 時 (含まない) の集計 3 種を `combine` し、`MonthlyReportViewData` (再生時間は `Duration`、ランキングは曲 5 件 / アーティスト 3 件、順位は 1 始まり) に変換する |
 | [`ShareSongModel`](../model/src/main/java/com/snowdango/sumire/model/ShareSongModel.kt) | `getUrl(mediaId, appPlatform)` | ウィジェットで共有する URL を決める (下記) |
 | [`SettingsModel`](../model/src/main/java/com/snowdango/sumire/model/SettingsModel.kt) | 各設定の get / set / Flow | `SettingsUseCase` の薄いラッパー |
 

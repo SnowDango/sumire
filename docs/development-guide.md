@@ -56,7 +56,7 @@
 
 1. `data/entity/db` のエンティティ、`repository/dao` の DAO を変更 (追加) する。テーブルを増やす場合は [`SongsDatabase`](../repository/src/main/java/com/snowdango/sumire/repository/SongsDatabase.kt) の `entities` と DAO の `abstract val` にも足す。
 2. `SongsDatabase` の `version` を上げる。
-3. **Migration を書いて `Room.databaseBuilder(...)` に `addMigrations(...)` で登録する。** 現在は Migration の仕組みも `fallbackToDestructiveMigration` も無いので、version だけ上げると既存ユーザーの端末では DB を開く時点で例外になる。
+3. **Migration を [`Migrations.kt`](../repository/src/main/java/com/snowdango/sumire/repository/migration/Migrations.kt) に書き (`MIGRATION_<旧>_<新>`)、`SongsDatabase.getInstance()` の `addMigrations(...)` に登録する。** `fallbackToDestructiveMigration` は使っていないので、Migration が無いまま version だけ上げると既存ユーザーの端末では DB を開く時点で例外になる。列を足すだけなら `ALTER TABLE ... ADD COLUMN` で、型と nullable / デフォルト値をエンティティの定義と揃える (Room が開くときに照合する)。
 4. ビルドで `repository/schemas/` にスキーマ JSON が出力される。Migration の検証や AutoMigration に必要なので、変更前後のスキーマをコミットしておく。
 5. UseCase → Model の順に読み書きのメソッドを足す。
 
@@ -89,7 +89,10 @@ Claude Code で `/version-up` (patch を +1) または `/version-up 0.1.0` を�
 | --- | --- |
 | 再生中画面の Recent の相対時刻 (`"3m ago"` など) は、基準時刻を Flow を作った時点 (ViewModel 生成時) で 1 回だけ計算している。そのため時間が経っても表示が更新されず、ViewModel 生成後に再生した曲は差分が負になって常に `now` と表示される | `GetHistoriesModel.getRecentHistoriesSongFlow` |
 | 履歴画面のリスト構築で `for (index in 0 until histories.itemCount)` と全件に `histories[index]` でアクセスしている。`LazyPagingItems` は `get` されたインデックスを見て次のページを読み込むため、表示範囲に関係なく全ページを順に読み込む挙動になり、Paging の遅延読み込みが実質効いていない | `HistoryCompatScreen` / `HistorySplit2Screen` |
-| アートワークが届かないまま 10 秒以内にスキップされた曲は履歴に保存されない | `PlayingSongSharedFlow` ([詳細](playback-detection.md#保存タイミング-handlestatechange)) |
+| アートワークが届かないまま 10 秒以内にスキップされた曲は履歴に保存されない (その再生時間も残らない) | `PlayingSongSharedFlow` ([詳細](playback-detection.md#保存タイミング-handlestatechange)) |
+| 一時停止に気づくのは音楽アプリが通知を出し直したときだけ (`MediaController.Callback` は未登録)。通知を更新しないまま止まると、次の通知まで再生時間として数え続ける | `SongListenerService` / `PlayingSongSharedFlow` ([詳細](playback-detection.md#再生時間の計測-listeningsession)) |
+| 計測中の再生時間はメモリ上にしか無く、再生中にプロセスが終了すると、最後に再開した (または曲が始まった) ときからの分が失われる | `ListeningSession` / `PlayingSongSharedFlow` |
+| 再生時間を記録する前 (DB version 3 まで) の履歴は `listening_ms` が `null` で、レポートの再生時間の合計に入らない。アップデートした月は再生回数に対して再生時間が少なく出る | `HistoriesDao.getPlaySummary` |
 | 再生中の曲はメモリ上にしか無く、プロセスが終了すると失われる。ウィジェットは次の Worker 実行で「情報なし」表示に戻る | `PlayingSongSharedFlow` |
 | ウィジェットをタップしても、曲がまだ DB に保存されていない間 (保存待ちの最大 10 秒) や URL が無い曲では共有に失敗する | `ShareSongAction` / `ShareSongModel` |
 | `saveData` は複数テーブルへの insert をトランザクション無しで行うので、途中で失敗すると中途半端な行が残る | `SaveModel.saveData` |
@@ -101,7 +104,7 @@ Claude Code で `/version-up` (patch を +1) または `/version-up 0.1.0` を�
 
 | 内容 | 場所 |
 | --- | --- |
-| Room の Migration が 1 つも無い。スキーマ JSON もコミットされていない ([手順](#db-スキーマを変更する)) | `SongsDatabase` |
+| Room のスキーマ JSON がコミットされていないので、Migration (`MIGRATION_3_4`) を `MigrationTestHelper` で検証できない。version 3 のコミットと現在のコミットをそれぞれビルドして、`repository/schemas/` に出力される `3.json` / `4.json` をコミットしておきたい ([手順](#db-スキーマを変更する)) | `SongsDatabase` / `Migrations.kt` |
 | `PlayingSongSharedFlow.listener` は 1 つしか登録できず、現在はウィジェットが使っている。他から設定するとウィジェットが更新されなくなる | `PlayingSongSharedFlow` / `WidgetViewModel` |
 | `MusicApp` の定数名は DB に保存されるため、名前の変更・削除は既存データを壊す | `MusicApp` / `Histories` / `AppSongKey` |
 | `MusicApp.platform` と `UrlPriorityPlatform.platform` は同じ文字列を二重に定義している | `MusicApp` / `UrlPriorityPlatform` |
@@ -124,5 +127,5 @@ Claude Code で `/version-up` (patch を +1) または `/version-up 0.1.0` を�
 | 内容 | 場所 |
 | --- | --- |
 | detekt は `ignoreFailures = true` なので、指摘があっても CI は落ちない | ルート `build.gradle.kts` |
-| ロジックのユニットテストは `GetReportModelTest` だけで、保存処理 (`SaveModel`) や再生状態 (`PlayingSongSharedFlow`) にはテストが無い。画面の回帰検知は VRT に頼っている | 各モジュールの `src/test` |
+| ロジックのユニットテストは `GetReportModelTest` と `ListeningSessionTest` (1 曲分の再生時間の計測) だけで、保存処理 (`SaveModel`) や再生状態の遷移 (`PlayingSongSharedFlow`) にはテストが無い。画面の回帰検知は VRT に頼っている | 各モジュールの `src/test` |
 | VRT は `@PreviewTest` のラッパーを書いた Preview しか撮らないので、ラッパーを足し忘れた画面の変化は検知されない。ウィジェット (`:presenter:widget`) は対象外 | 各モジュールの `src/screenshotTest` |

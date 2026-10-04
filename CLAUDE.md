@@ -23,7 +23,7 @@ JDK 21 が必要。ビルドには gitignore 済みの `app/src/debug/google-ser
 ```
 
 - detekt は `ignoreFailures = true` なので、指摘があってもタスクも CI も失敗しない。出力を読んで判断する。
-- ロジックのユニットテストは `model` の `GetReportModelTest` だけ (他の `ExampleUnitTest` はテンプレートのまま)。画面の回帰検知は Compose Preview Screenshot Testing による VRT が担い、CI が PR 先ブランチの画像と比較して PR にコメントする。
+- ロジックのユニットテストは `model` の `GetReportModelTest` と `infla` の `ListeningSessionTest` だけ (他の `ExampleUnitTest` はテンプレートのまま)。画面の回帰検知は Compose Preview Screenshot Testing による VRT が担い、CI が PR 先ブランチの画像と比較して PR にコメントする。
 
 ## アーキテクチャ
 
@@ -31,8 +31,9 @@ JDK 21 が必要。ビルドには gitignore 済みの `app/src/debug/google-ser
 
 1. `SongListenerService` (`:app`, `NotificationListenerService`) が `MusicApp.packageName` に一致するアプリの通知を受け、`MediaSessionManager` からメタデータを読んで `PlayingSongSharedFlow.changeSong(queueId, data)` を呼ぶ。
 2. `PlayingSongSharedFlow` (`:infla`, Koin の single) が再生中の曲を **メモリ上だけ** に保持する。変化があれば `listener` (ウィジェット用、1 つしか持てない) と `EventSharedFlow` の `ChangeCurrentSong` (画面・Analytics 用) に通知する。
-3. アートワーク付きのメタデータが揃ったら即、揃わなければ 10 秒待って `SaveModel.saveSong()` を呼ぶ。`SaveModel` は `AppSongKey` に `(mediaId, app)` があれば履歴だけ追加し、無ければ song.link API で各サービスの URL を取ってから Room に保存する。
-4. 画面は Room を Paging / Flow で読む。レポートタブは `HistoriesDao` の集計クエリ (期間内の再生回数・曲 / アーティストのランキング) を `GetReportModel` で当月分にまとめる。ウィジェット (Glance) はタップ時に `ShareSongModel` で `AppSongKey` から URL を解決する。
+3. アートワーク付きのメタデータが揃ったら即、揃わなければ 10 秒待って `SaveModel.saveSong()` を呼ぶ。`SaveModel` は `AppSongKey` に `(mediaId, app)` があれば履歴だけ追加し、無ければ song.link API で各サービスの URL を取ってから Room に保存する。戻り値は追加した履歴の ID。
+4. 再生時間は `PlayingSongSharedFlow` が曲ごとの `ListeningSession` で `isActive` だった区間を測り、一時停止・曲の切り替えのたびに `SaveModel.addListeningTime()` で `histories.listening_ms` に足し込む (履歴の ID が決まるまでアプリスコープで待つ)。
+5. 画面は Room を Paging / Flow で読む。レポートタブは `HistoriesDao` の集計クエリ (期間内の再生回数・再生時間の合計・曲 / アーティストのランキング) を `GetReportModel` で当月分にまとめる。ウィジェット (Glance) はタップ時に `ShareSongModel` で `AppSongKey` から URL を解決する。
 
 詳細: [docs/playback-detection.md](docs/playback-detection.md), [docs/persistence.md](docs/persistence.md), [docs/widget.md](docs/widget.md)
 
@@ -49,7 +50,7 @@ JDK 21 が必要。ビルドには gitignore 済みの `app/src/debug/google-ser
 ## 変更時の注意
 
 - `MusicApp` などの enum は Room に **定数名の文字列** で保存される。既存定数の名前変更・削除は保存済みデータを壊す。`MusicApp.platform` / `apiProvider` は song.link API の値と一致させる必要があり、`UrlPriorityPlatform.platform` とも揃える。
-- Room (`SongsDatabase`, version 3) には Migration も `fallbackToDestructiveMigration` も無い。スキーマを変えるときは version を上げ、Migration を書いて `addMigrations` に登録する。スキーマ JSON は `repository/schemas/` に出力される。
+- Room (`SongsDatabase`, version 4) は `fallbackToDestructiveMigration` を使っていない。スキーマを変えるときは version を上げ、`repository/.../migration/Migrations.kt` に Migration を書いて `addMigrations` に登録する。スキーマ JSON は `repository/schemas/` に出力される (まだコミットされていない)。
 - ウィジェットの状態を書き込む処理は `WidgetViewModel.update` と `PlayingSongWorker.update` の 2 か所に重複しているので、両方直す。
 - `PlayingSongSharedFlow.listener` はウィジェットが使っている。他から代入するとウィジェットが更新されなくなるので、画面側の通知には `EventSharedFlow` を使う。
 - `@Preview` には各モジュールの `PreviewGroup.kt` の `*_GROUP` 定数で `group` を付ける。VRT が撮影するのは `src/screenshotTest/kotlin/` にある `@PreviewTest` のラッパーだけなので、Preview を足したらラッパーも足す (`@Preview` のパラメータは main 側と揃える)。

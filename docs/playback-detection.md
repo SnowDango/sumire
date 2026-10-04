@@ -1,6 +1,6 @@
 # 再生検知と再生中の曲の状態管理
 
-音楽アプリの通知をきっかけに MediaSession からメタデータを取り出し、「今再生中の曲」をメモリ上に保持する仕組み。
+音楽アプリの通知をきっかけに MediaSession からメタデータを取り出し、「今再生中の曲」をメモリ上に保持する仕組み。曲ごとの再生時間もここで測る。
 
 ## 関係するクラス
 
@@ -9,7 +9,8 @@
 | [`SongListenerService`](../app/src/main/java/com/snowdango/sumire/service/SongListenerService.kt) | `:app` | `NotificationListenerService`。通知の追加・削除を受けて MediaSession を読みに行く |
 | [`MusicApp`](../data/src/main/java/com/snowdango/sumire/data/entity/MusicApp.kt) | `:data` | 対応サービスの enum。`packageName` が空でないものが再生検知の対象 |
 | [`PlayingSongData` / `SongData`](../data/src/main/java/com/snowdango/sumire/data/entity/playing/) | `:data` | 再生中の曲の値オブジェクト |
-| [`PlayingSongSharedFlow`](../infla/src/main/java/com/snowdango/sumire/infla/PlayingSongSharedFlow.kt) | `:infla` | 再生中の曲の保持、変化の判定、通知、保存タイミングの決定 |
+| [`PlayingSongSharedFlow`](../infla/src/main/java/com/snowdango/sumire/infla/PlayingSongSharedFlow.kt) | `:infla` | 再生中の曲の保持、変化の判定、通知、保存タイミングの決定、再生時間の書き込み |
+| [`ListeningSession`](../infla/src/main/java/com/snowdango/sumire/infla/ListeningSession.kt) | `:infla` | 1 曲分の再生時間の計測と、書き込み先の履歴 ID の受け渡し |
 | [`EventSharedFlow`](../infla/src/main/java/com/snowdango/sumire/infla/EventSharedFlow.kt) | `:infla` | 曲が変わったことを画面側に知らせるイベントバス |
 | [`Logging`](../app/src/main/java/com/snowdango/sumire/logging/Logging.kt) | `:app` | debug ビルドで MediaMetadata / PlaybackState をログ出力する |
 
@@ -93,7 +94,7 @@ queueId は「曲が切り替わったか」の判定だけに使う。DB には
 
 ## PlayingSongSharedFlow の状態遷移
 
-`changeSong(queueId, playingSongData)` が唯一の入口。内部状態は `PlayingState(queueId, data)?` の 1 つだけで、`Mutex` で排他している。メモリ上にしか持たないので、プロセスが終了すると消える。
+`changeSong(queueId, playingSongData)` が唯一の入口。内部状態は `PlayingState(queueId, data, listeningSession)?` の 1 つだけで、`Mutex` で排他している。メモリ上にしか持たないので、プロセスが終了すると消える。
 
 ### 変化の判定 (`updateState`)
 
@@ -102,8 +103,8 @@ queueId は「曲が切り替わったか」の判定だけに使う。DB には
 | queueId が現在と異なり、queueId と data がどちらも非 null、artwork あり | `DATA_COMPLETE` | 新しい曲に置き換え | する |
 | queueId が現在と異なり、queueId と data がどちらも非 null、artwork なし | `CHANGE` | 新しい曲に置き換え | する |
 | queueId が現在と異なり、queueId か data が null | `NONE` | `null` (再生中の曲なし) にする | する |
-| queueId が同じで `isActive` が変わった | `CHANGE_ACTIVE` | data を更新 (`playTime` は引き継ぐ) | する |
-| queueId が同じで、artwork が null → 非 null になった | `DATA_COMPLETE` | data を更新 (`playTime` は引き継ぐ) | する |
+| queueId が同じで `isActive` が変わった | `CHANGE_ACTIVE` | data を更新 (`playTime` と `listeningSession` は引き継ぐ) | する |
+| queueId が同じで、artwork が null → 非 null になった | `DATA_COMPLETE` | data を更新 (`playTime` と `listeningSession` は引き継ぐ) | する |
 | 上記以外 (同じ曲で変化なし、data が null など) | `NONE` | 変更しない | しない |
 
 「通知する」場合は次の 2 つを行う。
@@ -135,8 +136,31 @@ flowchart TD
 - 同じ曲で `isActive` の変化とアートワークの到着が同時に来た場合は `CHANGE_ACTIVE` が優先されるので即保存はされず、10 秒待機のタイムアウト側で保存される。
 - `CHANGE` のとき `changeSong()` 自体が 10 秒間 suspend する。呼び出し元 (`SongListenerService`) は通知ごとに別コルーチンで呼ぶので、次の通知処理は止まらない。
 - 一時停止 → 再開 (`CHANGE_ACTIVE`) では保存しない。同じ曲をリピートしても queueId が変わらなければ保存されない。
+- `metaDataComplete` は `SaveModel.saveSong()` が返した履歴の ID で `ListeningSession.historyId` を完了させる。保存に失敗したときも `finally` で `null` にして完了させる。
 
 保存処理そのものは [persistence.md](persistence.md#保存フロー-savemodel) を参照。
+
+### 再生時間の計測 (`ListeningSession`)
+
+曲 (キューアイテム) ごとに `ListeningSession` を 1 つ作り、`isActive` が true だった区間の長さだけを足していく。区間の長さは再生位置ではなく `SystemClock.elapsedRealtime()` の差で測るので、シークしても実際に流れた時間になり、端末のスリープ中も進み、時刻の変更でずれない。
+
+| きっかけ (`updateState` の中) | `ListeningSession` の操作 | 書き込み |
+| --- | --- | --- |
+| queueId が変わり、新しい曲が `isActive` | 新しいセッションを作って `resume()` | - |
+| queueId が変わった (別の曲・再生中の曲なし) | 前の曲のセッションを `finish()` (最後の区間を締める) | 締めた区間を書き込む |
+| 同じ曲で `isActive` が false → true (`CHANGE_ACTIVE`) | `resume()` | - |
+| 同じ曲で `isActive` が true → false (`CHANGE_ACTIVE`) | `pause()` | 締めた区間を書き込む |
+
+- 書き込みは `SaveModel.addListeningTime(historyId, ms)` で、`histories.listening_ms` に **足し込む** ([persistence.md](persistence.md#再生時間の書き込み))。一時停止のたびに書くので、1 曲の再生時間は複数回に分けて届く。曲の終わりを待たないのは、プロセスが終了しても一時停止までの分を残すため。
+- 履歴の ID は保存が終わるまで (アートワーク待ちの最大 10 秒 + song.link API) 分からない。そのため書き込みはアプリスコープで `launch` し、`ListeningSession.historyId` (`CompletableDeferred<Long?>`) を `await` してから行う。`changeSong()` の呼び出し元は待たない。
+- 保存は再生中の曲に対してしか行わないので、保存が始まらないまま `finish()` した曲はこの先も保存されない。このとき `historyId` を `null` で完了させ、待っている書き込みを捨てる (アートワークが無いまま 10 秒以内にスキップされた曲など)。
+- 0 ミリ秒の区間 (一時停止中に曲が切り替わったなど) は書き込まない。一度も再生しなかった履歴の `listening_ms` は `null` のまま。
+
+計測の限界:
+
+- 一時停止に気づけるのは、音楽アプリが通知を出し直して `onNotificationPosted` が呼ばれたときだけ。`MediaController.Callback` は登録していないので、通知を更新しないまま止まった場合は次の通知まで再生中として数える。
+- 計測中の区間はメモリ上にしか無いので、再生中にプロセスが終了すると、最後に再開した (または曲が始まった) ときからの分は失われる。
+- queueId が変わらないリピート再生は 1 件の履歴にまとめて足される (回数は 1 のまま、時間は流れた分だけ増える)。
 
 ## 再生中の曲を読む側
 

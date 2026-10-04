@@ -24,6 +24,7 @@ import kotlinx.datetime.yearMonth
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 
 class GetReportModel : KoinComponent {
@@ -83,6 +84,7 @@ internal fun convertToMonthlyReportViewData(
         playCount = summary.playCount,
         songCount = summary.songCount,
         artistCount = summary.artistCount,
+        listeningTime = summary.listeningMs.milliseconds,
         topSongs = topSongs.mapIndexed { index, song ->
             RankedSongViewData(
                 rank = index + 1,

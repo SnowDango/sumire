@@ -88,7 +88,7 @@
 
 ## テスト
 
-- ロジックのユニットテストは [`GetReportModelTest`](../model/src/test/java/com/snowdango/sumire/model/GetReportModelTest.kt) (月の範囲計算とレポートへの変換) だけ。他のモジュールの `ExampleUnitTest` / `ExampleInstrumentedTest` は Android Studio のテンプレートのまま。
+- ロジックのユニットテストは [`GetReportModelTest`](../model/src/test/java/com/snowdango/sumire/model/GetReportModelTest.kt) (月の範囲計算とレポートへの変換) と [`ListeningSessionTest`](../infla/src/test/java/com/snowdango/sumire/infla/ListeningSessionTest.kt) (1 曲分の再生時間の計測) だけ。他のモジュールの `ExampleUnitTest` / `ExampleInstrumentedTest` は Android Studio のテンプレートのまま。
 - 画面の回帰は Compose Preview Screenshot Testing による VRT で確認している。
 
 ### VRT の仕組み

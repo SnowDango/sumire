@@ -9,6 +9,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 class GetReportModelTest {
 
@@ -34,7 +38,12 @@ class GetReportModelTest {
     fun convertToMonthlyReportViewData_ranksInGivenOrder() {
         val viewData = convertToMonthlyReportViewData(
             yearMonthText = "2026/10",
-            summary = PlaySummary(playCount = 12, songCount = 3, artistCount = 2),
+            summary = PlaySummary(
+                playCount = 12,
+                songCount = 3,
+                artistCount = 2,
+                listeningMs = (1.hours + 23.minutes + 450.milliseconds).inWholeMilliseconds,
+            ),
             topSongs = listOf(
                 songPlayCount(songId = 3, title = "most", playCount = 7),
                 songPlayCount(songId = 1, title = "second", playCount = 3),
@@ -50,6 +59,7 @@ class GetReportModelTest {
         assertEquals(12, viewData.playCount)
         assertEquals(3, viewData.songCount)
         assertEquals(2, viewData.artistCount)
+        assertEquals(1.hours + 23.minutes + 450.milliseconds, viewData.listeningTime)
         assertEquals(listOf(1, 2, 3), viewData.topSongs.map { it.rank })
         assertEquals(listOf("most", "second", "third"), viewData.topSongs.map { it.title })
         assertEquals(listOf(7, 3, 2), viewData.topSongs.map { it.playCount })
@@ -62,12 +72,13 @@ class GetReportModelTest {
     fun convertToMonthlyReportViewData_noPlays() {
         val viewData = convertToMonthlyReportViewData(
             yearMonthText = "2026/10",
-            summary = PlaySummary(playCount = 0, songCount = 0, artistCount = 0),
+            summary = PlaySummary(playCount = 0, songCount = 0, artistCount = 0, listeningMs = 0),
             topSongs = listOf(),
             topArtists = listOf(),
         )
 
         assertEquals(0, viewData.playCount)
+        assertEquals(Duration.ZERO, viewData.listeningTime)
         assertTrue(viewData.topSongs.isEmpty())
         assertTrue(viewData.topArtists.isEmpty())
     }

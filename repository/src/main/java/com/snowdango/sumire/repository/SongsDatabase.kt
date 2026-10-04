@@ -17,6 +17,7 @@ import com.snowdango.sumire.repository.dao.ArtistsDao
 import com.snowdango.sumire.repository.dao.HistoriesDao
 import com.snowdango.sumire.repository.dao.SongsDao
 import com.snowdango.sumire.repository.dao.TasksDao
+import com.snowdango.sumire.repository.migration.MIGRATION_3_4
 import com.snowdango.sumire.repository.typeconverter.LocalDataTimeConverter
 
 @Database(
@@ -28,7 +29,7 @@ import com.snowdango.sumire.repository.typeconverter.LocalDataTimeConverter
         Histories::class,
         Tasks::class,
     ],
-    version = 3,
+    version = 4,
     // スキーマ変更時に migration を書けるよう、スキーマを repository/schemas に出力する
     exportSchema = true,
 )
@@ -56,6 +57,8 @@ abstract class SongsDatabase : RoomDatabase() {
                     context.applicationContext,
                     SongsDatabase::class.java,
                     DATABASE_NAME,
+                ).addMigrations(
+                    MIGRATION_3_4,
                 ).build().also {
                     INSTANCE = it
                 }

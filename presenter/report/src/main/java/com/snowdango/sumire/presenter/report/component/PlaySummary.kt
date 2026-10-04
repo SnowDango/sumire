@@ -20,39 +20,66 @@ import androidx.compose.ui.unit.dp
 import com.snowdango.sumire.presenter.report.R
 import com.snowdango.sumire.presenter.report.REPORT_GROUP
 import com.snowdango.sumire.ui.theme.SumireTheme
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun PlaySummary(
     playCount: Int,
     songCount: Int,
     artistCount: Int,
+    listeningTime: Duration,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // 「12h 34m」は他のタイルより幅を取るので、1 行使って上に置く
         PlaySummaryItem(
-            value = playCount,
-            label = stringResource(R.string.summary_plays),
-            modifier = Modifier.weight(1f),
+            value = listeningTimeText(listeningTime),
+            label = stringResource(R.string.summary_listening_time),
+            modifier = Modifier.fillMaxWidth(),
         )
-        PlaySummaryItem(
-            value = songCount,
-            label = stringResource(R.string.summary_songs),
-            modifier = Modifier.weight(1f),
-        )
-        PlaySummaryItem(
-            value = artistCount,
-            label = stringResource(R.string.summary_artists),
-            modifier = Modifier.weight(1f),
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            PlaySummaryItem(
+                value = playCount.toString(),
+                label = stringResource(R.string.summary_plays),
+                modifier = Modifier.weight(1f),
+            )
+            PlaySummaryItem(
+                value = songCount.toString(),
+                label = stringResource(R.string.summary_songs),
+                modifier = Modifier.weight(1f),
+            )
+            PlaySummaryItem(
+                value = artistCount.toString(),
+                label = stringResource(R.string.summary_artists),
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+// 月の合計なので秒は出さず、1 分未満は切り捨てる
+@Composable
+private fun listeningTimeText(listeningTime: Duration): String {
+    return listeningTime.toComponents { wholeHours, minutesOfHour, _, _ ->
+        if (wholeHours > 0) {
+            stringResource(R.string.listening_time_hours_minutes, wholeHours, minutesOfHour)
+        } else {
+            stringResource(R.string.listening_time_minutes, minutesOfHour)
+        }
     }
 }
 
 @Composable
 private fun PlaySummaryItem(
-    value: Int,
+    value: String,
     label: String,
     modifier: Modifier = Modifier,
 ) {
@@ -64,7 +91,7 @@ private fun PlaySummaryItem(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = value.toString(),
+            text = value,
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
@@ -90,6 +117,7 @@ fun Preview_PlaySummary() {
                 playCount = 128,
                 songCount = 64,
                 artistCount = 12,
+                listeningTime = 8.hours + 32.minutes,
             )
         }
     }

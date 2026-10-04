@@ -113,7 +113,7 @@ ViewModel の状態:
 
 | Composable | 内容 |
 | --- | --- |
-| `PlaySummary` | 再生回数 (Plays)・曲の種類数 (Songs)・アーティストの種類数 (Artists) の 3 つのタイル |
+| `PlaySummary` | 上段に全幅の再生時間 (Listening Time、`12h 34m` / 1 時間未満は `34m`。1 分未満は切り捨て)、下段に再生回数 (Plays)・曲の種類数 (Songs)・アーティストの種類数 (Artists) の 3 つのタイル |
 | `RankedSongCard` | 順位、サムネイル (`SongThumbnail`)、タイトル / アルバム / アーティスト、再生回数 (上位 5 曲) |
 | `RankedArtistCard` | 順位、アーティスト名、再生回数 (上位 3 組) |
 | `RankText` / `PlayCountText` | 順位と「N play(s)」の表示 (`plurals` リソース) |

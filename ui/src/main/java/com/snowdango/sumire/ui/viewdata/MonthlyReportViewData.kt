@@ -1,10 +1,14 @@
 package com.snowdango.sumire.ui.viewdata
 
+import kotlin.time.Duration
+
 data class MonthlyReportViewData(
     val yearMonthText: String,
     val playCount: Int,
     val songCount: Int,
     val artistCount: Int,
+    // 再生時間を記録していない履歴 (記録を始める前の履歴など) の分は含まない
+    val listeningTime: Duration,
     val topSongs: List<RankedSongViewData>,
     val topArtists: List<RankedArtistViewData>,
 )
