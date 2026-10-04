@@ -14,6 +14,11 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          # デフォルトブランチは master なので、develop からもキャッシュを書き込めるようにする
+          cache-read-only: false
       - name: chmod gradlew
         run: |
           chmod +x gradlew

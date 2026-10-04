@@ -16,6 +16,10 @@ data class Histories(
     val playTime: LocalDateTime,
     @ColumnInfo(COLUMN_APP)
     val app: MusicApp,
+    // 実際に再生していた時間 (ミリ秒)。新しい履歴は 0 で作り、一時停止や曲の切り替えのたびに後から足し込む。
+    // null は記録を始める前 (DB version 3 まで) の履歴だけにして、レポートで「時間が分からない再生」を数えられるようにする
+    @ColumnInfo(COLUMN_LISTENING_MS)
+    val listeningMs: Long? = 0L,
 ) {
     companion object {
         const val TABLE_NAME = "histories"
@@ -23,5 +27,6 @@ data class Histories(
         const val COLUMN_SONG_ID = "song_id"
         const val COLUMN_PLAY_TIME = "play_time"
         const val COLUMN_APP = "app"
+        const val COLUMN_LISTENING_MS = "listening_ms"
     }
 }

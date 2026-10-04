@@ -32,27 +32,40 @@ class SaveModel : KoinComponent {
     private val songsUseCase: SongsUseCase by inject()
     private val tasksUseCase: TasksUseCase by inject()
 
-    suspend fun saveSong(playingSongData: PlayingSongData) {
+    /**
+     * @return 追加した履歴の ID。あとから再生時間を書き込むのに使う
+     */
+    suspend fun saveSong(playingSongData: PlayingSongData): Long {
         val mediaId = playingSongData.songData.mediaId
         val app = playingSongData.songData.app
         // 先にローカル DB を確認し、既知の曲なら API を叩かずに履歴だけ追加する
         val known = appSongKeyUseCase.getAppSongKeys(mediaId, app)
-        if (known != null) {
+        return if (known != null) {
             saveKnownSong(known, playingSongData)
         } else {
             saveNewSong(playingSongData)
         }
     }
 
-    private suspend fun saveKnownSong(known: SongAppKeys, playingSongData: PlayingSongData) {
-        val songId = known.targetKey.songId
+    /**
+     * 履歴に再生時間を足す。1 曲の再生時間は一時停止や曲の切り替えのたびに分けて届く
+     */
+    suspend fun addListeningTime(historyId: Long, listeningMs: Long) {
         withContext(Dispatchers.IO) {
+            historiesUseCase.addListeningTime(historyId, listeningMs)
+        }
+    }
+
+    private suspend fun saveKnownSong(known: SongAppKeys, playingSongData: PlayingSongData): Long {
+        val songId = known.targetKey.songId
+        val historyId = withContext(Dispatchers.IO) {
             saveHistory(songId, playingSongData.playTime, playingSongData.songData.app)
         }
         // オフライン時などに API 情報なしで保存された曲は、URL をあとから補完する
         if (known.songKeys.song.url == null) {
             backfillSongLink(songId, playingSongData)
         }
+        return historyId
     }
 
     private suspend fun backfillSongLink(songId: Long, playingSongData: PlayingSongData) {
@@ -67,9 +80,9 @@ class SaveModel : KoinComponent {
         }
     }
 
-    private suspend fun saveNewSong(playingSongData: PlayingSongData) {
+    private suspend fun saveNewSong(playingSongData: PlayingSongData): Long {
         val response = fetchSongLink(playingSongData)
-        if (response != null && response.status == SongLinkResponse.Status.OK) {
+        return if (response != null && response.status == SongLinkResponse.Status.OK) {
             saveWithApi(response.songData, playingSongData)
         } else {
             saveNoApi(playingSongData, response?.status ?: SongLinkResponse.Status.Error)
@@ -110,7 +123,7 @@ class SaveModel : KoinComponent {
     private suspend fun saveWithApi(
         songLinkData: SongLinkData,
         playingSongData: PlayingSongData,
-    ) {
+    ): Long {
         val (keyMap, urlMap) = extractKeyAndUrlMap(songLinkData)
         // 問い合わせたエンティティのサムネイルを優先し、無ければ他のエンティティ、
         // それも無ければ再生中のアートワークを使う
@@ -118,7 +131,7 @@ class SaveModel : KoinComponent {
             songLinkData.entities[songLinkData.entityUniqueId]
                 ?: songLinkData.entities.values.firstOrNull()
             )?.thumbnailUrl?.takeIf { it.isNotBlank() }
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             saveData(
                 artist = playingSongData.songData.artist,
                 albumName = playingSongData.songData.album,
@@ -140,10 +153,10 @@ class SaveModel : KoinComponent {
     private suspend fun saveNoApi(
         playingSongData: PlayingSongData,
         status: SongLinkResponse.Status,
-    ) {
+    ): Long {
         val keyMap: Map<MusicApp, String> =
             mapOf(playingSongData.songData.app to playingSongData.songData.mediaId)
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             saveData(
                 artist = playingSongData.songData.artist,
                 albumName = playingSongData.songData.album,
@@ -173,11 +186,11 @@ class SaveModel : KoinComponent {
         status: SongLinkResponse.Status,
         mediaId: String,
         app: MusicApp,
-    ) {
+    ): Long {
         val artistId: Long = saveArtist(artist)
         val albumId: Long = saveAlbum(artistId, albumName, thumbnail, isThumbUrl)
         val songId = saveSong(title, artistId, albumId, url)
-        saveHistory(songId, playTime, app)
+        val historyId = saveHistory(songId, playTime, app)
         checkAppSongKey(
             songId = songId,
             mapKey,
@@ -186,6 +199,7 @@ class SaveModel : KoinComponent {
         if (status == SongLinkResponse.Status.Error) {
             saveTasks(songId, mediaId)
         }
+        return historyId
     }
 
     private suspend fun saveArtist(artist: String): Long {
@@ -215,8 +229,8 @@ class SaveModel : KoinComponent {
         return songsUseCase.saveSong(title, artistId, albumId, url)
     }
 
-    private suspend fun saveHistory(songId: Long, playTime: LocalDateTime, app: MusicApp) {
-        historiesUseCase.saveHistories(songId, playTime, app)
+    private suspend fun saveHistory(songId: Long, playTime: LocalDateTime, app: MusicApp): Long {
+        return historiesUseCase.saveHistories(songId, playTime, app)
     }
 
     /**

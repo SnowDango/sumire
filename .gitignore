@@ -13,3 +13,10 @@ app/src/release/google-services.json
 check_elf_alignment.sh
 debug.jks
 release.jks
+# Compose Preview Screenshot Testing の参照画像。VRT は CI が PR 先ブランチで撮り直して比較するのでコミットしない
+**/src/screenshotTest*/reference/
+# VRT 用の作業ディレクトリ(.circleci/collect-screenshots.sh / CompareScreenshots.java の出力)
+/vrt-base/
+/vrt-head/
+/vrt-result/
+/screenshots/

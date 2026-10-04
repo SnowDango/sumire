@@ -27,7 +27,6 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    onShowkaseIntent: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
 
@@ -76,11 +75,7 @@ fun SettingsScreen(
         }
         if (BuildConfig.DEBUG) {
             item {
-                DebugSettings(
-                    showkaseClick = {
-                        onShowkaseIntent.invoke()
-                    },
-                )
+                DebugSettings()
             }
         }
     }
@@ -121,17 +116,11 @@ fun MainSettings(
 @Composable
 fun DebugSettings(
     modifier: Modifier = Modifier,
-    showkaseClick: () -> Unit,
 ) {
     SettingsGroup(
         modifier = modifier,
         title = { Text(text = stringResource(R.string.debug_settings_title)) },
     ) {
-        SettingsMenuLink(
-            title = { Text(text = stringResource(R.string.showkase_show_setting_title)) },
-            subtitle = { Text(text = stringResource(R.string.showkase_show_setting_subtitle)) },
-            onClick = showkaseClick,
-        )
         SettingsMenuLink(
             title = { Text(text = stringResource(R.string.crashlytics_crash_setting_title)) },
             subtitle = { Text(text = stringResource(R.string.crashlytics_crash_setting_subtitle)) },
