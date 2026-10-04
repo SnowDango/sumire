@@ -178,6 +178,7 @@ jobs:
             - project/presenter/playing/build
             - project/presenter/history/build
             - project/presenter/settings/build
+            - project/presenter/report/build
             - project/presenter/widget/build
   unittest:
     executor:
